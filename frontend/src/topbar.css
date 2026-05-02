@@ -1,0 +1,29 @@
+/* yläpalkin tyylittely, yhteinen kaikille välilehdille */
+
+.topbar {
+  height: 70px;
+  background-color: #e8eef5; /* sama kuin sidebar */
+  border-bottom: 0px solid #e2e6ee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+
+/* otsikko */
+.topbar h2 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 25px;
+  color: #2c2c2c;
+}
+
+/* oikea puoli */
+.topbar-right {
+  color: #6b7280;
+  font-size: 14px;
+}
