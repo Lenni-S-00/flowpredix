@@ -1,6 +1,6 @@
 /* työpöytä välilehti */
 
-import Topbar from "./topbar.jsx";
+import Topbar from "../topbar.jsx";
 
 function Dashboard() {
   return (

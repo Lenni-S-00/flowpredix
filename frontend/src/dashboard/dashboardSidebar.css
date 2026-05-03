@@ -1,0 +1,232 @@
+.dashboard-sidebar-panel {
+  padding: 8px 0 12px;
+  margin: 0 0 12px;
+  background: transparent;
+  border: none;
+  box-sizing: border-box;
+}
+
+/* Toteutuneet / Ennuste */
+.dashboard-mode-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dashboard-mode-button {
+  height: 38px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid #d9e1ec;
+  background: white;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-mode-button.active {
+  background: #eef3f8;
+  border-color: #b9c8d8;
+}
+
+.fake-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #aeb8c5;
+  border-radius: 4px;
+  background: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+/* Jakoviiva */
+.dashboard-divider {
+  height: 1px;
+  background: #dce4ee;
+  margin: 10px 0;
+}
+
+/* Toimipistevalinta */
+.location-dropdown summary {
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #dfe6ef;
+  background: white;
+  list-style: none;
+  cursor: pointer;
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: 20px 1fr 16px;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+.location-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.location-list {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid #dfe6ef;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.location-item {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.location-item input {
+  width: 14px;
+  height: 14px;
+}
+
+/* Tyhjennä-painike */
+.clear-locations-button {
+  width: 100%;
+  height: 36px;
+  margin: 8px 0 18px;
+  border-radius: 8px;
+  border: 1px solid #dfe6ef;
+  background: white;
+  color: #6b7280;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.clear-locations-button:disabled {
+  color: #b4bbc6;
+  cursor: default;
+}
+
+/* Otsikot */
+.dashboard-section-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Kalenteri */
+.calendar-box {
+  width: 100%;
+}
+
+.calendar-header {
+  height: 30px;
+  margin-bottom: 6px;
+
+  display: grid;
+  grid-template-columns: 30px 1fr 30px;
+  align-items: center;
+  text-align: center;
+
+  background: transparent;
+  border: none;
+}
+
+.calendar-header button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.calendar-header-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.calendar-grid div {
+  padding: 4px 0;
+  border-radius: 4px;
+  background: #f3f4f6;
+}
+
+.calendar-grid span {
+  padding: 4px 0;
+  border-radius: 4px;
+}
+
+.weekend {
+  color: red;
+}
+
+.selected {
+  background: #eeeeee;
+}
+
+/* Submit */
+.dashboard-submit {
+  width: 100%;
+  height: 38px;
+  margin-top: 14px;
+  border-radius: 8px;
+  border: 1px solid #dfe6ef;
+  background: white;
+  color: #6b7280;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Ennuste */
+.forecast-select {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #dfe6ef;
+  background: white;
+  font-size: 13px;
+}
+
+.calendar-day {
+  border: none;
+  background: transparent;
+  padding: 5px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.calendar-day:hover:not(:disabled) {
+  background: #e8eef5;
+}
+
+.calendar-day:disabled {
+  cursor: default;
+}
+
+.calendar-day.selected {
+  background: #6f86a8;
+  color: white;
+}
+
+.calendar-day.in-range {
+  background: #dbe5ef;
+}
