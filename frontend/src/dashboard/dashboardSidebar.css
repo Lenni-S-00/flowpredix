@@ -230,3 +230,61 @@
 .calendar-day.in-range {
   background: #dbe5ef;
 }
+
+.date-picker {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.date-input {
+  width: 100%;
+  height: 40px;
+
+  border-radius: 10px;
+  border: 1px solid #dfe6ef;
+  background: white;
+
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 14px;
+  color: #374151;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.date-input:hover {
+  border-color: #c7d2e2;
+  background-color: #f9fbfd;
+}
+
+.date-input:active {
+  transform: scale(0.99);
+}
+
+.date-input span {
+  color: #6b7280;
+}
+
+.calendar-popup {
+  position: absolute;
+  top: 46px;
+  left: 0;
+  z-index: 20;
+
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  padding: 12px;
+
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}

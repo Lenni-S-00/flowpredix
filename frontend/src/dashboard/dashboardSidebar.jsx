@@ -7,7 +7,8 @@ function DashboardSidebar() {
   const [forecastRange, setForecastRange] = useState("2 viikkoa");
 
   // Kalenterin tila
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1)); // huhtikuu 2026
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1));
+  const [showCalendar, setShowCalendar] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
@@ -28,11 +29,15 @@ function DashboardSidebar() {
   };
 
   const previousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    );
   };
 
   const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    );
   };
 
   const handleDateClick = (date) => {
@@ -48,6 +53,9 @@ function DashboardSidebar() {
     } else {
       setEndDate(date);
     }
+
+    // Sulkee kalenterin, kun alku- ja loppupäivä on valittu
+    setShowCalendar(false);
   };
 
   const isSameDate = (a, b) => {
@@ -65,7 +73,7 @@ function DashboardSidebar() {
     const month = currentDate.getMonth();
 
     const firstDay = new Date(year, month, 1);
-    const startDay = (firstDay.getDay() + 6) % 7; // ma = 0
+    const startDay = (firstDay.getDay() + 6) % 7;
 
     const days = [];
 
@@ -81,6 +89,18 @@ function DashboardSidebar() {
 
     return days;
   };
+
+  const formatDate = (date) => {
+    if (!date) return "";
+    return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+  };
+
+  const rangeText =
+    startDate && endDate
+      ? `${formatDate(startDate)} – ${formatDate(endDate)}`
+      : startDate
+        ? `${formatDate(startDate)} –`
+        : "Valitse aikaväli";
 
   return (
     <div className="dashboard-sidebar-panel">
@@ -147,40 +167,57 @@ function DashboardSidebar() {
             Valitse aikaväli
           </div>
 
-          <div className="calendar-box">
-            <div className="calendar-header">
-              <button onClick={previousMonth}>‹</button>
-              <div className="calendar-header-title">
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          {/* Aikavälikenttä */}
+          <div className="date-picker">
+            <button
+              className="date-input"
+              onClick={() => setShowCalendar(!showCalendar)}
+            >
+              <span>{rangeText}</span>
+              <span>📅</span>
+
+            </button>
+
+            {/* Aukeava kalenteri */}
+            {showCalendar && (
+              <div className="calendar-popup">
+                <div className="calendar-header">
+                  <button onClick={previousMonth}>‹</button>
+
+                  <div className="calendar-header-title">
+                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </div>
+
+                  <button onClick={nextMonth}>›</button>
+                </div>
+
+                <div className="calendar-grid">
+                  <div>ma</div>
+                  <div>ti</div>
+                  <div>ke</div>
+                  <div>to</div>
+                  <div>pe</div>
+                  <div className="weekend">la</div>
+                  <div className="weekend">su</div>
+
+                  {getCalendarDays().map((date, index) => (
+                    <button
+                      key={index}
+                      className={`
+                        calendar-day
+                        ${date && isSameDate(date, startDate) ? "selected" : ""}
+                        ${date && isSameDate(date, endDate) ? "selected" : ""}
+                        ${date && isInRange(date) ? "in-range" : ""}
+                      `}
+                      disabled={!date}
+                      onClick={() => handleDateClick(date)}
+                    >
+                      {date ? date.getDate() : ""}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <button onClick={nextMonth}>›</button>
-            </div>
-
-            <div className="calendar-grid">
-              <div>ma</div>
-              <div>ti</div>
-              <div>ke</div>
-              <div>to</div>
-              <div>pe</div>
-              <div className="weekend">la</div>
-              <div className="weekend">su</div>
-
-              {getCalendarDays().map((date, index) => (
-                <button
-                  key={index}
-                  className={`
-                    calendar-day
-                    ${date && isSameDate(date, startDate) ? "selected" : ""}
-                    ${date && isSameDate(date, endDate) ? "selected" : ""}
-                    ${date && isInRange(date) ? "in-range" : ""}
-                  `}
-                  disabled={!date}
-                  onClick={() => handleDateClick(date)}
-                >
-                  {date ? date.getDate() : ""}
-                </button>
-              ))}
-            </div>
+            )}
           </div>
 
           <button className="dashboard-submit">
