@@ -3,9 +3,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import SampleData
 from .serializers import SampleDataSerializer
+from .services.ingestion import process_file
+from .services.finalization import create_records
 
 import pandas as pd
-import numpy as np
 
 # TÄÄLLÄ ON ENDPOINTIT
 
@@ -57,50 +58,37 @@ def upload_file(request):
         else:
             return Response({"error": "Unsupported file type"}, status=400)
 
-        # Normalisoidaan otsikot
-        df.columns = df.columns.str.strip().str.lower()
-
-        # Example mapping (adjust to your data)
-        column_mapping = {
-            "näytteenottopaikka": "location",
-            "näytteenottoja": "samples_taken",
-            "näytteenottajia": "employees_used",
-        }
-
-        df.rename(columns=column_mapping, inplace=True)
-
-        # Combine time columns if needed
-        if {"näytteenottovuosi", "näytteenottokk", "näytteenottopv", "näytteenottotunti"}.issubset(df.columns):
-            df["timestamp"] = pd.to_datetime({
-                "year": df["näytteenottovuosi"], "month": df["näytteenottokk"], "day": df["näytteenottopv"], "hour": df["näytteenottotunti"],}
-            )
-
-        # Keep only required columns
-        required_columns = ["location", "timestamp", "samples_taken", "employees_used"]
-        df = df[required_columns]
-
-        missing = [col for col in required_columns if col not in df.columns]
+        df, missing = process_file(df)
 
         if missing:
             return Response({
                 "error": "Missing required columns",
-                "missing": missing,
-                "available": df.columns.tolist()
+                "missing": missing
             }, status=400)
 
-        # Replace NaN with None (JSON-safe)
-        df = df.replace([np.nan, np.inf, -np.inf], None)
-
-        # Convert to records (list of dicts)
-        records = df.to_dict(orient="records")
-
+        records = create_records(df)
+        #print("DF SHAPE:", df.shape)
+        #print("COLUMNS:", df.columns.tolist())
+        #print(df.head())
+        #print(df.dtypes)
+        #print("records:", records)
+        #print("TYPE:", type(records))
+        '''
+        for i, r in enumerate(records):
+            print(i, type(r), r)
+        '''
         serializer = SampleDataSerializer(data=records, many=True)
+        
+        serializer.is_valid(raise_exception=True)
+        print("\n")
+        print(serializer.errors)
 
         if serializer.is_valid():
             serializer.save()
             return Response({
                 "message": "Data saved successfully",
-                "rows_saved": len(records)
+                "rows_received": len(records),
+                "rows_inserted": len(serializer.validated_data)
             })
         else:
             print(serializer.errors)

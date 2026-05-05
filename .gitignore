@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Apply also to backend
+__pycache__/
+*.pyc
