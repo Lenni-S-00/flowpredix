@@ -1,9 +1,9 @@
-/* datan lisäys välilehti: tässä kaikki initial commit tavara */
+/* alkuperänen initial commit sisältö, jossa toimiva systeemi datan lisäykseen */
 
 import { useEffect, useState } from "react";
-import Topbar from "./topbar.jsx";
+import Topbar from "../topbar.jsx";
 
-function AddFile() {
+function Data() {
   const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
 
@@ -74,11 +74,9 @@ function AddFile() {
   return (
     <div>
       {/* Yläpalkki */}
-      <Topbar title="Tiedoston lisäys" />
 
       <div className="page-content">
 
-        <h4>React + DRF</h4>
         <p>{message}</p>
 
         {/* FILE UPLOAD */}
@@ -150,4 +148,4 @@ function AddFile() {
   );
 }
 
-export default AddFile;
+export default Data;

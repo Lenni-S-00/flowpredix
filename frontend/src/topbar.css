@@ -1,29 +1,70 @@
-/* yläpalkin tyylittely, yhteinen kaikille välilehdille */
-
 .topbar {
-  height: 70px;
-  background-color: #e8eef5; /* sama kuin sidebar */
-  border-bottom: 0px solid #e2e6ee;
+  height: 64px;
+  background: #e2eafc;
+  border-bottom: 0px solid #d6dee8;
+  display: flex;
+  align-items: center;
+}
+
+.topbar-inner {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  box-sizing: border-box;
-  width: 100%;
-  flex-shrink: 0;
+  padding: 0 44px;
 }
 
-
-/* otsikko */
-.topbar h2 {
-  margin: 0;
-  font-weight: 600;
-  font-size: 25px;
-  color: #2c2c2c;
+.topbar-logo {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d2d2d;
 }
 
-/* oikea puoli */
-.topbar-right {
-  color: #6b7280;
+.topbar-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  background: #c1d3fe;
+  padding: 5px;
+  border-radius: 18px;
+}
+
+.topbar-tab {
+  height: 34px;
+  min-width: 105px;
+
+  border: none;
+  border-radius: 13px;
+  background: transparent;
+  color: white;
+
+  padding: 0 18px;
   font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.topbar-tab:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.topbar-tab.active {
+  background: #abc4ff;
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.tab-icon {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.tab-label {
+  opacity: 1;
+  transform: none;
+  white-space: nowrap;
 }

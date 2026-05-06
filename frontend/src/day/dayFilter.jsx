@@ -1,16 +1,22 @@
-import { useState } from "react";
-import "./dashboardSidebar.css";
+// dashboard/DashboardFilters.jsx
+import { useEffect, useRef, useState } from "react";
+import "./dayFilter.css";
 
-function DashboardSidebar() {
+function DayFilter() {
   const [mode, setMode] = useState("realized");
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [forecastRange, setForecastRange] = useState("2 viikkoa");
 
-  // Kalenterin tila
   const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1));
   const [showCalendar, setShowCalendar] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+
+  const calendarRef = useRef(null);
+  const closeTimerRef = useRef(null);
+
+  const [showLocationMenu, setShowLocationMenu] = useState(false);
+  const locationMenuRef = useRef(null);
 
   const locations = ["Kaikki toimipisteet", "Lab1", "Lab2", "Lab3"];
 
@@ -20,12 +26,37 @@ function DashboardSidebar() {
     "syyskuu", "lokakuu", "marraskuu", "joulukuu"
   ];
 
-  const toggleLocation = (location) => {
-    if (selectedLocations.includes(location)) {
-      setSelectedLocations(selectedLocations.filter((item) => item !== location));
-    } else {
-      setSelectedLocations([...selectedLocations, location]);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target)
+      ) {
+        setShowCalendar(false);
+      }
+
+      if (
+        locationMenuRef.current &&
+        !locationMenuRef.current.contains(event.target)
+      ) {
+        setShowLocationMenu(false);
+      }
     }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      clearTimeout(closeTimerRef.current);
+    };
+  }, []);
+
+  const toggleLocation = (location) => {
+    setSelectedLocations((prev) =>
+      prev.includes(location)
+        ? prev.filter((item) => item !== location)
+        : [...prev, location]
+    );
   };
 
   const previousMonth = () => {
@@ -41,7 +72,9 @@ function DashboardSidebar() {
   };
 
   const handleDateClick = (date) => {
-    if (!startDate || (startDate && endDate)) {
+    clearTimeout(closeTimerRef.current);
+
+    if (!startDate || endDate) {
       setStartDate(date);
       setEndDate(null);
       return;
@@ -54,8 +87,9 @@ function DashboardSidebar() {
       setEndDate(date);
     }
 
-    // Sulkee kalenterin, kun alku- ja loppupäivä on valittu
-    setShowCalendar(false);
+    closeTimerRef.current = setTimeout(() => {
+      setShowCalendar(false);
+    }, 700);
   };
 
   const isSameDate = (a, b) => {
@@ -71,7 +105,6 @@ function DashboardSidebar() {
   const getCalendarDays = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-
     const firstDay = new Date(year, month, 1);
     const startDay = (firstDay.getDay() + 6) % 7;
 
@@ -99,96 +132,108 @@ function DashboardSidebar() {
     startDate && endDate
       ? `${formatDate(startDate)} – ${formatDate(endDate)}`
       : startDate
-        ? `${formatDate(startDate)} –`
-        : "Valitse aikaväli";
+      ? `${formatDate(startDate)} –`
+      : "Valitse aikaväli";
 
   return (
-    <div className="dashboard-sidebar-panel">
-
-      {/* Toteutuneet / Ennuste */}
-      <div className="dashboard-mode-row">
+    <div className="day-filters">
+      <div className="day-mode-row">
         <button
-          className={`dashboard-mode-button ${mode === "realized" ? "active" : ""}`}
+          className={`day-mode-button ${mode === "realized" ? "active" : ""}`}
           onClick={() => setMode("realized")}
         >
-          <span className="fake-checkbox">{mode === "realized" ? "✓" : ""}</span>
+          <span className="fake-checkbox">
+            {mode === "realized" ? "✓" : ""}
+          </span>
           Toteutuneet
         </button>
 
         <button
-          className={`dashboard-mode-button ${mode === "forecast" ? "active" : ""}`}
+          className={`day-mode-button ${mode === "forecast" ? "active" : ""}`}
           onClick={() => setMode("forecast")}
         >
-          <span className="fake-checkbox">{mode === "forecast" ? "✓" : ""}</span>
+          <span className="fake-checkbox">
+            {mode === "forecast" ? "✓" : ""}
+          </span>
           Ennuste
         </button>
       </div>
 
-      <div className="dashboard-divider" />
-
-      {/* Toimipisteet */}
-      <details className="location-dropdown">
-        <summary>
+      <div className="location-dropdown" ref={locationMenuRef}>
+        <button
+          type="button"
+          className="location-trigger"
+          onClick={() => setShowLocationMenu((prev) => !prev)}
+        >
           <span>⌖</span>
-          <span>
+
+          <span className="location-trigger-text">
             {selectedLocations.length === 0
               ? "Valitse toimipisteet"
               : selectedLocations.join(", ")}
           </span>
-          <span className="dropdown-arrow">⌄</span>
-        </summary>
 
-        <div className="location-list">
-          {locations.map((location) => (
-            <label key={location} className="location-item">
-              <input
-                type="checkbox"
-                checked={selectedLocations.includes(location)}
-                onChange={() => toggleLocation(location)}
-              />
-              {location}
-            </label>
-          ))}
-        </div>
-      </details>
+          <span className={`dropdown-arrow ${showLocationMenu ? "open" : ""}`}>
+            ⌄
+          </span>
+        </button>
 
-      <button
-        className="clear-locations-button"
-        disabled={selectedLocations.length === 0}
-        onClick={() => setSelectedLocations([])}
-      >
-        Tyhjennä valitut yksiköt
-      </button>
+        {showLocationMenu && (
+          <div className="location-list">
+            <div className="location-actions">
+              <span className="location-actions-title">Toimipisteet</span>
 
-      {/* Toteutuneet */}
+              <button
+                type="button"
+                className="clear-locations-inline"
+                disabled={selectedLocations.length === 0}
+                onClick={() => setSelectedLocations([])}
+              >
+                Tyhjennä
+              </button>
+            </div>
+
+            {locations.map((location) => (
+              <label key={location} className="location-item">
+                <input
+                  type="checkbox"
+                  checked={selectedLocations.includes(location)}
+                  onChange={() => toggleLocation(location)}
+                />
+                {location}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
       {mode === "realized" && (
         <>
-          <div className="dashboard-section-title">
-            Valitse aikaväli
-          </div>
-
-          {/* Aikavälikenttä */}
-          <div className="date-picker">
+          <div className="date-picker" ref={calendarRef}>
             <button
+              type="button"
               className="date-input"
-              onClick={() => setShowCalendar(!showCalendar)}
+              onClick={() => setShowCalendar((prev) => !prev)}
             >
               <span>{rangeText}</span>
               <span>📅</span>
-
             </button>
 
-            {/* Aukeava kalenteri */}
             {showCalendar && (
               <div className="calendar-popup">
                 <div className="calendar-header">
-                  <button onClick={previousMonth}>‹</button>
+                  <button type="button" onClick={previousMonth}>
+                    ‹
+                  </button>
 
                   <div className="calendar-header-title">
-                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    {monthNames[currentDate.getMonth()]}{" "}
+                    {currentDate.getFullYear()}
                   </div>
 
-                  <button onClick={nextMonth}>›</button>
+                  <button type="button" onClick={nextMonth}>
+                    ›
+                  </button>
                 </div>
 
                 <div className="calendar-grid">
@@ -202,6 +247,7 @@ function DashboardSidebar() {
 
                   {getCalendarDays().map((date, index) => (
                     <button
+                      type="button"
                       key={index}
                       className={`
                         calendar-day
@@ -220,19 +266,14 @@ function DashboardSidebar() {
             )}
           </div>
 
-          <button className="dashboard-submit">
+          <button type="button" className="day-submit">
             Näytä toteutuneet
           </button>
         </>
       )}
 
-      {/* Ennuste */}
       {mode === "forecast" && (
         <>
-          <div className="dashboard-section-title">
-            Kuinka pitkälle ennuste näytetään?
-          </div>
-
           <select
             className="forecast-select"
             value={forecastRange}
@@ -246,7 +287,7 @@ function DashboardSidebar() {
             <option>6 kuukautta</option>
           </select>
 
-          <button className="dashboard-submit">
+          <button type="button" className="day-submit">
             Näytä ennuste
           </button>
         </>
@@ -255,4 +296,4 @@ function DashboardSidebar() {
   );
 }
 
-export default DashboardSidebar;
+export default DayFilter;

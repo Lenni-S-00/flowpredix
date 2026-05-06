@@ -1,31 +1,27 @@
-/* kokoaa nettisivun rakenteen yhteen */
-
-import { useState } from "react";
+// App.jsx
 import "./App.css";
+import Topbar from "./topbar";
+import Day from "./day/day";
+import DayFilter from "./day/dayFilter";
 
-import Sidebar from "./sidebar.jsx";
-import Dashboard from "./dashboard/dashboard.jsx";
-import Summary from "./summary.jsx";
-import AddFile from "./addfile.jsx";
-import Employees from "./employees.jsx";
-import Demographics from "./demographics.jsx";
+import Data from "./data/data";
+import Hour from "./hour/hour";
+import Employees from "./employees";
+import { useState } from "react";
 
-function App() {
-  const [view, setView] = useState("home");
+export default function App() {
+  const [activeTab, setActiveTab] = useState("daily");
 
   return (
-    <div className="app-container">
-      <Sidebar setView={setView} activeView={view} />
+    <div className="app">
+      <Topbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <div className="content">
-        {view === "home" && <Dashboard />}
-        {view === "summary" && <Summary />}
-        {view === "employees" && <Employees />}
-        {view === "demographics" && <Demographics />}
-        {view === "add" && <AddFile />}
-      </div>
+      <main className="main-content">
+        {activeTab === "daily" && <Day />}
+        {activeTab === "hour" && <Hour />}
+        {activeTab === "employees" && <Employees />}
+        {activeTab === "data" && <Data />}
+      </main>
     </div>
   );
 }
-
-export default App;
