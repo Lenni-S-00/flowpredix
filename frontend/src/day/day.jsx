@@ -1,16 +1,17 @@
-// dashboard/dashboard.jsx
+import Sidebar from "../sidebar/sidebar";
 import DayFilter from "./dayFilter";
-import "./day.css";
 
 function Day() {
   return (
-    <div className="day-page">
-      <DayFilter />
+    <>
+      <Sidebar title="Päivän suodattimet">
+        <DayFilter />
+      </Sidebar>
 
-      <div className="day-content">
-        Tähän tulee dashboard sisältöä myöhemmin.
+      <div>
+        sivun sisältö
       </div>
-    </div>
+    </>
   );
 }
 

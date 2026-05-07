@@ -1,10 +1,13 @@
-// dashboard/HourFilter.jsx
 import { useEffect, useRef, useState } from "react";
-import "./dayFilter.css";
+import "./hourFilter.css";
+import Calendar from "../sidebar/calendar";
 
 function HourFilter() {
   const [selectedLocations, setSelectedLocations] = useState([]);
-  const [selectedWeek, setSelectedWeek] = useState("Tämä viikko");
+  const [dateRange, setDateRange] = useState({
+    startDate: null,
+    endDate: null,
+  });
 
   const [showLocationMenu, setShowLocationMenu] = useState(false);
   const locationMenuRef = useRef(null);
@@ -44,17 +47,13 @@ function HourFilter() {
           className="location-trigger"
           onClick={() => setShowLocationMenu((prev) => !prev)}
         >
-          <span>⌖</span>
-
           <span className="location-trigger-text">
             {selectedLocations.length === 0
               ? "Valitse toimipisteet"
               : selectedLocations.join(", ")}
           </span>
 
-          <span className={`dropdown-arrow ${showLocationMenu ? "open" : ""}`}>
-            ⌄
-          </span>
+          <span>📍</span>
         </button>
 
         {showLocationMenu && (
@@ -86,17 +85,12 @@ function HourFilter() {
         )}
       </div>
 
-      <select
-        className="forecast-select"
-        value={selectedWeek}
-        onChange={(e) => setSelectedWeek(e.target.value)}
-      >
-        <option>Tämä viikko</option>
-        <option>Viime viikko</option>
-        <option>2 viikkoa sitten</option>
-        <option>3 viikkoa sitten</option>
-        <option>4 viikkoa sitten</option>
-      </select>
+      <Calendar
+        value={dateRange}
+        onChange={setDateRange}
+        placeholder="Valitse aikaväli"
+        selectionMode="week"
+      />
 
       <button type="button" className="day-submit">
         Näytä

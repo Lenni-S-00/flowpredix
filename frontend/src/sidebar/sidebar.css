@@ -1,0 +1,168 @@
+.filter-sidebar {
+  position: fixed;
+  top: 80px;
+  right: 32px;
+
+  width: 360px;
+  max-width: 360px;
+
+  z-index: 20;
+}
+
+.filter-sidebar-card {
+  width: 100%;
+
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+
+  padding: 18px;
+
+  box-shadow:
+    0 18px 40px rgba(30, 45, 75, 0.12),
+    0 4px 10px rgba(30, 45, 75, 0.06);
+
+  box-sizing: border-box;
+}
+
+.filter-sidebar-header {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.filter-sidebar-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #263244;
+}
+
+.filter-sidebar-content {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .filter-sidebar {
+    position: static;
+    width: auto;
+    max-width: none;
+    margin: 16px;
+  }
+}
+
+.sidebar-date-picker {
+  position: relative;
+  width: 100%;
+}
+
+.sidebar-date-input {
+  width: 100%;
+  min-height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 0 14px;
+
+  border: 1px solid #cfd8e3;
+  border-radius: 10px;
+  background: #ffffff;
+
+  font-size: 14px;
+  color: #42506a;
+
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.sidebar-calendar-popup {
+  position: absolute;
+  top: 46px;
+  right: 0;
+
+  width: 260px;
+
+  background: white;
+
+  border: 1px solid #cfd8e3;
+  border-radius: 12px;
+
+  padding: 12px;
+
+  z-index: 80;
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.sidebar-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 10px;
+}
+
+.sidebar-calendar-header button {
+  border: none;
+  background: #eef4ff;
+
+  border-radius: 6px;
+
+  padding: 4px 10px;
+
+  cursor: pointer;
+}
+
+.sidebar-calendar-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.sidebar-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+
+  gap: 4px;
+
+  text-align: center;
+
+  font-size: 12px;
+}
+
+.sidebar-calendar-day {
+  height: 28px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: #f5f7fa;
+
+  cursor: pointer;
+
+  font-size: 12px;
+}
+
+.sidebar-calendar-day:hover:not(:disabled) {
+  background: #e8eefc;
+}
+
+.sidebar-calendar-day.selected {
+  background: #5f86d9;
+  color: white;
+}
+
+.sidebar-calendar-day.in-range {
+  background: #dce8ff;
+}
+
+.sidebar-calendar-day:disabled {
+  background: transparent;
+  cursor: default;
+}
+
+.weekend {
+  color: #d45b5b;
+}
