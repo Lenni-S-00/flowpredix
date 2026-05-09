@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Calendar from "../sidebar/calendar";
 import "./dayFilter.css";
 
-function DayFilter() {
+function DayFilter({ onApply }) {
   const [mode, setMode] = useState("realized");
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [forecastRange, setForecastRange] = useState("2 viikkoa");
@@ -42,10 +42,20 @@ function DayFilter() {
     );
   };
 
+  const applyFilters = () => {
+    onApply?.({
+      mode,
+      selectedLocations,
+      forecastRange,
+      dateRange,
+    });
+  };
+
   return (
     <div className="day-filters">
       <div className="day-mode-row">
         <button
+          type="button"
           className={`day-mode-button ${mode === "realized" ? "active" : ""}`}
           onClick={() => setMode("realized")}
         >
@@ -56,6 +66,7 @@ function DayFilter() {
         </button>
 
         <button
+          type="button"
           className={`day-mode-button ${mode === "forecast" ? "active" : ""}`}
           onClick={() => setMode("forecast")}
         >
@@ -118,7 +129,7 @@ function DayFilter() {
             placeholder="Valitse aikaväli"
           />
 
-          <button type="button" className="day-submit">
+          <button type="button" className="day-submit" onClick={applyFilters}>
             Näytä toteutuneet
           </button>
         </>
@@ -139,7 +150,7 @@ function DayFilter() {
             <option>6 kuukautta</option>
           </select>
 
-          <button type="button" className="day-submit">
+          <button type="button" className="day-submit" onClick={applyFilters}>
             Näytä ennuste
           </button>
         </>
