@@ -7,6 +7,16 @@
   max-width: 360px;
 
   z-index: 20;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease;
+}
+
+.filter-sidebar.closed {
+  transform: translateX(120%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .filter-sidebar-card {
@@ -26,30 +36,103 @@
 }
 
 .filter-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
   margin-bottom: 14px;
   padding-bottom: 12px;
+
   border-bottom: 1px solid #eef2f7;
 }
 
 .filter-sidebar-header h3 {
   margin: 0;
+
   font-size: 16px;
   font-weight: 700;
   color: #263244;
+}
+
+.sidebar-close-button {
+  width: 30px;
+  height: 30px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #f3f6fb;
+  color: #5b6780;
+
+  cursor: pointer;
+
+  font-size: 14px;
+
+  transition: 0.15s ease;
+}
+
+.sidebar-close-button:hover {
+  background: #e3ebf8;
 }
 
 .filter-sidebar-content {
   width: 100%;
 }
 
+/* open button */
+
+.sidebar-open-button {
+  position: fixed;
+  top: 84px;
+  right: 32px;
+
+  width: 42px;
+  height: 42px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #5f86d9;
+  color: white;
+
+  cursor: pointer;
+
+  font-size: 18px;
+
+  box-shadow:
+    0 8px 20px rgba(30, 45, 75, 0.15),
+    0 2px 6px rgba(30, 45, 75, 0.08);
+
+  z-index: 100;
+}
+
+.sidebar-open-button:hover {
+  background: #4f78d3;
+}
+
+/* responsive */
+
 @media (max-width: 900px) {
   .filter-sidebar {
     position: static;
+
     width: auto;
     max-width: none;
+
     margin: 16px;
   }
+
+  .filter-sidebar.closed {
+    display: none;
+  }
+
+  .sidebar-open-button {
+    top: 16px;
+    right: 16px;
+  }
 }
+
+/* calendar */
 
 .sidebar-date-picker {
   position: relative;

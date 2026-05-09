@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import "./data.css";
+import DataFilter from "./dataFilter";
+import Sidebar from "../sidebar/sidebar";
 
 function Data() {
   const [file, setFile] = useState(null);
@@ -70,6 +72,11 @@ function Data() {
   */
 
   return (
+    <>
+      <Sidebar title="Lisätty data">
+        <DataFilter />
+      </Sidebar>
+    
     <div className="data-page">
 
 
@@ -112,6 +119,7 @@ function Data() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
