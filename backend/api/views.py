@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from .models import SampleData
 from .serializers import SampleDataSerializer
 from .services.ingestion import process_file
@@ -15,33 +16,48 @@ import pandas as pd
 def hello(request):
     return Response({"message": "Viesti backendistä:\nBackend toimii!"})
 
-# Tässä on datan näyttämiseen endpointti
-'''
+# Test view endpointti
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def test_protected(request):
+    return Response({
+        "message": "Authenticated successfully",
+        "user": request.user.username,
+        "organization": (
+            request.user.organization.name
+            if request.user.organization
+            else None
+        ),
+        "role": request.user.role,
+    })
+
+# Tässä on datan näyttämiseen endpointti
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def sample_data_list(request):
-    data = SampleData.objects.all().values()
-    return Response(data)
-'''
+
+    queryset = SampleData.objects.filter(
+        organization=request.user.organization
+    )
+
+    serializer = SampleDataSerializer(queryset, many=True)
+
+    return Response(serializer.data)
 
 # Create your views here.
 
-@api_view(['GET', 'POST'])
-def sample_data_list(request):
-    if request.method == 'GET':
-        data = SampleData.objects.all().order_by('-timestamp')
-        serializer = SampleDataSerializer(data, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = SampleDataSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
-
 # Tällä lisätään dataa
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def upload_file(request):
+
+    # Tarkistetaan, onko käyttäjällä organisaatiota.
+    if not request.user.organization:
+        return Response(
+            {"error": "User has no organization"},
+            status=400
+        )
+
     file = request.FILES.get('file')
     source = request.data.get('source')  # optional metadata
 
@@ -67,6 +83,10 @@ def upload_file(request):
             }, status=400)
 
         records = create_records(df)
+        
+        # Lisätään pyynnön tekijän organisaatio organisaatio-sarakkeeksi.
+        for record in records:
+            record['organization'] = request.user.organization.id
         #print("DF SHAPE:", df.shape)
         #print("COLUMNS:", df.columns.tolist())
         #print(df.head())
@@ -96,3 +116,20 @@ def upload_file(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+    
+# LEGACYA
+'''
+@api_view(['GET', 'POST'])
+def sample_data_list(request):
+    if request.method == 'GET':
+        data = SampleData.objects.all().order_by('-timestamp')
+        serializer = SampleDataSerializer(data, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = SampleDataSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+'''

@@ -97,6 +97,7 @@ function Data() {
         <table border="1">
           <thead>
             <tr>
+              <th>Org</th>
               <th>Location</th>
               <th>Timestamp</th>
               <th>Samples</th>
@@ -107,6 +108,7 @@ function Data() {
           <tbody>
             {data.map((row) => (
               <tr key={row.id}>
+                <td>{row.organization}</td>
                 <td>{row.location}</td>
                 <td>{row.timestamp}</td>
                 <td>{row.samples_taken}</td>
