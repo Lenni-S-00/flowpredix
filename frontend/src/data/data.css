@@ -3,7 +3,7 @@
 .data-main {
   min-height: 100vh;
 
-  padding: 110px 50px 70px;
+  padding: 0px 50px 70px;
 
   background: #ffffff;
 
@@ -20,7 +20,7 @@
 .data-hero {
   text-align: center;
 
-  margin-bottom: 40px;
+  margin-bottom: 0px;
 }
 
 .data-eyebrow {
@@ -73,7 +73,7 @@
   border: 1px solid #eef1f6;
   border-radius: 24px;
 
-  background: #f0f3ff;
+  background: #e5eaff; /*edf1ff*/
 }
 
 .data-panel h2 {

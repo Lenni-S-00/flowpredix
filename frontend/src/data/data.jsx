@@ -70,12 +70,6 @@ function Data() {
         <DataFilter />
       </Sidebar>
       <main className="data-main">
-        <section className="data-hero">
-          <p className="data-subtitle">
-            {message || "Lisää näytedata käsin tai tuo tiedosto järjestelmään."}
-          </p>
-        </section>
-
         <section className="data-actions-card">
           <div className="data-actions-grid">
             <div className="data-panel">
