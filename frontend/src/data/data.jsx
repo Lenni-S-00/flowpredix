@@ -1,16 +1,12 @@
-/* datan lisäys välilehti */
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Sidebar from "../sidebar/sidebar";
 import "./data.css";
 import DataFilter from "./dataFilter";
-import Sidebar from "../sidebar/sidebar";
 
 function Data() {
-  const [file, setFile] = useState(null);
-
-  /*
   const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
+  const [file, setFile] = useState(null);
 
   const [location, setLocation] = useState("");
   const [timestamp, setTimestamp] = useState("");
@@ -28,13 +24,9 @@ function Data() {
       .then((res) => res.json())
       .then((data) => setData(data));
   }, []);
-  */
 
   const handleFileUpload = () => {
-    if (!file) {
-      console.log("No file selected");
-      return;
-    }
+    if (!file) return;
 
     const formData = new FormData();
     formData.append("file", file);
@@ -45,12 +37,9 @@ function Data() {
       body: formData,
     })
       .then((res) => res.json())
-      .then((data) => {
-        console.log("Response:", data);
-      });
+      .then((data) => console.log("Response:", data));
   };
 
-  /*
   const handleSubmit = () => {
     fetch("http://127.0.0.1:8000/api/data/", {
       method: "POST",
@@ -58,8 +47,8 @@ function Data() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        location: location,
-        timestamp: timestamp,
+        location,
+        timestamp,
         samples_taken: Number(samples),
         employees_used: Number(employees),
       }),
@@ -67,58 +56,132 @@ function Data() {
       .then((res) => res.json())
       .then((newData) => {
         setData([newData, ...data]);
+
+        setLocation("");
+        setTimestamp("");
+        setSamples("");
+        setEmployees("");
       });
   };
-  */
 
   return (
     <>
-      <Sidebar title="Lisätty data">
+      <Sidebar title="Datan suodattimet">
         <DataFilter />
       </Sidebar>
-    
-    <div className="data-page">
+      <main className="data-main">
+        <section className="data-hero">
+          <p className="data-subtitle">
+            {message || "Lisää näytedata käsin tai tuo tiedosto järjestelmään."}
+          </p>
+        </section>
 
+        <section className="data-actions-card">
+          <div className="data-actions-grid">
+            <div className="data-panel">
+              <h2>Manuaalinen lisäys</h2>
 
-      <div className="data-content">
-        <div className="upload-card">
+              <p className="data-panel-text">
+                Lisää yksittäinen havainto toimipisteelle.
+              </p>
 
+              <div className="manual-form">
+                <input
+                  value={location}
+                  placeholder="Toimipiste"
+                  onChange={(e) => setLocation(e.target.value)}
+                />
 
+                <input
+                  value={timestamp}
+                  placeholder="Aikaleima"
+                  onChange={(e) => setTimestamp(e.target.value)}
+                />
 
-          <div className="upload-dropzone">
-            <div className="upload-plus">+</div>
+                <input
+                  value={samples}
+                  placeholder="Näytteet"
+                  onChange={(e) => setSamples(e.target.value)}
+                />
 
-            <h3>Lisää tiedosto</h3>
+                <input
+                  value={employees}
+                  placeholder="Työntekijät"
+                  onChange={(e) => setEmployees(e.target.value)}
+                />
 
-            <p>Raahaa Excel-tiedosto tähän</p>
-            <span>tai valitse tiedosto koneelta</span>
-
-            <label className="upload-button">
-              Lisää tiedosto
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={(e) => setFile(e.target.files[0])}
-              />
-            </label>
-
-            {file && (
-              <div className="selected-file">
-                Valittu tiedosto: {file.name}
+                <button onClick={handleSubmit}>
+                  Lisää data
+                </button>
               </div>
-            )}
+            </div>
 
-            <div className="supported-formats">
-              Tuetut muodot: .xlsx, .xls
+            <div className="data-panel">
+              <h2>Tiedoston lisäys</h2>
+
+              <p className="data-panel-text">
+                Raahaa tiedosto tai valitse se koneelta.
+              </p>
+
+              <div className="upload-dropzone">
+                <div className="upload-icon">+</div>
+
+                <p>CSV, XLSX tai JSON</p>
+
+                <label className="upload-button">
+                  Valitse tiedosto
+
+                  <input
+                    type="file"
+                    onChange={(e) => setFile(e.target.files[0])}
+                  />
+                </label>
+
+                {file && (
+                  <span className="selected-file">
+                    {file.name}
+                  </span>
+                )}
+
+                <button
+                  className="upload-submit"
+                  onClick={handleFileUpload}
+                >
+                  Lähetä tiedosto
+                </button>
+              </div>
             </div>
           </div>
+        </section>
 
-          <button className="train-button" onClick={handleFileUpload}>
-            Kouluta malli uudestaan
-          </button>
-        </div>
-      </div>
-    </div>
+        <section className="data-table-card">
+          <h2>Lisätty data</h2>
+
+          <div className="data-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Toimipiste</th>
+                  <th>Aikaleima</th>
+                  <th>Näytteet</th>
+                  <th>Työntekijät</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {data.map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.location}</td>
+                    <td>{row.timestamp}</td>
+                    <td>{row.samples_taken}</td>
+                    <td>{row.employees_used}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
     </>
   );
 }

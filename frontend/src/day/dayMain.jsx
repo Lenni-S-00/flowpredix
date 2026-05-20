@@ -47,8 +47,6 @@ function DayMain({ filters }) {
   return (
     <main className="day-main">
       <div className="day-main-header">
-        <p className="day-main-eyebrow">Päivänäkymä</p>
-
         <h1>
           {mode === "realized" ? "Toteutuneet näytteet" : "Näyte-ennuste"}
         </h1>
