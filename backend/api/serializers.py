@@ -16,7 +16,7 @@ class SampleDataListSerializer(serializers.ListSerializer):
 class SampleDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleData
-        fields = ["id", "location", "timestamp", "samples_taken", "employees_used"]
+        fields = ["organization", "id", "location", "timestamp", "samples_taken", "employees_used"]
         validators = []
         list_serializer_class = SampleDataListSerializer
 
