@@ -1,0 +1,28 @@
+.waiting-state {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #555555;
+  padding: 32px;
+}
+
+.waiting-state-icon {
+  font-size: 38px;
+  margin-bottom: 12px;
+}
+
+.waiting-state h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #222222;
+}
+
+.waiting-state p {
+  margin: 0;
+  max-width: 360px;
+  font-size: 15px;
+  line-height: 1.5;
+}

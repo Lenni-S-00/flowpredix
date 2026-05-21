@@ -2,7 +2,7 @@ import "./App.css";
 import Topbar from "./topbar";
 import Day from "./day/day";
 import DayFilter from "./day/dayFilter";
-
+import "./loginout.css";
 import Data from "./data/data";
 import Hour from "./hour/hour";
 import Employees from "./employees";
@@ -28,7 +28,7 @@ export default function Dashboard() {
         {activeTab === "employees" && <Employees />}
         {activeTab === "data" && <Data />}
       </main>
-      <button onClick={logout}>Logout</button>
+      <button className="logout-button" onClick={logout}>Logout</button>
     </div>
   );
 }
