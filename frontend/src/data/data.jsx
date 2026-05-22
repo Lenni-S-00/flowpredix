@@ -19,12 +19,6 @@ function Data() {
       .then((data) => setMessage(data.message));
   }, []);
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/data/")
-      .then((res) => res.json())
-      .then((data) => setData(data));
-  }, []);
-
   const handleFileUpload = () => {
     if (!file) return;
 

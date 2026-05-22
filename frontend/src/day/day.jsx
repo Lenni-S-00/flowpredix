@@ -5,13 +5,13 @@ import DayMain from "./dayMain";
 
 function Day() {
   const [filters, setFilters] = useState({
-    mode: "realized",
-    selectedLocations: [],
+    mode: "forecast",
+    selectedLocations: ["Kaikki toimipisteet"],
     dateRange: {
       startDate: null,
       endDate: null,
     },
-    forecastRange: "2 viikkoa",
+    forecastRange: "6 kuukautta",
   });
 
   return (
