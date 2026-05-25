@@ -1,70 +1,7 @@
 import { Fragment } from "react";
 import "./hourMain.css";
 import WaitingState from "../waitingState.jsx";
-
-const realizedRows = [
-  {
-    location: "Lab1",
-    day: "Ma 20.10.",
-    date: "2025-10-20",
-    values: [20, 44, 26, 18, 4, 2, 2, null],
-  },
-  {
-    location: "Lab1",
-    day: "Ti 21.10.",
-    date: "2025-10-21",
-    values: [10, 22, 22, 28, 4, null, null, 2],
-  },
-  {
-    location: "Lab1",
-    day: "Ke 22.10.",
-    date: "2025-10-22",
-    values: [14, 26, 30, 34, 6, 2, null, null],
-  },
-  {
-    location: "Lab2",
-    day: "Ma 20.10.",
-    date: "2025-10-20",
-    values: [8, 14, 20, 16, 4, null, null, null],
-  },
-  {
-    location: "Lab3",
-    day: "Ke 22.10.",
-    date: "2025-10-22",
-    values: [6, 10, 14, 12, 2, null, null, null],
-  },
-];
-
-const forecastRows = [
-  {
-    location: "Lab1",
-    forecastRange: "2 viikkoa",
-    day: "Ma 27.10.",
-    date: "2025-10-27",
-    values: [18, 38, 30, 22, 6, 2, null, null],
-  },
-  {
-    location: "Lab1",
-    forecastRange: "2 viikkoa",
-    day: "Ti 28.10.",
-    date: "2025-10-28",
-    values: [16, 34, 28, 24, 8, 2, null, null],
-  },
-  {
-    location: "Lab2",
-    forecastRange: "2 viikkoa",
-    day: "Ma 27.10.",
-    date: "2025-10-27",
-    values: [10, 20, 24, 18, 6, 2, null, null],
-  },
-  {
-    location: "Lab3",
-    forecastRange: "Kuukausi",
-    day: "Ma 17.11.",
-    date: "2025-11-17",
-    values: [8, 16, 20, 18, 4, null, null, null],
-  },
-];
+import hourData from "./hourData";
 
 const hours = [
   "07:00",
@@ -77,32 +14,51 @@ const hours = [
   "14:00",
 ];
 
-function getHeatColor(value) {
-  if (value === null || value === undefined) return "#fffdd1";
-  if (value >= 40) return "#97002d";
-  if (value >= 34) return "#d90f1f";
-  if (value >= 30) return "#ef261f";
-  if (value >= 26) return "#ff5631";
-  if (value >= 20) return "#ff8a35";
-  if (value >= 14) return "#ffc35b";
-  if (value >= 8) return "#ffe083";
-  if (value >= 4) return "#fff0a6";
-
-  return "#fff7bd";
-}
-
 function normalizeDate(date) {
   if (!date) return null;
   if (typeof date === "string") return date.slice(0, 10);
-
   return date.toISOString().slice(0, 10);
 }
 
 function addDays(dateString, days) {
   const date = new Date(dateString);
   date.setDate(date.getDate() + days);
-
   return date.toISOString().slice(0, 10);
+}
+
+function formatDay(dateString) {
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString("fi-FI", {
+    weekday: "short",
+    day: "numeric",
+    month: "numeric",
+  });
+}
+
+function getForecastDays(range) {
+  if (range === "1 viikko") return 7;
+  if (range === "2 viikkoa") return 14;
+  if (range === "1 kuukausi") return 30;
+  if (range === "2 kuukautta") return 60;
+  return 7;
+}
+
+function getHeatColor(value) {
+  if (value === null || value === undefined) return "#f8f8f8";
+  if (value >= 190) return "#7f0026";
+  if (value >= 170) return "#b6002e";
+  if (value >= 150) return "#dc2626";
+  if (value >= 130) return "#f97316";
+  if (value >= 110) return "#fb923c";
+  if (value >= 90) return "#facc15";
+  if (value >= 70) return "#fde68a";
+  if (value >= 50) return "#fef3c7";
+  return "#fffbea";
+}
+
+function getTextColor(value) {
+  return value >= 130 ? "#ffffff" : "#111111";
 }
 
 function getVisibleEndDate(startDate, endDate) {
@@ -117,37 +73,103 @@ function getVisibleEndDate(startDate, endDate) {
   return endDate;
 }
 
+function buildRows(data, valueKey) {
+  const grouped = {};
+
+  data.forEach((item) => {
+    const itemHour = item.hour.slice(11, 16);
+
+    if (!hours.includes(itemHour)) return;
+
+    const key = item.date;
+
+    if (!grouped[key]) {
+      grouped[key] = {
+        date: item.date,
+        day: formatDay(item.date),
+        values: Array(hours.length).fill(null),
+      };
+    }
+
+    const hourIndex = hours.indexOf(itemHour);
+
+    grouped[key].values[hourIndex] =
+      (grouped[key].values[hourIndex] || 0) + item[valueKey];
+  });
+
+  return Object.values(grouped).sort((a, b) =>
+    a.date.localeCompare(b.date)
+  );
+}
+
 function HourMain({ filters }) {
-  const isForecast = filters.mode === "forecast";
+  const safeFilters = filters || {
+    mode: "realized",
+    selectedLocation: "",
+    forecastRange: "24 tuntia",
+    dateRange: {
+      startDate: null,
+      endDate: null,
+    },
+  };
 
-  const isWaitingForFilters =
-    !filters.selectedLocation &&
-    !filters.dateRange.startDate &&
-    !filters.dateRange.endDate &&
-    filters.mode === "realized";
+function formatDisplayDate(dateString) {
+  if (!dateString) return "";
 
-  const selectedLocations =
-    !filters.selectedLocation ||
-    filters.selectedLocation === "Kaikki toimipisteet"
-      ? ["Lab1", "Lab2", "Lab3"]
-      : [filters.selectedLocation];
+  const date = new Date(dateString);
 
-  const startDate = normalizeDate(filters.dateRange.startDate);
-  const selectedEndDate = normalizeDate(filters.dateRange.endDate);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("fi-FI", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+  const isForecast = safeFilters.mode === "forecast";
+
+  const startDate = normalizeDate(safeFilters.dateRange?.startDate);
+  const selectedEndDate = normalizeDate(safeFilters.dateRange?.endDate);
   const endDate = getVisibleEndDate(startDate, selectedEndDate);
 
-  const sourceRows = isForecast ? forecastRows : realizedRows;
+  const isWaitingForFilters =
+    !isForecast &&
+    !safeFilters.selectedLocation &&
+    !startDate &&
+    !endDate;
 
-  const filteredRows = sourceRows.filter((row) => {
-    const locationMatches = selectedLocations.includes(row.location);
+  const selectedLocation = safeFilters.selectedLocation;
 
-    const dateMatches = isForecast
-      ? row.forecastRange === filters.forecastRange
-      : (!startDate || row.date >= startDate) &&
-        (!endDate || row.date <= endDate);
+  const firstDataDate = hourData[0]?.date;
+  const forecastEndDate = firstDataDate
+    ? addDays(firstDataDate, getForecastDays(safeFilters.forecastRange) - 1)
+    : null;
 
-    return locationMatches && dateMatches;
+  const filteredData = hourData.filter((item) => {
+    const locationMatches =
+      !selectedLocation ||
+      selectedLocation === "Kaikki toimipisteet" ||
+      item.location === selectedLocation;
+
+    if (!locationMatches) return false;
+
+    if (isForecast) {
+      return item.date >= firstDataDate && item.date <= forecastEndDate;
+    }
+
+    return (
+      (!startDate || item.date >= startDate) &&
+      (!endDate || item.date <= endDate)
+    );
   });
+
+  const rows = buildRows(
+    filteredData,
+    isForecast ? "forecast" : "realized"
+  );
 
   return (
     <main className="hour-content">
@@ -157,54 +179,72 @@ function HourMain({ filters }) {
         <>
           <div className="heatmap-header">
             <div className="heatmap-selected-locations">
-              {!filters.selectedLocation
+              {!selectedLocation
                 ? "Kaikki toimipisteet"
-                : filters.selectedLocation}
+                : selectedLocation}
             </div>
 
-            <h2 className="heatmap-title">
+            <h3 className="heatmap-title">
               {isForecast
-                ? `Ennuste tunneittain: ${filters.forecastRange}`
+                ? "Ennuste tunneittain"
                 : "Näytteenotot tunneittain"}
-            </h2>
+
+              {isForecast && (
+                <span className="heatmap-date-range">
+                  {safeFilters.forecastRange}
+                </span>
+              )}
+
+              {!isForecast && startDate && (
+                <span className="heatmap-date-range">
+                  {endDate
+                    ? `${formatDisplayDate(startDate)} – ${formatDisplayDate(endDate)}`
+                    : formatDisplayDate(startDate)}
+                </span>
+              )}
+            </h3>
           </div>
 
           <section className="heatmap-card">
-            {filteredRows.length === 0 ? (
+            {rows.length === 0 ? (
               <div className="heatmap-error">
                 Valituilla suodattimilla ei löytynyt dataa.
               </div>
             ) : (
-              <div className="heatmap-grid">
-                <div />
+              <div className="hour-heatmap-scroll">
+                <div className="hour-heatmap-grid">
+                  <div className="hour-corner" />
 
-                {hours.map((hour) => (
-                  <div key={hour} className="heatmap-hour">
-                    {hour}
-                  </div>
-                ))}
+                  {hours.map((hour) => (
+                    <div key={hour} className="hour-header-cell">
+                      {hour}
+                    </div>
+                  ))}
 
-                {filteredRows.map((row) => (
-                  <Fragment key={`${row.location}-${row.date}`}>
-                    <div className="heatmap-day">{row.day}</div>
-
-                    {row.values.map((value, index) => (
-                      <div
-                        key={`${row.location}-${row.date}-${hours[index]}`}
-                        className="heatmap-cell"
-                        style={{
-                          background: getHeatColor(value),
-                          color: value >= 26 ? "#ffffff" : "#111111",
-                        }}
-                        title={`${row.location} ${row.day} ${hours[index]}: ${
-                          value ?? 0
-                        }`}
-                      >
-                        {value ?? ""}
+                  {rows.map((row) => (
+                    <Fragment key={row.date}>
+                      <div className="hour-day-cell">
+                        {row.day}
                       </div>
-                    ))}
-                  </Fragment>
-                ))}
+
+                      {row.values.map((value, index) => (
+                        <div
+                          key={`${row.date}-${hours[index]}`}
+                          className="hour-value-cell"
+                          style={{
+                            backgroundColor: getHeatColor(value),
+                            color: getTextColor(value),
+                          }}
+                          title={`${row.day} ${hours[index]}: ${
+                            value ?? 0
+                          }`}
+                        >
+                          {value ?? ""}
+                        </div>
+                      ))}
+                    </Fragment>
+                  ))}
+                </div>
               </div>
             )}
           </section>
