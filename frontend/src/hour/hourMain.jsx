@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import "./hourMain.css";
 import WaitingState from "../waitingState.jsx";
 import hourData from "./hourData";
+import HourStat from "./hourStat.jsx";
 
 const hours = [
   "07:00",
@@ -14,16 +15,37 @@ const hours = [
   "14:00",
 ];
 
-function normalizeDate(date) {
-  if (!date) return null;
-  if (typeof date === "string") return date.slice(0, 10);
-  return date.toISOString().slice(0, 10);
+function toDate(value) {
+  if (!value) return null;
+  return value instanceof Date ? value : new Date(value);
 }
 
-function addDays(dateString, days) {
-  const date = new Date(dateString);
+function startOfDay(value) {
+  const date = toDate(value);
+  if (!date) return null;
+
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addDays(value, days) {
+  const date = startOfDay(value);
+  if (!date) return null;
+
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return date;
+}
+
+function toDateKey(value) {
+  const date = startOfDay(value);
+  if (!date) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function formatDay(dateString) {
@@ -33,6 +55,22 @@ function formatDay(dateString) {
     weekday: "short",
     day: "numeric",
     month: "numeric",
+  });
+}
+
+function formatDisplayDate(value) {
+  if (!value) return "";
+
+  const date = toDate(value);
+
+  if (!date || Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("fi-FI", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
   });
 }
 
@@ -61,18 +99,6 @@ function getTextColor(value) {
   return value >= 130 ? "#ffffff" : "#111111";
 }
 
-function getVisibleEndDate(startDate, endDate) {
-  if (!startDate) return endDate;
-
-  const maxEndDate = addDays(startDate, 6);
-
-  if (!endDate || endDate > maxEndDate) {
-    return maxEndDate;
-  }
-
-  return endDate;
-}
-
 function buildRows(data, valueKey) {
   const grouped = {};
 
@@ -97,9 +123,7 @@ function buildRows(data, valueKey) {
       (grouped[key].values[hourIndex] || 0) + item[valueKey];
   });
 
-  return Object.values(grouped).sort((a, b) =>
-    a.date.localeCompare(b.date)
-  );
+  return Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function HourMain({ filters }) {
@@ -110,45 +134,44 @@ function HourMain({ filters }) {
     dateRange: {
       startDate: null,
       endDate: null,
+      endDateExclusive: null,
     },
   };
 
-function formatDisplayDate(dateString) {
-  if (!dateString) return "";
-
-  const date = new Date(dateString);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toLocaleDateString("fi-FI", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
   const isForecast = safeFilters.mode === "forecast";
-
-  const startDate = normalizeDate(safeFilters.dateRange?.startDate);
-  const selectedEndDate = normalizeDate(safeFilters.dateRange?.endDate);
-  const endDate = getVisibleEndDate(startDate, selectedEndDate);
-
-  const isWaitingForFilters =
-    !isForecast &&
-    !safeFilters.selectedLocation &&
-    !startDate &&
-    !endDate;
 
   const selectedLocation = safeFilters.selectedLocation;
 
-  const firstDataDate = hourData[0]?.date;
-  const forecastEndDate = firstDataDate
-    ? addDays(firstDataDate, getForecastDays(safeFilters.forecastRange) - 1)
-    : null;
+  const sortedData = [...hourData].sort((a, b) =>
+    a.date.localeCompare(b.date)
+  );
 
-  const filteredData = hourData.filter((item) => {
+  const today = startOfDay(new Date());
+
+  const forecastStartDate = today;
+
+  const forecastEndDateExclusive = addDays(
+    forecastStartDate,
+    getForecastDays(safeFilters.forecastRange)
+  );
+
+  const startDate = isForecast
+    ? forecastStartDate
+    : startOfDay(safeFilters.dateRange?.startDate);
+
+  const endDateExclusive = isForecast
+    ? forecastEndDateExclusive
+    : startOfDay(
+        safeFilters.dateRange?.endDateExclusive ||
+          addDays(safeFilters.dateRange?.endDate, 1)
+      );
+
+  const isWaitingForFilters =
+    !isForecast && !selectedLocation && !startDate && !endDateExclusive;
+
+  const filteredData = sortedData.filter((item) => {
+    const itemDate = startOfDay(item.date);
+
     const locationMatches =
       !selectedLocation ||
       selectedLocation === "Kaikki toimipisteet" ||
@@ -156,20 +179,17 @@ function formatDisplayDate(dateString) {
 
     if (!locationMatches) return false;
 
-    if (isForecast) {
-      return item.date >= firstDataDate && item.date <= forecastEndDate;
-    }
+    if (!startDate || !endDateExclusive) return true;
 
-    return (
-      (!startDate || item.date >= startDate) &&
-      (!endDate || item.date <= endDate)
-    );
+    return itemDate >= startDate && itemDate < endDateExclusive;
   });
 
-  const rows = buildRows(
-    filteredData,
-    isForecast ? "forecast" : "realized"
-  );
+  const rows = buildRows(filteredData, isForecast ? "forecast" : "realized");
+
+  const displayStartDate = startDate;
+  const displayEndDate = isForecast
+    ? addDays(endDateExclusive, -1)
+    : startOfDay(safeFilters.dateRange?.endDate);
 
   return (
     <main className="hour-content">
@@ -179,15 +199,11 @@ function formatDisplayDate(dateString) {
         <>
           <div className="heatmap-header">
             <div className="heatmap-selected-locations">
-              {!selectedLocation
-                ? "Kaikki toimipisteet"
-                : selectedLocation}
+              {!selectedLocation ? "Kaikki toimipisteet" : selectedLocation}
             </div>
 
             <h3 className="heatmap-title">
-              {isForecast
-                ? "Ennuste tunneittain"
-                : "Näytteenotot tunneittain"}
+              {isForecast ? "Ennuste tunneittain" : "Näytteenotot tunneittain"}
 
               {isForecast && (
                 <span className="heatmap-date-range">
@@ -195,11 +211,13 @@ function formatDisplayDate(dateString) {
                 </span>
               )}
 
-              {!isForecast && startDate && (
+              {!isForecast && displayStartDate && (
                 <span className="heatmap-date-range">
-                  {endDate
-                    ? `${formatDisplayDate(startDate)} – ${formatDisplayDate(endDate)}`
-                    : formatDisplayDate(startDate)}
+                  {displayEndDate
+                    ? `${formatDisplayDate(displayStartDate)} – ${formatDisplayDate(
+                        displayEndDate
+                      )}`
+                    : formatDisplayDate(displayStartDate)}
                 </span>
               )}
             </h3>
@@ -223,9 +241,7 @@ function formatDisplayDate(dateString) {
 
                   {rows.map((row) => (
                     <Fragment key={row.date}>
-                      <div className="hour-day-cell">
-                        {row.day}
-                      </div>
+                      <div className="hour-day-cell">{row.day}</div>
 
                       {row.values.map((value, index) => (
                         <div
@@ -235,9 +251,7 @@ function formatDisplayDate(dateString) {
                             backgroundColor: getHeatColor(value),
                             color: getTextColor(value),
                           }}
-                          title={`${row.day} ${hours[index]}: ${
-                            value ?? 0
-                          }`}
+                          title={`${row.day} ${hours[index]}: ${value ?? 0}`}
                         >
                           {value ?? ""}
                         </div>
@@ -248,6 +262,7 @@ function formatDisplayDate(dateString) {
               </div>
             )}
           </section>
+          <HourStat data={filteredData} valueKey={isForecast ? "forecast" : "realized"} />
         </>
       )}
     </main>

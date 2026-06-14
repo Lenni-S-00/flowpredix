@@ -3,6 +3,24 @@ import "./hourFilter.css";
 import Calendar from "../sidebar/calendar";
 import hourData from "./hourData";
 
+const startOfDay = (date) => {
+  if (!date) return null;
+
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+
+  return d;
+};
+
+const addOneDay = (date) => {
+  if (!date) return null;
+
+  const d = new Date(date);
+  d.setDate(d.getDate() + 1);
+
+  return d;
+};
+
 function HourFilter({ onSubmit }) {
   const [mode, setMode] = useState("realized");
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -44,11 +62,19 @@ function HourFilter({ onSubmit }) {
   };
 
   const handleSubmit = () => {
+    const normalizedStartDate = startOfDay(dateRange.startDate);
+    const normalizedEndDate = startOfDay(dateRange.endDate);
+    const endDateExclusive = addOneDay(normalizedEndDate);
+
     onSubmit({
       mode,
       selectedLocation,
       forecastRange,
-      dateRange,
+      dateRange: {
+        startDate: normalizedStartDate,
+        endDate: normalizedEndDate,
+        endDateExclusive,
+      },
       data: hourData,
     });
   };
@@ -127,7 +153,7 @@ function HourFilter({ onSubmit }) {
             value={dateRange}
             onChange={setDateRange}
             placeholder="Valitse ajanjakso"
-            selectionMode="day"
+            selectionMode="range"
           />
 
           <button type="button" className="day-submit" onClick={handleSubmit}>

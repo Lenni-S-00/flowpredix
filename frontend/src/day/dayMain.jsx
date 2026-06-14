@@ -1,6 +1,7 @@
 import "./dayMain.css";
 import WaitingState from "../waitingState.jsx";
 import dayData from "./dayData.jsx";
+import DayStat from "./dayStat.jsx";
 
 const COLORS = {
   "Kaikki näytteenotot": "#2563eb",
@@ -26,6 +27,23 @@ function toDate(value) {
   return value instanceof Date ? value : new Date(value);
 }
 
+function startOfDay(value) {
+  const date = toDate(value);
+  if (!date) return null;
+
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addOneDay(value) {
+  const date = startOfDay(value);
+  if (!date) return null;
+
+  date.setDate(date.getDate() + 1);
+  return date;
+}
+
 function formatDate(dateString) {
   const date = new Date(dateString);
   return `${date.getDate()}.${date.getMonth() + 1}.`;
@@ -41,36 +59,54 @@ function DayMain({ filters }) {
   }
 
   const mode = filters.mode || "realized";
-  const selectedLocations = filters.selectedLocations || ["Kaikki toimipisteet"];
+
+  const selectedLocations = filters.selectedLocations || [
+    "Kaikki näytteenotot",
+  ];
 
   const allSelected =
     selectedLocations.length === 0 ||
-    selectedLocations.includes("Kaikki toimipisteet");
+    selectedLocations.includes("Kaikki näytteenotot");
 
   const sourceData = [...dayData].sort(
     (a, b) => new Date(a.date) - new Date(b.date)
   );
 
-  const firstDate = new Date(sourceData[0]?.date);
+  const today = startOfDay(new Date());
+
+  const firstDate =
+    mode === "forecast"
+      ? today
+      : startOfDay(sourceData[0]?.date);
+
   const forecastDays = RANGE_DAYS[filters.forecastRange] || 14;
 
-  const forecastEndDate = new Date(firstDate);
-  forecastEndDate.setDate(forecastEndDate.getDate() + forecastDays);
+  const forecastEndDate = addOneDay(firstDate);
+  forecastEndDate.setDate(firstDate.getDate() + forecastDays);
 
   const startDate =
-    mode === "forecast" ? firstDate : toDate(filters.dateRange?.startDate);
+    mode === "forecast"
+      ? firstDate
+      : startOfDay(filters.dateRange?.startDate);
 
-  const endDate =
-    mode === "forecast" ? forecastEndDate : toDate(filters.dateRange?.endDate);
+  const endDateExclusive =
+    mode === "forecast"
+      ? forecastEndDate
+      : startOfDay(
+          filters.dateRange?.endDateExclusive ||
+            addOneDay(filters.dateRange?.endDate)
+        );
 
   const baseFilteredData = sourceData.filter((item) => {
-    const itemDate = new Date(item.date);
+    const itemDate = startOfDay(item.date);
 
     const locationMatches =
       allSelected || selectedLocations.includes(item.location);
 
     const dateMatches =
-      !startDate || !endDate || (itemDate >= startDate && itemDate <= endDate);
+      !startDate ||
+      !endDateExclusive ||
+      (itemDate >= startDate && itemDate < endDateExclusive);
 
     return locationMatches && dateMatches;
   });
@@ -127,11 +163,7 @@ function DayMain({ filters }) {
   };
 
   const getY = (value) => {
-    return (
-      padding.top +
-      innerHeight -
-      (value / roundedMaxValue) * innerHeight
-    );
+    return padding.top + innerHeight - (value / roundedMaxValue) * innerHeight;
   };
 
   const getPath = (location) => {
@@ -167,11 +199,13 @@ function DayMain({ filters }) {
       <div className="day-main-header">
         <div>
           <h1>
-            {mode === "realized" ? "Toteutuneet näytteet" : "Ennustetut näytteet"}
+            {mode === "realized"
+              ? "Toteutuneet näytteet"
+              : "Ennustetut näytteet"}
           </h1>
 
           <span>
-            {allSelected ? "Kaikki toimipisteet" : selectedLocations.join(", ")}
+            {allSelected ? "Kaikki näytteenotot" : selectedLocations.join(", ")}
           </span>
         </div>
       </div>
@@ -284,6 +318,7 @@ function DayMain({ filters }) {
           </>
         )}
       </section>
+      <DayStat data={filteredData} valueKey={valueKey} />
     </main>
   );
 }

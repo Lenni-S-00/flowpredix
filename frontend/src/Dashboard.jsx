@@ -1,14 +1,12 @@
 import "./App.css";
 import Topbar from "./topbar";
 import Day from "./day/day";
-import DayFilter from "./day/dayFilter";
 import "./loginout.css";
 import Data from "./data/data";
 import Hour from "./hour/hour";
 import Employees from "./employees";
 import { useState } from "react";
 
-// Tää vois olla jossain toisessa paikassa.
 const logout = () => {
   localStorage.removeItem("access");
   localStorage.removeItem("refresh");
@@ -23,12 +21,26 @@ export default function Dashboard() {
       <Topbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="main-content">
-        {activeTab === "daily" && <Day />}
-        {activeTab === "hour" && <Hour />}
-        {activeTab === "employees" && <Employees />}
-        {activeTab === "data" && <Data />}
+        <div style={{ display: activeTab === "daily" ? "block" : "none" }}>
+          <Day />
+        </div>
+
+        <div style={{ display: activeTab === "hour" ? "block" : "none" }}>
+          <Hour />
+        </div>
+
+        <div style={{ display: activeTab === "employees" ? "block" : "none" }}>
+          <Employees />
+        </div>
+
+        <div style={{ display: activeTab === "data" ? "block" : "none" }}>
+          <Data />
+        </div>
       </main>
-      <button className="logout-button" onClick={logout}>Logout</button>
+
+      <button className="logout-button" onClick={logout}>
+        Logout
+      </button>
     </div>
   );
 }

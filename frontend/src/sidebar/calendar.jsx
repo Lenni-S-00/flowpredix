@@ -6,7 +6,10 @@ function Calendar({
   placeholder = "Valitse aikaväli",
   selectionMode = "range",
 }) {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1));
+  const [currentDate, setCurrentDate] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
   const [showCalendar, setShowCalendar] = useState(false);
   const [startDate, setStartDate] = useState(value?.startDate || null);
   const [endDate, setEndDate] = useState(value?.endDate || null);
@@ -109,9 +112,20 @@ const handleDateClick = (date) => {
     return a.toDateString() === b.toDateString();
   };
 
+  const startOfDay = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
   const isInRange = (date) => {
     if (!startDate || !endDate) return false;
-    return date > startDate && date < endDate;
+
+    const current = startOfDay(date);
+    const start = startOfDay(startDate);
+    const end = startOfDay(endDate);
+
+    return current >= start && current <= end;
   };
 
   const getCalendarDays = () => {
