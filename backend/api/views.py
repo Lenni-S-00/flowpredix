@@ -31,6 +31,14 @@ def test_protected(request):
         "role": request.user.role,
     })
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def whoami(request):
+    return Response({
+        "username": request.user.username,
+        "organization": request.user.organization.name,
+    })
+
 # Tässä on datan näyttämiseen endpointti
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

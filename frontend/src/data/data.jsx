@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../sidebar/sidebar";
 import "./data.css";
 import DataFilter from "./dataFilter";
+import API from "../api";
 
 function Data() {
   const [message, setMessage] = useState("");
@@ -14,17 +15,17 @@ function Data() {
   const [employees, setEmployees] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/hello/")
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message));
+    API.get("hello/")
+      .then((res) => setMessage(res.data.message))
+      .catch((err) => console.error(err));
   }, []);
-
+/*
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/data/")
       .then((res) => res.json())
       .then((data) => setData(data));
   }, []);
-
+*/
   const handleFileUpload = () => {
     if (!file) return;
 
@@ -32,35 +33,52 @@ function Data() {
     formData.append("file", file);
     formData.append("source", "test-upload");
 
-    fetch("http://127.0.0.1:8000/api/upload/", {
-      method: "POST",
-      body: formData,
-    })
-      .then((res) => res.json())
-      .then((data) => console.log("Response:", data));
-  };
+    API.post("upload/", formData)
+      .then((res) => {
+        console.log("Response:", res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    }
 
   const handleSubmit = () => {
-    fetch("http://127.0.0.1:8000/api/data/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        location,
-        timestamp,
-        samples_taken: Number(samples),
-        employees_used: Number(employees),
-      }),
+    API.post("data/", {
+      location,
+      timestamp,
+      samples_taken: Number(samples),
+      employees_used: Number(employees),
     })
-      .then((res) => res.json())
-      .then((newData) => {
+      .then((res) => {
+        const newData = res.data;
+
         setData([newData, ...data]);
 
         setLocation("");
         setTimestamp("");
         setSamples("");
         setEmployees("");
+      })
+      .catch((err) => {
+        console.error(err);
+    });
+  };
+  const [whoami, setWhoami] = useState(null);
+  // Testataan endpointteja
+  // Toimii ainakin näin.
+  const handleTest = () => {
+    //API.get("hello/").then((res) => {console.log(res);}).catch((err) => {console.error(err);});
+    API.get("whoami")
+    .then((res) => {
+    setWhoami(res.data);
+  });
+    API.get("data/")
+      .then((res) => {
+        console.log(res.data);
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
       });
   };
 
@@ -175,6 +193,15 @@ function Data() {
             </table>
           </div>
         </section>
+        <button onClick={handleTest}>Testinappi - näytä tiedot</button>
+        <div>
+        {whoami && (
+          <>
+          <p>User: {whoami.username}</p>
+          <p>Organization: {whoami.organization}</p>
+        </>
+        )}
+        </div>
       </main>
     </>
   );
