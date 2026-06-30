@@ -67,7 +67,7 @@ def upload_file(request):
         )
 
     file = request.FILES.get('file')
-    source = request.data.get('source')  # optional metadata
+    source = request.data.get('source')  # Valinnainen metadata, keksitäänkö käyttöä? Ehkä logeihin?
 
     if not file:
         return Response({"error": "No file uploaded"}, status=400)
