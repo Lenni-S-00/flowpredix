@@ -59,7 +59,7 @@ def sample_data_list(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def sample_data_summary(request):
+def data_day(request):
     queryset = SampleData.objects.filter(
         organization=request.user.organization
     )
@@ -104,7 +104,7 @@ def sample_data_summary(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def sample_data_hourly(request):
+def data_hourly(request):
     queryset = SampleData.objects.filter(
         organization=request.user.organization
     )

@@ -22,6 +22,7 @@ const RANGE_DAYS = {
   "6 kuukautta": 180,
 };
 
+// päivämäärien käsittelyyn liittyvät funktio, käytetään suodatuksessa ja graafin muodostamisessa
 function toDate(value) {
   if (!value) return null;
   return value instanceof Date ? value : new Date(value);
@@ -49,6 +50,7 @@ function formatDate(dateString) {
   return `${date.getDate()}.${date.getMonth() + 1}.`;
 }
 
+// muuntaa backendin palauttaman datan graafin käyttämään muotoon
 function normalizeBackendData(rows) {
   return rows.map((row) => ({
     id: row.id,
@@ -59,6 +61,7 @@ function normalizeBackendData(rows) {
   }));
 }
 
+// tässä viikonloput ja pyhät yms laitetaaan nollaksi, jotta näkyy graafissa
 function fillMissingDates(data) {
   if (!data.length) return [];
 
@@ -100,6 +103,7 @@ function fillMissingDates(data) {
   return filled;
 }
 
+// haetaan backendistä data ja normalisoidaan se graafia varten
 function DayMain({ filters }) {
   const backendData = useRealData(filters);
   const dayData = normalizeBackendData(backendData);
@@ -126,12 +130,13 @@ function DayMain({ filters }) {
     .filter((item) => item.date && item.location)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    // teksti "ei dataa" näkyy myös kun autentikaatiossa haasteita, eli esim ei kirjautuntut sisään
   if (sourceData.length === 0) {
     return (
       <main className="day-main">
         <div className="day-empty-state">
           Ei vielä näytettävää dataa. Lisää tiedosto ensin.
-        </div>
+        </div> 
       </main>
     );
   }
@@ -159,6 +164,7 @@ function DayMain({ filters }) {
             addOneDay(filters.dateRange?.endDate)
         );
 
+  // rajataan data valitun aikavälin ja toimipisteiden mukaan
   const baseFilteredData = sourceData.filter((item) => {
     const itemDate = startOfDay(item.date);
 
@@ -173,6 +179,7 @@ function DayMain({ filters }) {
     return locationMatches && dateMatches;
   });
 
+  // jos valittuna on kaikki toimipisteet, summataan eri toimipisteiden arvot päivätasolle
   const filteredData = allSelected
     ? Object.values(
         baseFilteredData.reduce((acc, item) => {
@@ -216,6 +223,7 @@ function DayMain({ filters }) {
   const innerWidth = width - padding.left - padding.right;
   const innerHeight = height - padding.top - padding.bottom;
 
+  // scg-graafin laskentafunktiot: muunnetaan päivämäärät ja arvot koordinaateiksi
   const getX = (date) => {
     const index = dates.indexOf(date);
 
@@ -256,6 +264,7 @@ function DayMain({ filters }) {
 
   const showDots = dates.length <= 45;
 
+  // otsikko, legenda, viivagraafi ja tilastot valitun datan perusteella
   return (
     <main className="day-main">
       <div className="day-main-header">
@@ -387,6 +396,7 @@ function DayMain({ filters }) {
       />
     </main>
   );
+  // DayStat = tilastoista jätetään pois nollapäivät, jotta päivät ilman näytteenottoja ei vääristä keskiarvoja
 }
 
 export default DayMain;

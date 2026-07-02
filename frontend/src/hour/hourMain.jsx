@@ -74,6 +74,7 @@ function formatDisplayDate(value) {
   });
 }
 
+// kun valitaan esim. viikko, palautetaan 7 päivän tiedot
 function getForecastDays(range) {
   if (range === "1 viikko") return 7;
   if (range === "2 viikkoa") return 14;
@@ -127,6 +128,7 @@ function buildRows(data, valueKey) {
 }
 
 function HourMain({ filters }) {
+  // oletusarvojen varmistus, jotta ei kaadu vaikkei filtersejä olisi vielä valittu
   const safeFilters = filters || {
     mode: "realized",
     selectedLocation: "",
@@ -144,6 +146,7 @@ function HourMain({ filters }) {
 
   const hourData = useHourData(safeFilters);
 
+  // data aikajärjestykseen heatmapin rivejä varten
   const sortedData = [...hourData].sort((a, b) =>
     a.date.localeCompare(b.date)
   );

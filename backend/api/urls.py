@@ -3,8 +3,8 @@ from .views import (
     hello,
     whoami,
     sample_data_list,
-    sample_data_summary,
-    sample_data_hourly,
+    data_day,
+    data_hourly,
     upload_file,
     test_protected,
 )
@@ -19,8 +19,8 @@ urlpatterns = [
     path("whoami", whoami),
 
     path("data/", sample_data_list),
-    path("data/summary/", sample_data_summary),
-    path("data/hourly/", sample_data_hourly),
+    path("data/summary/", data_day),
+    path("data/hourly/", data_hourly),
     path("upload/", upload_file),
 
     path("test-protected/", test_protected),
