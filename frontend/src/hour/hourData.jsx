@@ -1,70 +1,55 @@
-const locations = ["Lab1", "Lab2", "Lab3", "Lab4", "Lab5", "Lab6"];
+import { useState, useEffect } from "react";
+import API from "../api";
 
-function formatDate(date) {
-  return date.toISOString().split("T")[0];
+function toApiDate(value) {
+  if (!value) return undefined;
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
-function formatHour(date) {
-  return date.toISOString().slice(0, 13) + ":00";
-}
+export function useHourData(filters) {
+  const [data, setData] = useState([]);
 
-function createData() {
-  const data = [];
-  const startDate = new Date("2026-01-01T00:00:00");
-  const days = 181;
-  const hoursPerDay = 24;
-
-  for (let day = 0; day < days; day++) {
-    for (let hour = 0; hour < hoursPerDay; hour++) {
-      const currentDate = new Date(startDate);
-      currentDate.setDate(startDate.getDate() + day);
-      currentDate.setHours(hour);
-
-      locations.forEach((location, index) => {
-        const weeklyPattern = Math.sin(day / 7) * 18;
-        const monthlyPattern = Math.sin(day / 30) * 28;
-        const hourlyPattern = Math.sin((hour / 24) * Math.PI * 2) * 16;
-
-        const locationBase = 80 + index * 22;
-        const noise = ((day * 13 + hour * 7 + index * 17) % 31) - 15;
-
-        const realized = Math.max(
-          5,
-          Math.round(
-            locationBase +
-              weeklyPattern +
-              monthlyPattern +
-              hourlyPattern +
-              noise
-          )
-        );
-
-        const forecast = Math.max(
-          5,
-          Math.round(
-            locationBase +
-              weeklyPattern * 0.8 +
-              monthlyPattern * 1.1 +
-              hourlyPattern * 0.9 +
-              noise * 0.5 +
-              10
-          )
-        );
-
-        data.push({
-          date: formatDate(currentDate),
-          hour: formatHour(currentDate),
-          location,
-          realized,
-          forecast,
-        });
-      });
+  useEffect(() => {
+    if (!filters) {
+      setData([]);
+      return;
     }
-  }
+
+    const selectedLocation = filters.selectedLocation;
+
+    const params = {
+      start: toApiDate(filters.dateRange?.startDate),
+      end: toApiDate(filters.dateRange?.endDate),
+    };
+
+    if (
+      selectedLocation &&
+      selectedLocation !== "Kaikki toimipisteet"
+    ) {
+      params.locations = selectedLocation;
+    }
+
+    API.get("data/hourly/", { params })
+      .then((res) => {
+        console.log("Hourly data:", res.data);
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.error(
+          "Tuntidatan haku epäonnistui:",
+          err.response?.data || err
+        );
+      });
+  }, [filters]);
 
   return data;
 }
-
-const hourData = createData();
-
-export default hourData;

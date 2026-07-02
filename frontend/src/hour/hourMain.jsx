@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import "./hourMain.css";
 import WaitingState from "../waitingState.jsx";
-import hourData from "./hourData";
+import { useHourData } from "./hourData";
 import HourStat from "./hourStat.jsx";
 
 const hours = [
@@ -141,6 +141,8 @@ function HourMain({ filters }) {
   const isForecast = safeFilters.mode === "forecast";
 
   const selectedLocation = safeFilters.selectedLocation;
+
+  const hourData = useHourData(safeFilters);
 
   const sortedData = [...hourData].sort((a, b) =>
     a.date.localeCompare(b.date)

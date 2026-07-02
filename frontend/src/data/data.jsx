@@ -5,19 +5,35 @@ import DataFilter from "./dataFilter";
 import API from "../api";
 
 function Data() {
-  const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
   const [file, setFile] = useState(null);
+  const [whoami, setWhoami] = useState(null);
 
   const [location, setLocation] = useState("");
   const [timestamp, setTimestamp] = useState("");
   const [samples, setSamples] = useState("");
   const [employees, setEmployees] = useState("");
 
+  const fetchData = () => {
+    API.get("data/", {
+      params: {
+        page: 1,
+        page_size: 100,
+      },
+    })
+    .then((res) => {
+      setData(res.data.results);
+    });
+  };
+
   useEffect(() => {
-    API.get("hello/")
-      .then((res) => setMessage(res.data.message))
-      .catch((err) => console.error(err));
+    fetchData();
+
+    API.get("whoami")
+      .then((res) => setWhoami(res.data))
+      .catch((err) => {
+        console.error("Whoami epäonnistui:", err.response?.data || err);
+      });
   }, []);
 
   const handleFileUpload = () => {
@@ -29,12 +45,14 @@ function Data() {
 
     API.post("upload/", formData)
       .then((res) => {
-        console.log("Response:", res.data);
+        console.log("Upload onnistui:", res.data);
+        setFile(null);
+        fetchData();
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Upload epäonnistui:", err.response?.data || err);
       });
-    }
+  };
 
   const handleSubmit = () => {
     API.post("data/", {
@@ -43,35 +61,16 @@ function Data() {
       samples_taken: Number(samples),
       employees_used: Number(employees),
     })
-      .then((res) => {
-        const newData = res.data;
-        setData([newData, ...data]);
-
+      .then(() => {
         setLocation("");
         setTimestamp("");
         setSamples("");
         setEmployees("");
-      }).catch((err) => {
-        console.error(err);
-    });
-  };
-  const [whoami, setWhoami] = useState(null);
-  // Testataan endpointteja
-  // Toimii ainakin näin.
-  const handleTest = () => {
-    //API.get("hello/").then((res) => {console.log(res);}).catch((err) => {console.error(err);});
-    API.get("whoami")
-    .then((res) => {
-    setWhoami(res.data);
-  });
-    API.get("data/")
-      .then((res) => {
-        console.log(res.data);
-        setData(res.data);
+        fetchData();
       })
       .catch((err) => {
-        console.error(err);
-        });
+        console.error("Manuaalinen lisäys epäonnistui:", err.response?.data || err);
+      });
   };
 
   return (
@@ -79,6 +78,7 @@ function Data() {
       <Sidebar title="Datan suodattimet">
         <DataFilter />
       </Sidebar>
+
       <main className="data-main">
         <section className="data-actions-card">
           <div className="data-actions-grid">
@@ -98,7 +98,7 @@ function Data() {
 
                 <input
                   value={timestamp}
-                  placeholder="Aikaleima"
+                  placeholder="Aikaleima esim. 2026-06-30T19:45:32Z"
                   onChange={(e) => setTimestamp(e.target.value)}
                 />
 
@@ -114,9 +114,7 @@ function Data() {
                   onChange={(e) => setEmployees(e.target.value)}
                 />
 
-                <button onClick={handleSubmit}>
-                  Lisää data
-                </button>
+                <button onClick={handleSubmit}>Lisää data</button>
               </div>
             </div>
 
@@ -134,23 +132,15 @@ function Data() {
 
                 <label className="upload-button">
                   Valitse tiedosto
-
                   <input
                     type="file"
                     onChange={(e) => setFile(e.target.files[0])}
                   />
                 </label>
 
-                {file && (
-                  <span className="selected-file">
-                    {file.name}
-                  </span>
-                )}
+                {file && <span className="selected-file">{file.name}</span>}
 
-                <button
-                  className="upload-submit"
-                  onClick={handleFileUpload}
-                >
+                <button className="upload-submit" onClick={handleFileUpload}>
                   Lähetä tiedosto
                 </button>
               </div>
@@ -185,15 +175,15 @@ function Data() {
             </table>
           </div>
         </section>
-        <button onClick={handleTest}>Testinappi - näytä tiedot</button>
-        <div>
+
+        <button onClick={fetchData}>Päivitä tiedot</button>
+
         {whoami && (
-          <>
-          <p>User: {whoami.username}</p>
-          <p>Organization: {whoami.organization}</p>
-        </>
+          <div>
+            <p>User: {whoami.username}</p>
+            <p>Organization: {whoami.organization}</p>
+          </div>
         )}
-        </div>
       </main>
     </>
   );

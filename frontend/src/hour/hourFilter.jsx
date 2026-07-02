@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./hourFilter.css";
 import Calendar from "../sidebar/calendar";
-import hourData from "./hourData";
 
 const startOfDay = (date) => {
   if (!date) return null;
@@ -36,7 +35,12 @@ function HourFilter({ onSubmit }) {
 
   const locations = [
     "Kaikki toimipisteet",
-    ...new Set(hourData.map((item) => item.location)),
+    "Lab1",
+    "Lab2",
+    "Lab3",
+    "Lab4",
+    "Lab5",
+    "Lab6",
   ];
 
   useEffect(() => {
@@ -70,12 +74,12 @@ function HourFilter({ onSubmit }) {
       mode,
       selectedLocation,
       forecastRange,
+      hasApplied: true,
       dateRange: {
         startDate: normalizedStartDate,
         endDate: normalizedEndDate,
         endDateExclusive,
       },
-      data: hourData,
     });
   };
 

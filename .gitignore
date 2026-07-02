@@ -26,3 +26,4 @@ dist-ssr
 # Apply also to backend
 __pycache__/
 *.pyc
+backend/db.sqlite3

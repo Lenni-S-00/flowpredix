@@ -14,6 +14,10 @@ function DayStat({ data, valueKey = "realized" }) {
     item[valueKey] > max[valueKey] ? item : max
   );
 
+  const quietDay = data.reduce((min, item) =>
+    item[valueKey] > min[valueKey] ? item : min
+  );
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
@@ -48,7 +52,7 @@ function DayStat({ data, valueKey = "realized" }) {
         <div className="day-stat-box">
           <span className="day-stat-label">Pienin päivä</span>
           <strong>{minPatients}</strong>
-          <span className="day-stat-small">potilasta</span>
+          <span className="day-stat-small">{formatDate(quietDay.date)}</span>
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 import "./dayMain.css";
 import WaitingState from "../waitingState.jsx";
-import dayData from "./dayData.jsx";
+import { useRealData } from "./dayData.jsx";
 import DayStat from "./dayStat.jsx";
 
 const COLORS = {
@@ -49,7 +49,61 @@ function formatDate(dateString) {
   return `${date.getDate()}.${date.getMonth() + 1}.`;
 }
 
+function normalizeBackendData(rows) {
+  return rows.map((row) => ({
+    id: row.id,
+    date: row.date || row.timestamp?.split("T")[0],
+    location: row.location,
+    realized: row.realized ?? row.samples_taken ?? 0,
+    forecast: row.forecast ?? row.samples_taken ?? 0,
+  }));
+}
+
+function fillMissingDates(data) {
+  if (!data.length) return [];
+
+  const sorted = [...data].sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
+
+  const locations = [...new Set(sorted.map((item) => item.location))];
+
+  const start = startOfDay(sorted[0].date);
+  const end = startOfDay(sorted[sorted.length - 1].date);
+
+  const existing = new Map(
+    sorted.map((item) => [`${item.date}-${item.location}`, item])
+  );
+
+  const filled = [];
+  const current = new Date(start);
+
+  while (current <= end) {
+    const dateString = current.toISOString().split("T")[0];
+
+    locations.forEach((location) => {
+      const key = `${dateString}-${location}`;
+
+      filled.push(
+        existing.get(key) || {
+          date: dateString,
+          location,
+          realized: 0,
+          forecast: 0,
+        }
+      );
+    });
+
+    current.setDate(current.getDate() + 1);
+  }
+
+  return filled;
+}
+
 function DayMain({ filters }) {
+  const backendData = useRealData(filters);
+  const dayData = normalizeBackendData(backendData);
+
   if (!filters?.hasApplied) {
     return (
       <main className="day-main">
@@ -68,16 +122,24 @@ function DayMain({ filters }) {
     selectedLocations.length === 0 ||
     selectedLocations.includes("Kaikki näytteenotot");
 
-  const sourceData = [...dayData].sort(
-    (a, b) => new Date(a.date) - new Date(b.date)
-  );
+  const sourceData = fillMissingDates(dayData)
+    .filter((item) => item.date && item.location)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  if (sourceData.length === 0) {
+    return (
+      <main className="day-main">
+        <div className="day-empty-state">
+          Ei vielä näytettävää dataa. Lisää tiedosto ensin.
+        </div>
+      </main>
+    );
+  }
 
   const today = startOfDay(new Date());
 
   const firstDate =
-    mode === "forecast"
-      ? today
-      : startOfDay(sourceData[0]?.date);
+    mode === "forecast" ? today : startOfDay(sourceData[0]?.date);
 
   const forecastDays = RANGE_DAYS[filters.forecastRange] || 14;
 
@@ -275,7 +337,7 @@ function DayMain({ filters }) {
                     key={location}
                     d={getPath(location)}
                     fill="none"
-                    stroke={COLORS[location]}
+                    stroke={COLORS[location] || "#2563eb"}
                     strokeWidth="1"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -284,13 +346,13 @@ function DayMain({ filters }) {
                 ))}
 
                 {showDots &&
-                  filteredData.map((item) => (
+                  filteredData.map((item, index) => (
                     <circle
-                      key={`${item.date}-${item.location}`}
+                      key={`${item.date}-${item.location}-${index}`}
                       cx={getX(item.date)}
                       cy={getY(item[valueKey])}
                       r="4"
-                      fill={COLORS[item.location]}
+                      fill={COLORS[item.location] || "#2563eb"}
                       stroke="#ffffff"
                       strokeWidth="2"
                     >
@@ -318,7 +380,11 @@ function DayMain({ filters }) {
           </>
         )}
       </section>
-      <DayStat data={filteredData} valueKey={valueKey} />
+
+      <DayStat
+        data={filteredData.filter((item) => item[valueKey] > 0)}
+        valueKey={valueKey}
+      />
     </main>
   );
 }

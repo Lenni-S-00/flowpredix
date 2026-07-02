@@ -1,84 +1,53 @@
-// Tarvitaan useEffect, jotta saadaan asioita tapahtumaan, kun sivu latautuu. Missä kaikkialla oikeestaan tarvitaan react-importtia...
-import { useEffect } from "react";
-// Tarvitaan API, joka importataan api.js -tiedostosta, joka viittaa apin urliin ja API luodaan käyttäen axiosia.
+import { useState, useEffect } from "react";
 import API from "../api";
 
-const locations = ["Lab1", "Lab2", "Lab3", "Lab4", "Lab5", "Lab6"];
+function toApiDate(value) {
+  if (!value) return undefined;
 
-function formatDate(date) {
-  return date.toISOString().split("T")[0];
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // mikä on padstart?
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
-// Generoi satunnaisen datan
-function createRandomData() {
-  const data2 = [];
-  const startDate = new Date("2026-01-01");
-  const days = 181;
+export function useRealData(filters) {
+  const [data, setData] = useState([]);
 
-  for (let day = 0; day < days; day++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(startDate.getDate() + day);
+  useEffect(() => {
+    if (!filters?.hasApplied) {
+      setData([]);
+      return;
+    }
 
-    locations.forEach((location, index) => {
-      const weeklyPattern = Math.sin(day / 7) * 18;
-      const monthlyPattern = Math.sin(day / 30) * 28;
-      const locationBase = 80 + index * 22;
-      const noise = ((day * 13 + index * 17) % 31) - 15;
+    const selectedLocations = filters.selectedLocations || [];
 
-      const realized = Math.max(
-        20,
-        Math.round(locationBase + weeklyPattern + monthlyPattern + noise)
-      );
+    const allSelected =
+      selectedLocations.length === 0 ||
+      selectedLocations.includes("Kaikki näytteenotot");
 
-      const forecast = Math.max(
-        20,
-        Math.round(
-          locationBase +
-            weeklyPattern * 0.8 +
-            monthlyPattern * 1.1 +
-            noise * 0.5 +
-            10
-        )
-      );
+    const params = {
+      start: toApiDate(filters.dateRange?.startDate),
+      end: toApiDate(filters.dateRange?.endDate),
+    };
 
-      data2.push({
-        date: formatDate(currentDate),
-        location,
-        realized,
-        forecast,
+    if (!allSelected) {
+      params.locations = selectedLocations.join(",");
+    }
+
+    API.get("data/summary/", { params })
+      .then((res) => {
+        console.log("Summary data:", res.data);
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.error("Yhteenvetodatan haku epäonnistui:", err.response?.data || err);
       });
-    });
-  }
+  }, [filters]);
 
-  return data2;
+  return data;
 }
-
-const dayData2 = createRandomData();
-
-// Tällä tavoin saadaan oikea data.
-function getRealData() {
-  /*
-  Ensin Reactin taikaa:
-  Luodaan lista, johon saadaan useEffectin avulla data ja luodaan funktio datan muuttamiseen.
-  useEffect palauttaa nämä oletuksena, eli datan nykyisen arvon ja funktion, jolla sitä muutetaan.
-  Tätä funktiota ei tarvitse erikseen määritellä. useEffectin "parametrina" lista, eli palauttaa datan listana.
-  */
-  const [data, setData] = useEffect([]);
-  /*
-  Sitten haetaan datan url-osoite, johon axios antaa alkuosan ja tarvitaan vain tuo loppu. Tämä tehdään API .get() -komennolla.
-  Tässä komennossa/pyynnössä (get) kestää, joten laitetaan sen jälkeen .then() (eli suoritetaan vasta, kun pyyntö on käsitelty)
-  Tää on kai sitten PROMISE.
-  then():lle annetaan parametriksi res, joka on vain tapa nimetä tavara, joka saadaan vastauksena pyyntöön. res lienee yleisin nimi.
-  Tämän jälkeen kutsutaan setDataa, joka muuttaa datan arvon res.datan arvoksi.
-  Huomaa myös, ettei tätä koko roskaa varsinaisesti kutsuta, vaan pelkästään määritellään, eli JavaScript hoitaa kutsumisen.
-  */
-  API.get("data/")
-    .then((res) => {
-      setData(res.data);
-    })
-  
-    return data;
-
-}
-
-export default dayData2;
