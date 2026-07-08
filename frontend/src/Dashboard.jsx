@@ -1,5 +1,6 @@
 import "./App.css";
 import Topbar from "./topbar";
+import Summary from "./summary/summary";
 import Day from "./day/day";
 import "./loginout.css";
 import Data from "./data/data";
@@ -14,13 +15,17 @@ const logout = () => {
 };
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("daily");
+  const [activeTab, setActiveTab] = useState("summary");
 
   return (
     <div className="app">
       <Topbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="main-content">
+        <div style={{ display: activeTab === "summary" ? "block" : "none" }}>
+          <Summary />
+        </div>
+
         <div style={{ display: activeTab === "daily" ? "block" : "none" }}>
           <Day />
         </div>

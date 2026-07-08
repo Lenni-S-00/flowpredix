@@ -1,0 +1,182 @@
+.summary-main {
+  min-height: 100vh;
+
+  padding: 88px 40px 40px;
+
+  box-sizing: border-box;
+}
+
+.summary-main-header {
+  margin-bottom: 24px;
+}
+
+.summary-main-eyebrow {
+  margin: 0 0 4px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #5f86d9;
+
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-main-header h1 {
+  margin: 0 0 6px;
+
+  font-size: 32px;
+  color: #25324a;
+}
+
+.summary-main-header span {
+  font-size: 14px;
+  color: #7a879d;
+}
+
+/* Summary cards */
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 22px;
+
+  margin-bottom: 30px;
+}
+
+.summary-card {
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+
+  padding: 24px;
+
+  box-shadow:
+    0 18px 40px rgba(30, 45, 75, 0.1),
+    0 4px 10px rgba(30, 45, 75, 0.05);
+
+  transition: 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+}
+
+.summary-card h3 {
+  margin: 0 0 10px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #607089;
+}
+
+.summary-card p {
+  margin: 0;
+
+  font-size: 34px;
+  font-weight: 700;
+
+  color: #25324a;
+}
+
+/* Information section */
+
+.summary-section {
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+
+  padding: 28px;
+
+  box-shadow:
+    0 18px 40px rgba(30, 45, 75, 0.1),
+    0 4px 10px rgba(30, 45, 75, 0.05);
+}
+
+.summary-section h2 {
+  margin: 0 0 20px;
+
+  font-size: 22px;
+  color: #25324a;
+}
+
+.summary-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.summary-info-item {
+  padding: 18px;
+
+  border-radius: 16px;
+
+  background: #f8fbff;
+  border: 1px solid #e8eef7;
+}
+
+.summary-info-item h4 {
+  margin: 0 0 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #607089;
+}
+
+.summary-info-item p {
+  margin: 0;
+
+  font-size: 16px;
+  color: #25324a;
+}
+
+/* Empty state */
+
+.summary-empty-state {
+  min-height: 320px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px dashed #cfd8e3;
+  border-radius: 18px;
+
+  color: #7a879d;
+  font-size: 15px;
+
+  background: #ffffff;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .summary-main {
+    padding: 72px 16px 32px;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .summary-card {
+    padding: 20px;
+  }
+
+  .summary-card p {
+    font-size: 28px;
+  }
+
+  .summary-section {
+    padding: 20px;
+  }
+
+  .summary-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
