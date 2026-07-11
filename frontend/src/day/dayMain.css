@@ -249,3 +249,29 @@
     }
 
 }
+
+.day-content-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: stretch;
+  gap: 18px;
+  width: 100%;
+}
+
+.day-chart-card {
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.day-stat-column {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+}
+
+@media (max-width: 1050px) {
+  .day-content-layout {
+    grid-template-columns: 1fr;
+  }
+}

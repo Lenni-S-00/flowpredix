@@ -1,13 +1,19 @@
 .day-stat-card {
-  margin-top: 18px;
+  margin-top: 0;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
   background: #ffffff;
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
 .day-stat-header {
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .day-stat-header h2 {
@@ -17,30 +23,37 @@
 }
 
 .day-stat-header span {
+  display: block;
+  margin-top: 4px;
   font-size: 13px;
   color: #64748b;
 }
 
 .day-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr;
   gap: 14px;
+  flex: 1;
+  grid-template-rows: repeat(4, 1fr);
 }
 
 .day-stat-box {
+  min-height: 105px;
+  box-sizing: border-box;
   background: #f8fafc;
   border-radius: 14px;
   padding: 16px;
-  min-height: 100px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
+  text-align: center;
 }
 
 .day-stat-label {
+  margin-bottom: 8px;
   font-size: 13px;
   color: #64748b;
-  margin-bottom: 8px;
 }
 
 .day-stat-box strong {
@@ -55,9 +68,23 @@
   color: #64748b;
 }
 
-@media (max-width: 900px) {
+.day-stat-column {
+  display: flex;
+}
+
+@media (max-width: 1050px) {
+  .day-stat-card {
+    height: auto;
+  }
+
   .day-stat-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .day-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
