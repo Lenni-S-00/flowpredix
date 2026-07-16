@@ -1,18 +1,30 @@
 import axios from "axios";
 
-const API = axios.create({
+const api = axios.create({
   baseURL: "http://127.0.0.1:8000/api/",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access");
-  console.log("API token:", token);
+api.interceptors.request.use(
+  (config) => {
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("access") ||
+      localStorage.getItem("authToken");
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+    console.log("Axios-pyyntö:", config.url);
+    console.log("JWT löytyi:", Boolean(token));
 
-  return config;
-});
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-export default API;
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+export default api;
