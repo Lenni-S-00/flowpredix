@@ -12,33 +12,22 @@ from api.services.training import PredictionTrainer
 
 
 class Command(BaseCommand):
-    """
-    Django management command ennustemallien kouluttamiseen.
-
-    Komentoa voidaan käyttää kolmella tavalla:
-
-    python manage.py train_prediction_models --location Lab1
-    python manage.py train_prediction_models --all-locations
-    python manage.py train_prediction_models --combined
-
-    Jos mitään valintaa ei anneta, koulutetaan oletuksena
-    kaikkien toimipisteiden yhteinen malli.
-    """
 
     help = (
         "Kouluttaa potilasvirran ennustemallit "
         "SampleData-taulun datasta."
     )
 
+    # Lisää komennon komentoriviargumentit.
     def add_arguments(self, parser):
-        """
-        Määrittelee komentorivillä käytettävät argumentit.
-
-        Vaihtoehdot ovat toisensa poissulkevia, joten käyttäjä voi
-        antaa vain yhden koulutustavan kerrallaan.
-        """
         group = parser.add_mutually_exclusive_group()
 
+        self._add_location_argument(group)
+        self._add_all_locations_argument(group)
+        self._add_combined_argument(group)
+
+    # Lisää yhden toimipisteen koulutusargumentin.
+    def _add_location_argument(self, group):
         group.add_argument(
             "--location",
             type=str,
@@ -48,6 +37,8 @@ class Command(BaseCommand):
             ),
         )
 
+    # Lisää kaikkien toimipisteiden koulutusargumentin.
+    def _add_all_locations_argument(self, group):
         group.add_argument(
             "--all-locations",
             action="store_true",
@@ -57,6 +48,8 @@ class Command(BaseCommand):
             ),
         )
 
+    # Lisää yhdistetyn mallin koulutusargumentin.
+    def _add_combined_argument(self, group):
         group.add_argument(
             "--combined",
             action="store_true",
@@ -66,15 +59,8 @@ class Command(BaseCommand):
             ),
         )
 
+    # Valitsee komentoriviargumenttien mukaisen koulutustavan.
     def handle(self, *args, **options):
-        """
-        Komennon päälogiikka.
-
-        Valitsee annetun argumentin perusteella, koulutetaanko:
-        - yksi toimipiste
-        - kaikki toimipisteet erikseen
-        - kaikkien toimipisteiden yhteinen malli
-        """
         trainer = PredictionTrainer()
         repository = SampleDataRepository()
 
@@ -82,86 +68,167 @@ class Command(BaseCommand):
         all_locations = options.get("all_locations")
         combined = options.get("combined")
 
-        # Koulutetaan vain yksi käyttäjän antama toimipiste.
         if location:
-            self._train_one(
-                trainer=trainer,
-                location=location.strip(),
+            self._train_location(
+                trainer,
+                location,
             )
             return
 
-        # Koulutetaan erillinen malli jokaiselle tietokannasta
-        # löytyvälle toimipisteelle.
         if all_locations:
-            locations = repository.get_locations()
-
-            if not locations:
-                raise CommandError(
-                    "Tietokannasta ei löytynyt toimipisteitä."
-                )
-
-            successful = 0
-            failed = 0
-
-            for current_location in locations:
-                try:
-                    self._train_one(
-                        trainer=trainer,
-                        location=current_location,
-                    )
-                    successful += 1
-                except Exception as exc:
-                    # Yhden toimipisteen virhe ei keskeytä kaikkien
-                    # muiden mallien kouluttamista.
-                    failed += 1
-
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"{current_location}: {exc}"
-                        )
-                    )
-
-            self.stdout.write("")
-
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Valmiit mallit: {successful}"
-                )
+            self._train_all_locations(
+                trainer,
+                repository,
             )
-
-            if failed:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Epäonnistuneet mallit: {failed}"
-                    )
-                )
-
             return
 
-        # Koulutetaan yhdistetty malli joko --combined-valinnalla
-        # tai oletuksena silloin, kun mitään argumenttia ei annettu.
         if combined or not any(
             [
                 location,
                 all_locations,
             ]
         ):
-            self._train_one(
-                trainer=trainer,
-                location=None,
+            self._train_combined(trainer)
+
+    # Kouluttaa yhden valitun toimipisteen mallin.
+    def _train_location(
+        self,
+        trainer,
+        location,
+    ):
+        self._train_one(
+            trainer=trainer,
+            location=location.strip(),
+        )
+
+    # Kouluttaa erillisen mallin jokaiselle toimipisteelle.
+    def _train_all_locations(
+        self,
+        trainer,
+        repository,
+    ):
+        locations = repository.get_locations()
+
+        self._validate_locations(locations)
+
+        successful, failed = self._train_locations(
+            trainer,
+            locations,
+        )
+
+        self._write_training_summary(
+            successful,
+            failed,
+        )
+
+    # Tarkistaa, että tietokannasta löytyi toimipisteitä.
+    def _validate_locations(self, locations):
+        if not locations:
+            raise CommandError(
+                "Tietokannasta ei löytynyt toimipisteitä."
             )
 
+    # Kouluttaa annetut toimipisteet ja laskee tulokset.
+    def _train_locations(
+        self,
+        trainer,
+        locations,
+    ):
+        successful = 0
+        failed = 0
+
+        for location in locations:
+            if self._try_train_location(
+                trainer,
+                location,
+            ):
+                successful += 1
+            else:
+                failed += 1
+
+        return successful, failed
+
+    # Yrittää kouluttaa yhden toimipisteen mallin.
+    def _try_train_location(
+        self,
+        trainer,
+        location,
+    ):
+        try:
+            self._train_one(
+                trainer=trainer,
+                location=location,
+            )
+            return True
+        except Exception as exc:
+            self._write_training_warning(
+                location,
+                exc,
+            )
+            return False
+
+    # Tulostaa toimipistekohtaisen koulutusvirheen.
+    def _write_training_warning(
+        self,
+        location,
+        error,
+    ):
+        self.stdout.write(
+            self.style.WARNING(
+                f"{location}: {error}"
+            )
+        )
+
+    # Tulostaa kaikkien mallien koulutusyhteenvedon.
+    def _write_training_summary(
+        self,
+        successful,
+        failed,
+    ):
+        self.stdout.write("")
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Valmiit mallit: {successful}"
+            )
+        )
+
+        if failed:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Epäonnistuneet mallit: {failed}"
+                )
+            )
+
+    # Kouluttaa kaikkien toimipisteiden yhteisen mallin.
+    def _train_combined(self, trainer):
+        self._train_one(
+            trainer=trainer,
+            location=None,
+        )
+
+    # Kouluttaa yhden mallin ja tallentaa sen metatiedot.
     def _train_one(
         self,
         trainer,
         location,
     ):
-        """
-        Kouluttaa yhden mallin ja tallentaa sen metatiedot.
+        self._write_training_start(location)
 
-        location=None tarkoittaa kaikkien toimipisteiden
-        yhteistä mallia.
-        """
+        result = self._run_training(
+            trainer,
+            location,
+        )
+        metadata = self._normalize_result(
+            result=result,
+            location=location,
+        )
+
+        self._save_metadata(metadata)
+        self._write_training_result(metadata)
+
+    # Tulostaa koulutettavan mallin nimen.
+    def _write_training_start(self, location):
         display_name = (
             location or "Kaikki näytteenotot"
         )
@@ -170,8 +237,14 @@ class Command(BaseCommand):
             f"Koulutetaan malli: {display_name}"
         )
 
+    # Suorittaa mallin koulutuksen.
+    def _run_training(
+        self,
+        trainer,
+        location,
+    ):
         try:
-            result = trainer.train(
+            return trainer.train(
                 location=location
             )
         except ValueError as exc:
@@ -179,58 +252,25 @@ class Command(BaseCommand):
                 f"Mallin koulutus epäonnistui: {exc}"
             ) from exc
 
-        # Yhdenmukaistetaan trainerin palauttama sanakirja
-        # ennen tietokantaan tallentamista.
-        metadata = self._normalize_result(
-            result=result,
-            location=location,
-        )
-
-        # Tallennetaan mallin metatiedot PredictionModel-tauluun.
-        self._save_metadata(
-            metadata=metadata,
-        )
-
+    # Tulostaa koulutetun mallin yhteenvedon.
+    def _write_training_result(self, metadata):
         self.stdout.write(
             self.style.SUCCESS(
                 self._format_result(metadata)
             )
         )
 
+    # Validoi ja normalisoi koulutuksen tuloksen.
     def _normalize_result(
         self,
         result,
         location,
     ):
-        """
-        Validoi ja normalisoi PredictionTrainerin palauttaman tuloksen.
-
-        Tämän avulla management command ei ole täysin riippuvainen
-        trainerin palauttaman sanakirjan kaikista oletusarvoista.
-        """
-        required_fields = [
-            "model_path",
-            "training_start",
-            "training_end",
-        ]
-
-        missing = [
-            field
-            for field in required_fields
-            if not result.get(field)
-        ]
-
-        if missing:
-            raise CommandError(
-                "PredictionTrainer ei palauttanut "
-                f"kenttiä: {', '.join(missing)}"
-            )
+        self._validate_result(result)
 
         return {
             "location": location,
-            "model_file": str(
-                Path(result["model_path"])
-            ),
+            "model_file": self._get_model_file(result),
             "model_type": result.get(
                 "model_type",
                 "RandomForestRegressor",
@@ -258,21 +298,42 @@ class Command(BaseCommand):
             "mse": result.get("mse"),
         }
 
+    # Tarkistaa koulutustuloksen pakolliset kentät.
+    def _validate_result(self, result):
+        required_fields = [
+            "model_path",
+            "training_start",
+            "training_end",
+        ]
+
+        missing = [
+            field
+            for field in required_fields
+            if not result.get(field)
+        ]
+
+        if missing:
+            raise CommandError(
+                "PredictionTrainer ei palauttanut "
+                f"kenttiä: {', '.join(missing)}"
+            )
+
+    # Muuntaa mallitiedoston polun merkkijonoksi.
+    def _get_model_file(self, result):
+        return str(
+            Path(result["model_path"])
+        )
+
+    # Tallentaa uuden mallin metatiedot transaktiossa.
     @transaction.atomic
-    def _save_metadata(
-        self,
-        metadata,
-    ):
-        """
-        Tallentaa koulutetun mallin metatiedot tietokantaan.
+    def _save_metadata(self, metadata):
+        self._deactivate_previous_model(
+            metadata["location"]
+        )
+        self._create_prediction_model(metadata)
 
-        Tallennus tehdään transaktion sisällä, jotta vanhan mallin
-        deaktivointi ja uuden mallin luonti onnistuvat yhtenä kokonaisuutena.
-        """
-        location = metadata["location"]
-
-        # Poistetaan saman toimipisteen vanha aktiivinen malli
-        # aktiivisesta käytöstä, mutta säilytetään se historiassa.
+    # Poistaa vanhan mallin aktiivisesta käytöstä.
+    def _deactivate_previous_model(self, location):
         PredictionModel.objects.filter(
             location=location,
             is_active=True,
@@ -280,9 +341,10 @@ class Command(BaseCommand):
             is_active=False
         )
 
-        # Luodaan uuden koulutetun mallin metatietorivi.
+    # Luo uuden mallin metatietorivin.
+    def _create_prediction_model(self, metadata):
         PredictionModel.objects.create(
-            location=location,
+            location=metadata["location"],
             model_file=metadata["model_file"],
             model_type=metadata["model_type"],
             feature_version=metadata[
@@ -306,28 +368,12 @@ class Command(BaseCommand):
             is_active=True,
         )
 
-    def _format_result(
-        self,
-        metadata,
-    ):
-        """
-        Muodostaa komentoriville tulostettavan yhteenvedon
-        koulutetusta mallista.
-        """
-        location = (
+    # Muodostaa koulutustuloksen komentoriviyhteenvedon.
+    def _format_result(self, metadata):
+        location = self._get_display_name(
             metadata["location"]
-            or "Kaikki näytteenotot"
         )
-
-        r2 = self._format_metric(
-            metadata["r2"]
-        )
-        mae = self._format_metric(
-            metadata["mae"]
-        )
-        mse = self._format_metric(
-            metadata["mse"]
-        )
+        metrics = self._format_metrics(metadata)
 
         return (
             f"Malli koulutettu: {location}\n"
@@ -335,14 +381,34 @@ class Command(BaseCommand):
             f"Koulutusjakso: "
             f"{metadata['training_start']} – "
             f"{metadata['training_end']}\n"
-            f"R²: {r2}, MAE: {mae}, MSE: {mse}"
+            f"R²: {metrics['r2']}, "
+            f"MAE: {metrics['mae']}, "
+            f"MSE: {metrics['mse']}"
         )
 
+    # Palauttaa toimipisteen näytettävän nimen.
+    def _get_display_name(self, location):
+        return (
+            location or "Kaikki näytteenotot"
+        )
+
+    # Muotoilee kaikki mallin arviointimittarit.
+    def _format_metrics(self, metadata):
+        return {
+            "r2": self._format_metric(
+                metadata["r2"]
+            ),
+            "mae": self._format_metric(
+                metadata["mae"]
+            ),
+            "mse": self._format_metric(
+                metadata["mse"]
+            ),
+        }
+
+    # Muotoilee arviointimittarin kolmen desimaalin tarkkuudella.
     @staticmethod
     def _format_metric(value):
-        """
-        Muotoilee mallin arviointimittarin kolmen desimaalin tarkkuudella.
-        """
         if value is None:
             return "ei saatavilla"
 

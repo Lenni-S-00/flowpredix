@@ -1,5 +1,4 @@
 # api/services/training.py
-# Vastaa ennustemallien kouluttamisesta ja arvioinnista.
 
 import pandas as pd
 
@@ -19,59 +18,84 @@ from api.services.repositories import SampleDataRepository
 
 
 class PredictionTrainer:
-    """
-    Vastaa ennustemallin kouluttamisesta.
 
-    Trainer hakee datan Repositoryn kautta, muodostaa featuret,
-    kouluttaa mallin ja tallentaa sen ModelRegistryyn.
-
-    Varsinainen mallin koulutus tapahtuu management commandin kautta,
-    eikä REST API -kutsujen yhteydessä.
-    """
-
+    # Alustaa koulutuksessa käytettävät palvelut.
     def __init__(self):
         self.repository = SampleDataRepository()
         self.registry = ModelRegistry()
 
+    # Kouluttaa ja tallentaa yhden ennustemallin.
     def train(self, location=None):
-        """
-        Kouluttaa yhden RandomForestRegressor-mallin.
-
-        location=None tarkoittaa kaikkien toimipisteiden yhteistä mallia.
-        Muussa tapauksessa koulutetaan toimipistekohtainen malli.
-        """
-
-        # Haetaan historiadata tietokannasta Repositoryn kautta.
         rows = self.repository.get_daily_data(location)
 
-        # Muodostetaan yhtenäinen päiväkohtainen DataFrame.
-        daily_df = self._prepare_dataframe(
-            rows=rows,
-            location=location,
+        daily_df = self._prepare_dataframe(rows)
+
+        self._validate_training_data(daily_df)
+
+        feature_df = create_daily_features(daily_df)
+
+        x, y = self._separate_features_and_target(
+            feature_df
         )
 
-        # Liian pienellä aineistolla mallia ei kannata kouluttaa.
+        (
+            x_train,
+            x_test,
+            y_train,
+            y_test,
+        ) = self._split_training_data(x, y)
+
+        model = self._create_model()
+
+        self._train_model(
+            model,
+            x_train,
+            y_train,
+        )
+
+        predictions = self._predict_test_data(
+            model,
+            x_test,
+        )
+
+        path = self._save_model(
+            model,
+            location,
+        )
+
+        return self._create_training_result(
+            location=location,
+            path=path,
+            daily_df=daily_df,
+            x_train=x_train,
+            x_test=x_test,
+            y_test=y_test,
+            predictions=predictions,
+        )
+
+    # Tarkistaa, että koulutusdataa on riittävästi.
+    def _validate_training_data(self, daily_df):
         if len(daily_df) < 30:
             raise ValueError(
                 "Mallin kouluttamiseen tarvitaan "
                 "vähintään 30 päivän data."
             )
 
-        # Muodostetaan koneoppimismallin käyttämät featuret.
-        feature_df = create_daily_features(daily_df)
-
-        # Erotetaan selittävät muuttujat (X)
-        # ja ennustettava muuttuja (y).
+    # Erottelee featuret ja ennustettavan muuttujan.
+    def _separate_features_and_target(
+        self,
+        feature_df,
+    ):
         x = feature_df.drop(
             columns=[TARGET_COLUMN]
         )
         y = feature_df[TARGET_COLUMN]
 
-        # Jaetaan data aikajärjestyksessä:
-        # 80 % koulutukseen, 20 % testaukseen.
-        #
-        # Aikasarjassa dataa ei sekoiteta satunnaisesti.
-        split_point = int(len(feature_df) * 0.8)
+        return x, y
+
+    # Jakaa datan koulutus- ja testiosiin.
+    def _split_training_data(self, x, y):
+        split_point = int(len(x) * 0.8)
 
         x_train = x.iloc[:split_point]
         x_test = x.iloc[split_point:]
@@ -79,37 +103,57 @@ class PredictionTrainer:
         y_train = y.iloc[:split_point]
         y_test = y.iloc[split_point:]
 
-        # Luodaan Random Forest -malli.
-        model = RandomForestRegressor(
+        return (
+            x_train,
+            x_test,
+            y_train,
+            y_test,
+        )
+
+    # Luo koulutettavan Random Forest -mallin.
+    def _create_model(self):
+        return RandomForestRegressor(
             n_estimators=200,
             random_state=42,
             min_samples_leaf=2,
             n_jobs=-1,
         )
 
-        # Mallin koulutus.
+    # Kouluttaa mallin annetulla datalla.
+    def _train_model(
+        self,
+        model,
+        x_train,
+        y_train,
+    ):
         model.fit(x_train, y_train)
 
-        # Ennuste testidatalle mallin arviointia varten.
-        predictions = model.predict(x_test)
+    # Muodostaa ennusteet testidatalle.
+    def _predict_test_data(
+        self,
+        model,
+        x_test,
+    ):
+        return model.predict(x_test)
 
-        # Tallennetaan koulutettu malli .joblib-tiedostona.
-        path = self.registry.save(
+    # Tallentaa koulutetun mallin tiedostoon.
+    def _save_model(
+        self,
+        model,
+        location,
+    ):
+        return self.registry.save(
             model=model,
             location=location,
         )
 
-        # Palautetaan mallin metatiedot.
-        #
-        # Näitä käytetään PredictionModel-taulun täyttämiseen
-        # management commandissa.
+    # Laskee mallin arviointitulokset.
+    def _calculate_metrics(
+        self,
+        y_test,
+        predictions,
+    ):
         return {
-            "location": location,
-            "model_path": str(path),
-            "model_type": "RandomForestRegressor",
-            "feature_version": 1,
-            "training_start": daily_df.index.min().date(),
-            "training_end": daily_df.index.max().date(),
             "r2": float(
                 r2_score(
                     y_test,
@@ -128,58 +172,88 @@ class PredictionTrainer:
                     predictions,
                 )
             ),
+        }
+
+    # Muodostaa koulutuksen palauttamat metatiedot.
+    def _create_training_result(
+        self,
+        location,
+        path,
+        daily_df,
+        x_train,
+        x_test,
+        y_test,
+        predictions,
+    ):
+        metrics = self._calculate_metrics(
+            y_test,
+            predictions,
+        )
+
+        return {
+            "location": location,
+            "model_path": str(path),
+            "model_type": "RandomForestRegressor",
+            "feature_version": 1,
+            "training_start": (
+                daily_df.index.min().date()
+            ),
+            "training_end": (
+                daily_df.index.max().date()
+            ),
+            **metrics,
             "training_rows": len(x_train),
             "testing_rows": len(x_test),
         }
 
-    def _prepare_dataframe(self, rows, location=None):
-        """
-        Muodostaa historiadatasta päiväkohtaisen DataFramen.
+    # Muodostaa historiadatasta jatkuvan päiväkohtaisen DataFramen.
+    def _prepare_dataframe(self, rows):
+        self._validate_rows(rows)
 
-        Vaiheet:
-        1. Muunnetaan tietokantarivit DataFrameksi.
-        2. Ryhmitellään näytteet päivätasolle.
-        3. Lisätään puuttuvat kalenteripäivät nolla-arvoilla.
+        dataframe = self._create_dataframe(rows)
+        daily = self._group_data_by_date(dataframe)
 
-        Lopputuloksena saadaan yhtenäinen aikasarja, jota voidaan
-        käyttää feature engineeringissä.
-        """
+        return self._fill_missing_dates(daily)
 
+    # Tarkistaa, että historiadataa löytyi.
+    def _validate_rows(self, rows):
         if not rows:
             raise ValueError(
                 "Koulutusdataa ei löytynyt."
             )
 
-        df = pd.DataFrame(rows)
+    # Muuntaa tietokantarivit DataFrameksi.
+    def _create_dataframe(self, rows):
+        dataframe = pd.DataFrame(rows)
 
-        # Muunnetaan päivämääräsarake datetime-muotoon.
-        df["date"] = pd.to_datetime(df["date"])
+        dataframe["date"] = pd.to_datetime(
+            dataframe["date"]
+        )
 
-        # Summataan saman päivän näytemäärät yhteen.
-        #
-        # Repository palauttaa jo oikean toimipisteen datan,
-        # joten location-haaraa ei tällä hetkellä tarvita.
-        daily = (
-            df.groupby("date")["samples_taken"]
+        return dataframe
+
+    # Ryhmittelee näytemäärät päivätasolle.
+    def _group_data_by_date(self, dataframe):
+        return (
+            dataframe
+            .groupby("date")["samples_taken"]
             .sum()
             .to_frame(TARGET_COLUMN)
         )
 
-        # Luodaan täydellinen päivämääräindeksi ensimmäisestä
-        # viimeiseen päivään.
-        full_index = pd.date_range(
-            daily.index.min(),
-            daily.index.max(),
-            freq="D",
-        )
+    # Lisää puuttuvat päivät aikasarjaan nolla-arvoilla.
+    def _fill_missing_dates(self, daily):
+        full_index = self._create_date_index(daily)
 
-        # Lisätään mahdolliset puuttuvat päivät.
-        #
-        # Päivät, joilta ei ole näytteitä, täytetään arvolla 0,
-        # jotta aikasarja on jatkuva.
-        daily = daily.reindex(
+        return daily.reindex(
             full_index,
             fill_value=0,
         )
 
-        return daily
+    # Luo jatkuvan päivämääräindeksin.
+    def _create_date_index(self, daily):
+        return pd.date_range(
+            daily.index.min(),
+            daily.index.max(),
+            freq="D",
+        )

@@ -8,40 +8,34 @@ from api.models import (
 
 
 class SampleDataListSerializer(serializers.ListSerializer):
-    """
-    Käytetään silloin, kun serializerille annetaan monta SampleData-riviä.
 
-    Oletuksena DRF loisi jokaisen rivin yksitellen, mutta bulk_create()
-    tekee yhden tehokkaan tietokantaoperaation.
-
-    ignore_conflicts=True ohittaa mahdolliset duplikaatit eikä keskeytä
-    koko tuontia.
-    """
-
+    # Tallentaa useita SampleData-rivejä yhdellä tietokantaoperaatiolla.
     def create(self, validated_data):
+        records = self._create_records(
+            validated_data
+        )
+
+        return self._bulk_create(records)
+
+    # Muuntaa validoidut tiedot SampleData-olioiksi.
+    def _create_records(self, validated_data):
+        return [
+            SampleData(**item)
+            for item in validated_data
+        ]
+
+    # Tallentaa SampleData-oliot tietokantaan.
+    def _bulk_create(self, records):
         return SampleData.objects.bulk_create(
-            [
-                SampleData(**item)
-                for item in validated_data
-            ],
+            records,
             ignore_conflicts=True,
         )
 
 
 class SampleDataSerializer(serializers.ModelSerializer):
-    """
-    Serializer SampleData-mallille.
-
-    Vastaa:
-    - yksittäisten rivien validoinnista
-    - bulk-tallennuksesta ListSerializerin kautta
-    - API-vastausten muodostamisesta
-    """
 
     class Meta:
         model = SampleData
-
-        # Kentät, jotka sallitaan API:n kautta.
         fields = [
             "organization",
             "id",
@@ -50,82 +44,94 @@ class SampleDataSerializer(serializers.ModelSerializer):
             "samples_taken",
             "employees_used",
         ]
-
-        # Mallin omia validaattoreita ei käytetä tässä serializerissa.
         validators = []
+        list_serializer_class = (
+            SampleDataListSerializer
+        )
 
-        # Kun serializer saa many=True, käytetään tätä ListSerializeria.
-        list_serializer_class = SampleDataListSerializer
-
+    # Validoi näytemäärän.
     def validate_samples_taken(self, value):
-        """
-        Varmistaa, että näytemäärä on annettu
-        eikä se voi olla negatiivinen.
-        """
+        self._validate_required_samples(value)
+        self._validate_non_negative(value)
+
+        return float(value)
+
+    # Tarkistaa, että näytemäärä on annettu.
+    def _validate_required_samples(self, value):
         if value is None:
             raise serializers.ValidationError(
                 "Samples required"
             )
 
-        if value < 0:
-            raise serializers.ValidationError(
-                "Must be >= 0"
-            )
-
-        return float(value)
-
+    # Validoi työntekijämäärän.
     def validate_employees_used(self, value):
-        """
-        Varmistaa, ettei työntekijämäärä voi olla negatiivinen.
-        """
+        self._validate_non_negative(value)
+
+        return float(value)
+
+    # Tarkistaa, ettei arvo ole negatiivinen.
+    def _validate_non_negative(self, value):
         if value < 0:
             raise serializers.ValidationError(
                 "Must be >= 0"
             )
 
-        return float(value)
-
+    # Validoi näyte- ja työntekijämäärien välisen säännön.
     def validate(self, data):
-        """
-        Kenttien välinen validointi.
+        samples, employees = (
+            self._get_numeric_fields(data)
+        )
 
-        validate_<kenttä>() tarkistaa yksittäiset kentät.
-        validate() tarkistaa useamman kentän välisiä sääntöjä.
-        """
+        self._validate_numeric_fields(
+            samples,
+            employees,
+        )
+        self._validate_employee_limit(
+            samples,
+            employees,
+        )
 
-        samples = data.get("samples_taken")
-        employees = data.get("employees_used")
+        return data
 
+    # Palauttaa validoitavat numeeriset kentät.
+    def _get_numeric_fields(self, data):
+        return (
+            data.get("samples_taken"),
+            data.get("employees_used"),
+        )
+
+    # Tarkistaa, että numeeriset kentät ovat mukana.
+    def _validate_numeric_fields(
+        self,
+        samples,
+        employees,
+    ):
         if samples is None or employees is None:
             raise serializers.ValidationError(
                 "Missing numeric fields"
             )
 
-        # Liiketoimintasääntö:
-        # työntekijöitä ei voi olla enemmän kuin näytteitä.
+    # Tarkistaa, etteivät työntekijät ylitä näytemäärää.
+    def _validate_employee_limit(
+        self,
+        samples,
+        employees,
+    ):
         if employees > samples:
             raise serializers.ValidationError(
                 "Employees cannot exceed samples"
             )
 
-        return data
-
 
 class OrganizationSerializer(serializers.ModelSerializer):
-    """
-    Serializer organisaation perustiedoille.
-    """
 
     class Meta:
         model = Organization
-
         fields = [
             "id",
             "name",
             "created_at",
         ]
-
-        # Näitä kenttiä ei voi muokata API:n kautta.
         read_only_fields = [
             "id",
             "created_at",
@@ -133,21 +139,15 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 
 class PredictionResultSerializer(serializers.Serializer):
-    """
-    Serializer PredictionServicen palauttamille ennusteriveille.
-
-    Huomio:
-    Tämä EI ole ModelSerializer, koska ennusteita ei tallenneta
-    tietokantaan. PredictionService muodostaa rivit Python-sanakirjoina,
-    ja serializer vain validoi sekä muotoilee vastauksen.
-    """
 
     date = serializers.DateField()
 
     location = serializers.CharField()
 
-    predicted_patient_count = serializers.IntegerField(
-        min_value=0,
+    predicted_patient_count = (
+        serializers.IntegerField(
+            min_value=0,
+        )
     )
 
     holiday = serializers.BooleanField(
@@ -156,27 +156,18 @@ class PredictionResultSerializer(serializers.Serializer):
 
 
 class PredictionModelSerializer(serializers.ModelSerializer):
-    """
-    Serializer PredictionModel-mallille.
 
-    Käytetään mallirekisterin tietojen näyttämiseen frontendissä.
-    """
-
-    # Näytetään organisaation nimi ilman erillistä frontend-hakua.
     organization_name = serializers.CharField(
         source="organization.name",
         read_only=True,
     )
 
-    # Mallissa oleva property, joka palauttaa käyttäjäystävällisen
-    # toimipisteen nimen.
     display_location = serializers.CharField(
         read_only=True,
     )
 
     class Meta:
         model = PredictionModel
-
         fields = [
             "id",
             "organization",
@@ -196,7 +187,4 @@ class PredictionModelSerializer(serializers.ModelSerializer):
             "is_active",
             "trained_at",
         ]
-
-        # PredictionModelia luetaan API:n kautta,
-        # mutta sitä ei muokata tämän serializerin avulla.
         read_only_fields = fields

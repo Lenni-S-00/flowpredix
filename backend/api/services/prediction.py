@@ -1,6 +1,4 @@
 # api/services/prediction.py
-# Vastaa tallennetun ennustemallin käyttämisestä ja tulevien päivien
-# ennusteiden muodostamisesta.
 
 import holidays
 import pandas as pd
@@ -11,75 +9,66 @@ from api.services.repositories import SampleDataRepository
 
 
 class PredictionService:
-    """
-    Palveluluokka ennusteiden muodostamiseen.
 
-    Luokka:
-    - lataa valmiiksi koulutetun mallin ModelRegistryn kautta
-    - hakee historiadatan Repositoryn kautta
-    - muodostaa mallin tarvitsemat featuret
-    - ennustaa tulevat päivät yksi kerrallaan
-
-    Mallia ei kouluteta tässä luokassa.
-    """
-
+    # Alustaa ennustamisessa käytettävät palvelut.
     def __init__(self):
         self.repository = SampleDataRepository()
         self.registry = ModelRegistry()
 
+    # Muodostaa ennusteet annetulle määrälle tulevia päiviä.
     def predict(self, days=14, location=None):
-        """
-        Muodostaa ennusteen annetulle määrälle tulevia päiviä.
-
-        Parametrit:
-        - days: ennustettavien päivien määrä
-        - location: yksittäinen toimipiste tai None
-
-        location=None tarkoittaa kaikkien toimipisteiden yhteistä mallia.
-        """
-
-        # Ladataan valmiiksi koulutettu sklearn-malli.
         model = self.registry.load(location)
-
-        # Haetaan historiadata tietokannasta Repositoryn kautta.
         rows = self.repository.get_daily_data(location)
 
-        # Muutetaan tietokantarivit yhtenäiseksi päiväkohtaiseksi aikasarjaksi.
         history_df = self._prepare_history(rows)
 
-        # Malli käyttää seitsemän edellisen päivän lag-featureita,
-        # joten historiaa täytyy olla vähintään seitsemän päivää.
+        self._validate_history(history_df)
+
+        future_dates = self._create_future_dates(days)
+        history = self._get_initial_history(history_df)
+        feature_columns = self._get_feature_columns()
+        finnish_holidays = self._get_holidays(
+            future_dates
+        )
+
+        return self._predict_dates(
+            model=model,
+            future_dates=future_dates,
+            history=history,
+            feature_columns=feature_columns,
+            finnish_holidays=finnish_holidays,
+            location=location,
+        )
+
+    # Tarkistaa, että ennustamiseen on riittävästi historiadataa.
+    def _validate_history(self, history_df):
         if len(history_df) < 7:
             raise ValueError(
                 "Ennustamiseen tarvitaan vähintään "
                 "seitsemän päivän historia."
             )
 
-        # Ennuste alkaa nykyisestä päivästä.
-        # normalize() poistaa kellonajan ja asettaa sen päivän alkuun.
+    # Luo ennustettavien päivien päivämäärät.
+    def _create_future_dates(self, days):
         start_date = pd.Timestamp.today().normalize()
 
-        # Luodaan ennustettavien päivien päivämäärät.
-        future_dates = pd.date_range(
+        return pd.date_range(
             start=start_date,
             periods=days,
             freq="D",
         )
 
-        # Otetaan historiasta viimeiset seitsemän toteutunutta arvoa.
-        # Näitä käytetään ensimmäisen ennustepäivän lag-featureina.
-        history = list(
+    # Palauttaa historian viimeiset seitsemän arvoa.
+    def _get_initial_history(self, history_df):
+        return list(
             history_df[TARGET_COLUMN]
             .iloc[-7:]
             .values
         )
 
-        # Tänne kerätään API:lle palautettavat ennusterivit.
-        predictions = []
-
-        # Sarakkeiden järjestyksen täytyy vastata mallin koulutuksessa
-        # käytettyä feature-järjestystä.
-        feature_columns = [
+    # Palauttaa mallin käyttämät feature-sarakkeet.
+    def _get_feature_columns(self):
+        return [
             "year",
             "month",
             "day_of_week",
@@ -93,129 +82,227 @@ class PredictionService:
             "lag_7",
         ]
 
-        # Haetaan Suomen pyhäpäivät ennustejakson vuosille.
-        finnish_holidays = holidays.FI(
+    # Palauttaa ennustejakson suomalaiset pyhäpäivät.
+    def _get_holidays(self, future_dates):
+        return holidays.FI(
             years=range(
                 future_dates.min().year,
                 future_dates.max().year + 1,
             )
         )
 
-        # Ennustetaan jokainen tuleva päivä erikseen.
+    # Ennustaa kaikki tulevat päivät yksi kerrallaan.
+    def _predict_dates(
+        self,
+        model,
+        future_dates,
+        history,
+        feature_columns,
+        finnish_holidays,
+        location,
+    ):
+        predictions = []
+
         for current_date in future_dates:
-            # history-listan viimeisin arvo on lag_1,
-            # toiseksi viimeisin lag_2 ja niin edelleen.
-            lags = history[-7:][::-1]
-
-            # Muodostetaan päivämäärään perustuvat featuret.
-            row = {
-                "year": current_date.year,
-                "month": current_date.month,
-                "day_of_week": current_date.dayofweek,
-                "day_of_year": current_date.dayofyear,
-            }
-
-            # Lisätään seitsemän edellisen päivän arvot featureihin.
-            for index, value in enumerate(
-                lags,
-                start=1,
-            ):
-                row[f"lag_{index}"] = value
-
-            # Muutetaan yhden päivän featuret DataFrameksi,
-            # koska sklearn-malli odottaa taulukkomuotoista syötettä.
-            prediction_input = pd.DataFrame(
-                [row],
-                columns=feature_columns,
+            prediction = self._predict_single_date(
+                model=model,
+                current_date=current_date,
+                history=history,
+                feature_columns=feature_columns,
+                finnish_holidays=finnish_holidays,
+                location=location,
             )
 
-            # Muodostetaan ennuste yhdelle päivälle.
-            value = model.predict(
-                prediction_input
-            )[0]
-
-            # Pyöristetään ennuste kokonaisluvuksi ja estetään
-            # negatiivisten määrien palautuminen.
-            value = max(0, int(round(value)))
-
-            # Tarkistetaan, osuuko päivä suomalaiselle pyhäpäivälle.
-            is_holiday = (
-                current_date.date()
-                in finnish_holidays
+            predictions.append(prediction)
+            history.append(
+                prediction["predicted_patient_count"]
             )
-
-            # Liiketoimintasääntö:
-            # pyhäpäivien ennuste asetetaan nollaksi.
-            if is_holiday:
-                value = 0
-
-            # Lisätään valmis ennusterivi vastauslistaan.
-            predictions.append(
-                {
-                    "date": (
-                        current_date
-                        .date()
-                        .isoformat()
-                    ),
-                    "location": (
-                        location
-                        or "Kaikki näytteenotot"
-                    ),
-                    "predicted_patient_count": value,
-                    "holiday": is_holiday,
-                }
-            )
-
-            # Lisätään tämän päivän ennuste historiaan.
-            #
-            # Seuraavan päivän lag-featuret käyttävät siis aiempien
-            # ennustepäivien tuloksia toteutuneen datan jatkona.
-            history.append(value)
 
         return predictions
 
+    # Muodostaa ennusteen yhdelle päivälle.
+    def _predict_single_date(
+        self,
+        model,
+        current_date,
+        history,
+        feature_columns,
+        finnish_holidays,
+        location,
+    ):
+        feature_row = self._create_feature_row(
+            current_date,
+            history,
+        )
+        prediction_input = self._create_prediction_input(
+            feature_row,
+            feature_columns,
+        )
+        value = self._predict_value(
+            model,
+            prediction_input,
+        )
+        is_holiday = self._is_holiday(
+            current_date,
+            finnish_holidays,
+        )
+        value = self._apply_holiday_rule(
+            value,
+            is_holiday,
+        )
+
+        return self._create_prediction_result(
+            current_date=current_date,
+            location=location,
+            value=value,
+            is_holiday=is_holiday,
+        )
+
+    # Muodostaa yhden päivän feature-arvot.
+    def _create_feature_row(
+        self,
+        current_date,
+        history,
+    ):
+        row = {
+            "year": current_date.year,
+            "month": current_date.month,
+            "day_of_week": current_date.dayofweek,
+            "day_of_year": current_date.dayofyear,
+        }
+
+        self._add_lag_features(
+            row,
+            history,
+        )
+
+        return row
+
+    # Lisää seitsemän edellisen päivän arvot featureihin.
+    def _add_lag_features(self, row, history):
+        lags = history[-7:][::-1]
+
+        for index, value in enumerate(
+            lags,
+            start=1,
+        ):
+            row[f"lag_{index}"] = value
+
+    # Muuntaa yhden päivän featuret DataFrameksi.
+    def _create_prediction_input(
+        self,
+        feature_row,
+        feature_columns,
+    ):
+        return pd.DataFrame(
+            [feature_row],
+            columns=feature_columns,
+        )
+
+    # Muodostaa ja pyöristää mallin ennusteen.
+    def _predict_value(
+        self,
+        model,
+        prediction_input,
+    ):
+        value = model.predict(
+            prediction_input
+        )[0]
+
+        return max(0, int(round(value)))
+
+    # Tarkistaa, onko päivä suomalainen pyhäpäivä.
+    def _is_holiday(
+        self,
+        current_date,
+        finnish_holidays,
+    ):
+        return (
+            current_date.date()
+            in finnish_holidays
+        )
+
+    # Asettaa pyhäpäivän ennusteen nollaksi.
+    def _apply_holiday_rule(
+        self,
+        value,
+        is_holiday,
+    ):
+        if is_holiday:
+            return 0
+
+        return value
+
+    # Muodostaa API:lle palautettavan ennusterivin.
+    def _create_prediction_result(
+        self,
+        current_date,
+        location,
+        value,
+        is_holiday,
+    ):
+        return {
+            "date": (
+                current_date
+                .date()
+                .isoformat()
+            ),
+            "location": (
+                location
+                or "Kaikki näytteenotot"
+            ),
+            "predicted_patient_count": value,
+            "holiday": is_holiday,
+        }
+
+    # Muodostaa historiadatasta jatkuvan päiväkohtaisen aikasarjan.
     def _prepare_history(self, rows):
-        """
-        Muuttaa Repositoryn palauttamat rivit päiväkohtaiseksi aikasarjaksi.
+        self._validate_rows(rows)
 
-        Vaiheet:
-        1. muunnetaan rivit DataFrameksi
-        2. summataan näytemäärät päivätasolle
-        3. lisätään puuttuvat kalenteripäivät nolla-arvoilla
-        """
+        dataframe = self._create_dataframe(rows)
+        daily = self._group_data_by_date(dataframe)
 
+        return self._fill_missing_dates(daily)
+
+    # Tarkistaa, että historiadataa löytyi.
+    def _validate_rows(self, rows):
         if not rows:
             raise ValueError(
                 "Historiadataa ei löytynyt."
             )
 
-        df = pd.DataFrame(rows)
+    # Muuntaa tietokantarivit DataFrameksi.
+    def _create_dataframe(self, rows):
+        dataframe = pd.DataFrame(rows)
 
-        # Varmistetaan, että päivämääräsarake on datetime-muodossa.
-        df["date"] = pd.to_datetime(df["date"])
+        dataframe["date"] = pd.to_datetime(
+            dataframe["date"]
+        )
 
-        # Summataan saman päivän näytemäärät yhteen.
-        #
-        # Yhdistetyssä ennusteessa tässä summataan kaikki toimipisteet
-        # päivätasolle. Toimipistekohtaisessa ennusteessa Repository on
-        # jo rajannut datan valittuun toimipisteeseen.
-        daily = (
-            df.groupby("date")["samples_taken"]
+        return dataframe
+
+    # Ryhmittelee näytemäärät päivätasolle.
+    def _group_data_by_date(self, dataframe):
+        return (
+            dataframe
+            .groupby("date")["samples_taken"]
             .sum()
             .to_frame(TARGET_COLUMN)
         )
 
-        # Luodaan täydellinen päiväindeksi ensimmäisestä
-        # historiapäivästä viimeiseen.
-        full_index = pd.date_range(
-            daily.index.min(),
-            daily.index.max(),
-            freq="D",
-        )
+    # Lisää puuttuvat päivät aikasarjaan nolla-arvoilla.
+    def _fill_missing_dates(self, daily):
+        full_index = self._create_date_index(daily)
 
-        # Lisätään puuttuvat päivät nolla-arvoilla,
-        # jotta aikasarja on jatkuva.
         return daily.reindex(
             full_index,
             fill_value=0,
+        )
+
+    # Luo jatkuvan päivämääräindeksin.
+    def _create_date_index(self, daily):
+        return pd.date_range(
+            daily.index.min(),
+            daily.index.max(),
+            freq="D",
         )

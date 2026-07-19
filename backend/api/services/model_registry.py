@@ -1,5 +1,4 @@
 # api/services/model_registry.py
-# Vastaa ennustemallien tiedostonimistä, tallennuksesta ja latauksesta.
 
 from pathlib import Path
 
@@ -8,47 +7,40 @@ from django.conf import settings
 
 
 class ModelRegistry:
-    """
-    Hallitsee sklearn-mallien tallennusta ja latausta.
 
-    Mallit tallennetaan .joblib-tiedostoina hakemistoon:
-
-        backend/models/predictions/
-
-    PredictionTrainer käyttää tätä mallin tallentamiseen ja
-    PredictionService mallin lataamiseen.
-    """
-
+    # Alustaa mallien tallennushakemiston.
     def __init__(self):
-        # Määritetään hakemisto, johon kaikki ennustemallit tallennetaan.
-        self.model_dir = (
+        self.model_dir = self._create_model_directory()
+
+    # Luo mallien tallennushakemiston tarvittaessa.
+    def _create_model_directory(self):
+        model_dir = (
             Path(settings.BASE_DIR)
             / "models"
             / "predictions"
         )
 
-        # Luodaan hakemisto automaattisesti, jos sitä ei vielä ole.
-        self.model_dir.mkdir(
+        model_dir.mkdir(
             parents=True,
             exist_ok=True,
         )
 
+        return model_dir
+
+    # Muodostaa mallitiedoston nimen.
     def get_model_name(self, location=None):
-        """
-        Muodostaa mallitiedoston nimen.
-
-        location=None tarkoittaa kaikkien toimipisteiden yhteistä mallia.
-
-        Esimerkkejä:
-            None  -> all_units.joblib
-            Lab1  -> Lab1.joblib
-        """
-
         if not location:
             return "all_units.joblib"
 
-        # Korvataan tiedostonimelle ongelmalliset merkit.
-        safe_name = (
+        safe_name = self._sanitize_location_name(
+            location
+        )
+
+        return f"{safe_name}.joblib"
+
+    # Muuntaa toimipisteen nimen tiedostonimeen sopivaksi.
+    def _sanitize_location_name(self, location):
+        return (
             location
             .replace("/", "_")
             .replace("\\", "_")
@@ -56,53 +48,37 @@ class ModelRegistry:
             .replace(" ", "_")
         )
 
-        return f"{safe_name}.joblib"
-
+    # Palauttaa mallitiedoston täydellisen polun.
     def get_path(self, location=None):
-        """
-        Palauttaa mallitiedoston täydellisen polun.
+        model_name = self.get_model_name(location)
 
-        Esimerkiksi:
+        return self.model_dir / model_name
 
-            backend/models/predictions/Lab1.joblib
-        """
-        return self.model_dir / self.get_model_name(location)
-
+    # Tallentaa koulutetun mallin tiedostoon.
     def save(self, model, location=None):
-        """
-        Tallentaa koulutetun sklearn-mallin .joblib-tiedostoksi.
-
-        Palauttaa tallennetun tiedoston polun.
-        """
         path = self.get_path(location)
 
         joblib.dump(model, path)
 
         return path
 
+    # Lataa aiemmin tallennetun mallin.
     def load(self, location=None):
-        """
-        Lataa aiemmin tallennetun sklearn-mallin.
-
-        Jos mallia ei löydy, nostetaan FileNotFoundError.
-        PredictionService käsittelee tämän virheen ja palauttaa
-        siitä sopivan API-virhevastauksen frontendille.
-        """
         path = self.get_path(location)
 
+        self._validate_model_path(path)
+
+        return joblib.load(path)
+
+    # Tarkistaa, että mallitiedosto löytyy.
+    def _validate_model_path(self, path):
         if not path.exists():
             raise FileNotFoundError(
                 f"Ennustemallia ei löytynyt: {path}"
             )
 
-        return joblib.load(path)
-
+    # Tarkistaa, löytyykö mallitiedosto.
     def exists(self, location=None):
-        """
-        Tarkistaa, löytyykö mallitiedosto annetulle toimipisteelle.
+        path = self.get_path(location)
 
-        Palauttaa:
-            True  -> malli löytyy
-            False -> mallia ei ole tallennettu
-        """
-        return self.get_path(location).exists()
+        return path.exists()
