@@ -275,3 +275,35 @@
     grid-template-columns: 1fr;
   }
 }
+
+.day-chart-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.day-chart-navigation-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.day-chart-navigation-button:hover {
+  background: #f8fafc;
+}
+
+.day-chart-navigation-range {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.day-chart-navigation-range:disabled {
+  cursor: default;
+}

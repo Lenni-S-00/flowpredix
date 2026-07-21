@@ -10,12 +10,32 @@ const RANGE_DAYS = {
   "6 kuukautta": 180,
 };
 
-// Muuntaa päivämäärän backendin käyttämään YYYY-MM-DD-muotoon.
+function startOfDay(value) {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function addDays(value, amount) {
+  const date = startOfDay(value);
+  date.setDate(date.getDate() + amount);
+  return date;
+}
+
+function getDaysBetween(start, endExclusive) {
+  return Math.max(
+    0,
+    Math.round(
+      (startOfDay(endExclusive) - startOfDay(start)) /
+        (24 * 60 * 60 * 1000)
+    )
+  );
+}
+
 function toApiDate(value) {
   if (!value) return undefined;
 
   const date = value instanceof Date ? value : new Date(value);
-
   if (Number.isNaN(date.getTime())) return undefined;
 
   const year = date.getFullYear();
@@ -25,12 +45,10 @@ function toApiDate(value) {
   return `${year}-${month}-${day}`;
 }
 
-// Palauttaa suodattimista valitut toimipisteet.
 function getSelectedLocations(filters) {
   return filters.selectedLocations || [];
 }
 
-// Tarkistaa, onko kaikkien toimipisteiden data valittuna.
 function areAllLocationsSelected(selectedLocations) {
   return (
     selectedLocations.length === 0 ||
@@ -38,24 +56,36 @@ function areAllLocationsSelected(selectedLocations) {
   );
 }
 
-// Muodostaa ennustepyynnön query-parametrit.
-function createForecastParams(filters, selectedLocations, allSelected) {
-  const params = {
-    days: RANGE_DAYS[filters.forecastRange] || 14,
-  };
-
-  if (!allSelected && selectedLocations.length === 1) {
-    params.location = selectedLocations[0];
-  }
-
-  return params;
+function getVisibleStartDate(filters) {
+  return startOfDay(filters.dateRange?.startDate || new Date());
 }
 
-// Muodostaa toteutuneen datan query-parametrit.
-function createSummaryParams(filters, selectedLocations, allSelected) {
+function getVisibleEndDateExclusive(filters) {
+  if (filters.dateRange?.endDateExclusive) {
+    return startOfDay(filters.dateRange.endDateExclusive);
+  }
+
+  if (filters.dateRange?.endDate) {
+    return addDays(filters.dateRange.endDate, 1);
+  }
+
+  return addDays(
+    getVisibleStartDate(filters),
+    RANGE_DAYS[filters.forecastRange] || 14
+  );
+}
+
+function createSummaryParams(
+  filters,
+  selectedLocations,
+  allSelected,
+  startDate = filters.dateRange?.startDate,
+  endDateExclusive = filters.dateRange?.endDateExclusive
+) {
   const params = {
-    start: toApiDate(filters.dateRange?.startDate),
-    end: toApiDate(filters.dateRange?.endDate),
+    start: toApiDate(startDate),
+    // Summary-endpoint käyttää inklusiivista loppupäivää.
+    end: toApiDate(addDays(endDateExclusive, -1)),
   };
 
   if (!allSelected) {
@@ -65,107 +95,221 @@ function createSummaryParams(filters, selectedLocations, allSelected) {
   return params;
 }
 
-// Muuntaa summary-endpointin vastauksen aina taulukoksi.
+function createForecastParams(
+  selectedLocations,
+  allSelected,
+  endDateExclusive
+) {
+  const today = startOfDay(new Date());
+  const days = Math.max(1, getDaysBetween(today, endDateExclusive));
+  const params = { days };
+
+  if (!allSelected && selectedLocations.length === 1) {
+    params.location = selectedLocations[0];
+  }
+
+  return params;
+}
+
 function getSummaryRows(responseData) {
   return Array.isArray(responseData)
     ? responseData
     : responseData?.results || [];
 }
 
-// Hakee ennustedatan backendistä.
-async function fetchForecastData(filters, selectedLocations, allSelected) {
-  const params = createForecastParams(
+function getPredictionRows(responseData) {
+  if (Array.isArray(responseData)) return responseData;
+  return responseData?.predictions || [];
+}
+
+function getRowDate(row) {
+  return row.date || row.prediction_date || row.timestamp?.split("T")[0];
+}
+
+function rowIsWithinRange(row, startDate, endDateExclusive) {
+  const rowDate = startOfDay(getRowDate(row));
+  return rowDate >= startDate && rowDate < endDateExclusive;
+}
+
+// Toteutunut arvo annetaan sekä realized- että forecast-kentässä.
+// Näin historia näkyy myös silloin, kun navigointi aloitettiin ennustetilasta.
+function mapHistoryRow(row) {
+  const value = Number(row.realized ?? row.samples_taken ?? 0);
+
+  return {
+    ...row,
+    realized: value,
+    forecast: value,
+    dataType: "realized",
+  };
+}
+
+// Ennustearvo annetaan myös realized-kentässä.
+// Näin ennuste näkyy, vaikka navigointi aloitettiin toteutuneet-tilasta.
+function mapPredictionRow(row) {
+  const value = Number(
+    row.forecast ??
+      row.prediction ??
+      row.predicted_patient_count ??
+      row.predicted_samples ??
+      row.predicted_samples_taken ??
+      row.predicted_value ??
+      row.samples_prediction ??
+      row.value ??
+      0
+  );
+
+  return {
+    ...row,
+    realized: value,
+    forecast: value,
+    dataType: "forecast",
+  };
+}
+
+async function fetchSummaryRange(
+  filters,
+  selectedLocations,
+  allSelected,
+  startDate,
+  endDateExclusive
+) {
+  if (startDate >= endDateExclusive) return [];
+
+  const params = createSummaryParams(
     filters,
     selectedLocations,
-    allSelected
+    allSelected,
+    startDate,
+    endDateExclusive
+  );
+
+  const response = await API.get("data/summary/", { params });
+  return getSummaryRows(response.data);
+}
+
+async function fetchPredictionRange(
+  selectedLocations,
+  allSelected,
+  startDate,
+  endDateExclusive
+) {
+  if (startDate >= endDateExclusive) return [];
+
+  const params = createForecastParams(
+    selectedLocations,
+    allSelected,
+    endDateExclusive
   );
 
   const response = await API.get("predict/", { params });
 
-  console.log("Prediction response:", response.data);
-  console.log("Prediction rows:", response.data?.predictions);
-
-  return response.data?.predictions || [];
-}
-
-// Hakee toteutuneen datan backendistä.
-async function fetchSummaryData(filters, selectedLocations, allSelected) {
-  const params = createSummaryParams(
-    filters,
-    selectedLocations,
-    allSelected
+  return getPredictionRows(response.data).filter((row) =>
+    rowIsWithinRange(row, startDate, endDateExclusive)
   );
-
-  const response = await API.get("data/summary/", { params });
-
-  console.log("Summary data:", response.data);
-
-  return getSummaryRows(response.data);
 }
 
-// Valitsee suodatustilan perusteella käytettävän datanhaun.
+async function fetchTimelineData(
+  filters,
+  selectedLocations,
+  allSelected
+) {
+  const today = startOfDay(new Date());
+  const visibleStart = getVisibleStartDate(filters);
+  const visibleEndExclusive = getVisibleEndDateExclusive(filters);
+
+  // Menneeseen kuuluva osa päättyy viimeistään tähän päivään.
+  const historyEndExclusive =
+    visibleEndExclusive < today ? visibleEndExclusive : today;
+
+  // Ennuste alkaa aikaisintaan tästä päivästä.
+  const forecastStart = visibleStart > today ? visibleStart : today;
+
+  const [historyRows, predictionRows] = await Promise.all([
+    visibleStart < today
+      ? fetchSummaryRange(
+          filters,
+          selectedLocations,
+          allSelected,
+          visibleStart,
+          historyEndExclusive
+        )
+      : Promise.resolve([]),
+    visibleEndExclusive > today
+      ? fetchPredictionRange(
+          selectedLocations,
+          allSelected,
+          forecastStart,
+          visibleEndExclusive
+        )
+      : Promise.resolve([]),
+  ]);
+
+  return [
+    ...historyRows.map(mapHistoryRow),
+    ...predictionRows.map(mapPredictionRow),
+  ];
+}
+
 async function fetchDayData(filters) {
   const selectedLocations = getSelectedLocations(filters);
   const allSelected = areAllLocationsSelected(selectedLocations);
 
-  if (filters.mode === "forecast") {
-    return fetchForecastData(
-      filters,
-      selectedLocations,
-      allSelected
-    );
-  }
-
-  return fetchSummaryData(
+  // Sama yhdistetty aikajanalogiiikka käytetään molemmissa tiloissa:
+  // menneisyys haetaan toteumana ja tulevaisuus ennusteena.
+  return fetchTimelineData(
     filters,
     selectedLocations,
     allSelected
   );
 }
 
-// Muodostaa datanhaussa näytettävän virheviestin.
-function getFetchErrorMessage(mode) {
-  return mode === "forecast"
-    ? "Ennusteen haku epäonnistui:"
-    : "Yhteenvetodatan haku epäonnistui:";
+function getFetchErrorMessage() {
+  return "Toteutuneen ja ennustedatan haku epäonnistui:";
 }
 
-// Hakee Day-näkymän datan valittujen suodattimien perusteella.
 export function useRealData(filters) {
   const [data, setData] = useState([]);
 
-  // Päivittää datan aina, kun käytettävät suodattimet muuttuvat.
   useEffect(() => {
     if (!filters?.hasApplied) {
       setData([]);
       return;
     }
 
-    // Suorittaa datanhaun ja päivittää hookin tilan.
+    let cancelled = false;
+
     async function loadData() {
       try {
         const rows = await fetchDayData(filters);
-        setData(rows);
+
+        if (!cancelled) {
+          setData(rows);
+        }
       } catch (error) {
         console.error(
-          getFetchErrorMessage(filters.mode),
+          getFetchErrorMessage(),
           error.response?.data || error
         );
 
-        setData([]);
+        if (!cancelled) setData([]);
       }
     }
 
     loadData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     filters?.hasApplied,
     filters?.mode,
     filters?.forecastRange,
     filters?.dateRange?.startDate,
     filters?.dateRange?.endDate,
+    filters?.dateRange?.endDateExclusive,
     JSON.stringify(filters?.selectedLocations || []),
   ]);
 
   return data;
 }
-

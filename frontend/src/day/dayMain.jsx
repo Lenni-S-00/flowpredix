@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import "./dayMain.css";
 
 import WaitingState from "../waitingState.jsx";
@@ -67,6 +68,36 @@ function addOneDay(value) {
   date.setDate(date.getDate() + 1);
 
   return date;
+}
+
+
+function addDays(value, amount) {
+  const date = startOfDay(value);
+  if (!date) return null;
+  date.setDate(date.getDate() + amount);
+  return date;
+}
+
+function getDaysBetween(start, endExclusive) {
+  const startDate = startOfDay(start);
+  const endDate = startOfDay(endExclusive);
+  if (!startDate || !endDate) return 14;
+
+  return Math.max(
+    1,
+    Math.round((endDate - startDate) / (24 * 60 * 60 * 1000))
+  );
+}
+
+function toDateString(value) {
+  const date = startOfDay(value);
+  if (!date) return null;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 // Muotoilee päivämäärän graafissa näytettävään muotoon.
@@ -809,10 +840,49 @@ function LineChart({
   );
 }
 
+
+function ChartNavigation({
+  rangeLabel,
+  onPrevious,
+  onNext,
+  onReset,
+  isShifted,
+}) {
+  return (
+    <div className="day-chart-navigation">
+      <button
+        type="button"
+        className="day-chart-navigation-button"
+        onClick={onPrevious}
+        aria-label="Siirry aikaisempaan ajanjaksoon"
+      >
+        ←
+      </button>
+
+      <button
+        type="button"
+        className="day-chart-navigation-range"
+        onClick={onReset}
+        disabled={!isShifted}
+      >
+        {rangeLabel}
+      </button>
+
+      <button
+        type="button"
+        className="day-chart-navigation-button"
+        onClick={onNext}
+        aria-label="Siirry myöhempään ajanjaksoon"
+      >
+        →
+      </button>
+    </div>
+  );
+}
+
 // Näyttää graafikortin sisällön.
 function ChartCard({
   mode,
-  filters,
   locations,
   filteredData,
   valueKey,
@@ -823,44 +893,45 @@ function ChartCard({
   getY,
   getPath,
   showDots,
+  onPrevious,
+  onNext,
+  onReset,
+  isShifted,
+  rangeLabel,
 }) {
-  if (filteredData.length === 0) {
-    return (
-      <section className="day-chart-card">
-        <div className="day-empty-state">
-          Ei dataa valituilla suodattimilla
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="day-chart-card">
       <div className="day-chart-top">
         <ChartLegend locations={locations} />
 
-        <span className="day-chart-range">
-          {getChartRangeLabel(
-            mode,
-            filters.forecastRange,
-            dates
-          )}
-        </span>
+        <ChartNavigation
+          rangeLabel={rangeLabel}
+          onPrevious={onPrevious}
+          onNext={onNext}
+          onReset={onReset}
+          isShifted={isShifted}
+        />
       </div>
 
-      <LineChart
-        mode={mode}
-        locations={locations}
-        filteredData={filteredData}
-        valueKey={valueKey}
-        dates={dates}
-        visibleDateLabels={visibleDateLabels}
-        roundedMaxValue={roundedMaxValue}
-        getX={getX}
-        getY={getY}
-        getPath={getPath}
-        showDots={showDots}
-      />
+      {filteredData.length === 0 ? (
+        <div className="day-empty-state">
+          Ei dataa tällä ajanjaksolla
+        </div>
+      ) : (
+        <LineChart
+          mode={mode}
+          locations={locations}
+          filteredData={filteredData}
+          valueKey={valueKey}
+          dates={dates}
+          visibleDateLabels={visibleDateLabels}
+          roundedMaxValue={roundedMaxValue}
+          getX={getX}
+          getY={getY}
+          getPath={getPath}
+          showDots={showDots}
+        />
+      )}
     </section>
   );
 }
@@ -890,7 +961,6 @@ function DayHeader({
 // Näyttää päiväkohtaisen graafin ja tilastot.
 function DayContent({
   mode,
-  filters,
   locations,
   filteredData,
   statisticsData,
@@ -902,12 +972,16 @@ function DayContent({
   getY,
   getPath,
   showDots,
+  onPrevious,
+  onNext,
+  onReset,
+  isShifted,
+  rangeLabel,
 }) {
   return (
     <div className="day-content-layout">
       <ChartCard
         mode={mode}
-        filters={filters}
         locations={locations}
         filteredData={filteredData}
         valueKey={valueKey}
@@ -918,13 +992,15 @@ function DayContent({
         getY={getY}
         getPath={getPath}
         showDots={showDots}
+        onPrevious={onPrevious}
+        onNext={onNext}
+        onReset={onReset}
+        isShifted={isShifted}
+        rangeLabel={rangeLabel}
       />
 
       <aside className="day-stat-column">
-        <DayStat
-          data={statisticsData}
-          valueKey={valueKey}
-        />
+        <DayStat data={statisticsData} valueKey={valueKey} />
       </aside>
     </div>
   );
@@ -932,91 +1008,142 @@ function DayContent({
 
 // Näyttää Day-näkymän datan ja kuvaajan.
 function DayMain({ filters }) {
-  const backendData = useRealData(filters);
+  const mode = filters?.mode || "realized";
+
+  // Yksilöi nykyisen suodatinhaun. Kun tila tai suodattimet vaihtuvat,
+  // vanhan näkymän aikasiirtymää ei käytetä uuden haun kanssa.
+  const navigationKey = useMemo(
+    () =>
+      JSON.stringify({
+        mode,
+        forecastRange: filters?.forecastRange || null,
+        startDate: toDateString(filters?.dateRange?.startDate),
+        endDate: toDateString(filters?.dateRange?.endDate),
+        locations: filters?.selectedLocations || [],
+      }),
+    [
+      mode,
+      filters?.forecastRange,
+      filters?.dateRange?.startDate,
+      filters?.dateRange?.endDate,
+      filters?.selectedLocations,
+    ]
+  );
+
+  const [navigationState, setNavigationState] = useState({
+    key: navigationKey,
+    offset: 0,
+  });
+
+  // Jos suodattimet ovat vaihtuneet, käytetään heti nollasiirtymää.
+  // Näin ensimmäinen toteutuneen datan haku ei lähde ennusteen offsetilla.
+  const periodOffset =
+    navigationState.key === navigationKey
+      ? navigationState.offset
+      : 0;
+
+  const originalStartDate = useMemo(() => {
+    if (mode === "forecast") return startOfDay(new Date());
+    return startOfDay(filters?.dateRange?.startDate);
+  }, [mode, filters?.dateRange?.startDate]);
+
+  const originalEndDateExclusive = useMemo(() => {
+    if (mode === "forecast") {
+      return addDays(
+        originalStartDate,
+        getForecastDays(filters?.forecastRange)
+      );
+    }
+
+    return startOfDay(
+      filters?.dateRange?.endDateExclusive ||
+        addOneDay(filters?.dateRange?.endDate)
+    );
+  }, [
+    mode,
+    originalStartDate,
+    filters?.forecastRange,
+    filters?.dateRange?.endDateExclusive,
+    filters?.dateRange?.endDate,
+  ]);
+
+  const periodLength = useMemo(
+    () => getDaysBetween(originalStartDate, originalEndDateExclusive),
+    [originalStartDate, originalEndDateExclusive]
+  );
+
+  const visibleStartDate = useMemo(
+    () => addDays(originalStartDate, periodOffset * periodLength),
+    [originalStartDate, periodOffset, periodLength]
+  );
+
+  const visibleEndDateExclusive = useMemo(
+    () => addDays(visibleStartDate, periodLength),
+    [visibleStartDate, periodLength]
+  );
+
+  const navigationFilters = useMemo(
+    () => ({
+      ...filters,
+      dateRange: {
+        ...filters?.dateRange,
+        startDate: visibleStartDate,
+        endDate: addDays(visibleEndDateExclusive, -1),
+        endDateExclusive: visibleEndDateExclusive,
+      },
+      forecastDays:
+        mode === "forecast"
+          ? Math.max(
+              periodLength,
+              periodLength * (periodOffset + 1)
+            )
+          : undefined,
+      forecastOffsetDays:
+        mode === "forecast"
+          ? periodOffset * periodLength
+          : 0,
+    }),
+    [
+      filters,
+      visibleStartDate,
+      visibleEndDateExclusive,
+      mode,
+      periodLength,
+      periodOffset,
+    ]
+  );
+
+  const backendData = useRealData(navigationFilters);
   const dayData = normalizeBackendData(backendData);
 
-  console.log("Backend data:", backendData);
-  console.log("Normalisoitu data:", dayData);
+  if (!filters?.hasApplied) return <WaitingView />;
 
-  if (!filters?.hasApplied) {
-    return <WaitingView />;
-  }
-
-  const mode = filters.mode || "realized";
   const valueKey = getValueKey(mode);
-  const selectedLocations =
-    getSelectedLocations(filters);
-  const allSelected =
-    areAllLocationsSelected(selectedLocations);
+  const selectedLocations = getSelectedLocations(filters);
+  const allSelected = areAllLocationsSelected(selectedLocations);
   const sourceData = prepareSourceData(dayData);
 
-  if (sourceData.length === 0) {
-    return <EmptyDataView />;
-  }
-
-  const today = startOfDay(new Date());
-  const firstDate =
-    mode === "forecast"
-      ? today
-      : startOfDay(sourceData[0]?.date);
-  const forecastDays = getForecastDays(
-    filters.forecastRange
-  );
-  const forecastEndDate = getForecastEndDate(
-    firstDate,
-    forecastDays
-  );
-  const startDate = getFilterStartDate(
-    mode,
-    firstDate,
-    filters.dateRange
-  );
-  const endDateExclusive = getFilterEndDate(
-    mode,
-    forecastEndDate,
-    filters.dateRange
-  );
   const baseFilteredData = filterData(
     sourceData,
     selectedLocations,
     allSelected,
-    startDate,
-    endDateExclusive
+    visibleStartDate,
+    visibleEndDateExclusive
   );
-  const filteredData = getFilteredData(
-    baseFilteredData,
-    allSelected
-  );
+  const filteredData = getFilteredData(baseFilteredData, allSelected);
   const locations = getLocations(filteredData);
   const dates = getDates(filteredData);
-  const statisticsData = getStatisticsData(
-    filteredData,
-    valueKey
-  );
-  const roundedMaxValue = getRoundedMaxValue(
-    filteredData,
-    valueKey
-  );
-  const innerWidth = getInnerWidth(
-    CHART_WIDTH,
-    CHART_PADDING
-  );
-  const innerHeight = getInnerHeight(
-    CHART_HEIGHT,
-    CHART_PADDING
-  );
-  const getX = createGetX(
-    dates,
-    CHART_PADDING,
-    innerWidth
-  );
+  const statisticsData = getStatisticsData(filteredData, valueKey);
+  const roundedMaxValue = getRoundedMaxValue(filteredData, valueKey);
+  const innerWidth = getInnerWidth(CHART_WIDTH, CHART_PADDING);
+  const innerHeight = getInnerHeight(CHART_HEIGHT, CHART_PADDING);
+  const getX = createGetX(dates, CHART_PADDING, innerWidth);
   const getY = createGetY(
     roundedMaxValue,
     CHART_PADDING,
     innerHeight
   );
 
-  // Muodostaa valitun toimipisteen SVG-polun.
   function getPath(location) {
     return createLocationPath(
       location,
@@ -1028,9 +1155,11 @@ function DayMain({ filters }) {
     );
   }
 
-  const visibleDateLabels =
-    getVisibleDateLabels(dates);
+  const visibleDateLabels = getVisibleDateLabels(dates);
   const showDots = dates.length <= 45;
+  const rangeLabel = `${formatDate(toDateString(visibleStartDate))}–${formatDate(
+    toDateString(addDays(visibleEndDateExclusive, -1))
+  )}`;
 
   return (
     <main className="day-main">
@@ -1042,7 +1171,6 @@ function DayMain({ filters }) {
 
       <DayContent
         mode={mode}
-        filters={filters}
         locations={locations}
         filteredData={filteredData}
         statisticsData={statisticsData}
@@ -1054,6 +1182,26 @@ function DayMain({ filters }) {
         getY={getY}
         getPath={getPath}
         showDots={showDots}
+        onPrevious={() =>
+          setNavigationState({
+            key: navigationKey,
+            offset: periodOffset - 1,
+          })
+        }
+        onNext={() =>
+          setNavigationState({
+            key: navigationKey,
+            offset: periodOffset + 1,
+          })
+        }
+        onReset={() =>
+          setNavigationState({
+            key: navigationKey,
+            offset: 0,
+          })
+        }
+        isShifted={periodOffset !== 0}
+        rangeLabel={rangeLabel}
       />
     </main>
   );
