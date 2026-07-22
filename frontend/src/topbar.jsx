@@ -43,7 +43,7 @@ const tabs = [
         <path d="M3 20c0-3 3-5 6-5s6 2 6 5" fill="none" stroke="currentColor" strokeWidth="2"/>
       </svg>
     )
-  },
+  }, /*
   {
     id: "demographics",
     label: "Demografia",
@@ -53,7 +53,7 @@ const tabs = [
         <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2"/>
       </svg>
     )
-  },
+  }, */
   {
     id: "data",
     label: "Tuonti",

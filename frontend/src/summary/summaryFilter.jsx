@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import "./summaryFilter.css";
 
 const LOCATIONS = [
@@ -25,71 +30,99 @@ const LOCATIONS = [
   "Lab21",
 ];
 
-function SummaryFilter({ onApply }) {
-  const [selectedLocation, setSelectedLocation] = useState(
-    "Kaikki toimipisteet"
-  );
+function SummaryFilter({
+  initialLocation = "Kaikki näytteenotot",
+  onApply,
+}) {
+  const [selectedLocation, setSelectedLocation] =
+    useState(initialLocation);
 
-  const [showLocationMenu, setShowLocationMenu] = useState(false);
+  const [showLocationMenu, setShowLocationMenu] =
+    useState(false);
+
   const locationMenuRef = useRef(null);
 
-  // Suljetaan pudotusvalikko, kun klikataan sen ulkopuolelle.
   useEffect(() => {
     function handleClickOutside(event) {
       if (
         locationMenuRef.current &&
-        !locationMenuRef.current.contains(event.target)
+        !locationMenuRef.current.contains(
+          event.target
+        )
       ) {
         setShowLocationMenu(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
     };
   }, []);
 
-  // Valitaan yksi toimipiste.
-  const selectLocation = (location) => {
+  function selectLocation(location) {
     setSelectedLocation(location);
     setShowLocationMenu(false);
-  };
+  }
 
-  // Lähetetään valinta Summary-komponentille.
-  const applyFilters = () => {
+  function applyFilters() {
     onApply({
       selectedLocation,
     });
-  };
+  }
 
   return (
     <div className="summary-filters">
-      <div className="location-dropdown" ref={locationMenuRef}>
+      <div
+        className="location-dropdown"
+        ref={locationMenuRef}
+      >
         <button
           type="button"
           className="location-trigger"
-          onClick={() => setShowLocationMenu((prev) => !prev)}
+          onClick={() =>
+            setShowLocationMenu(
+              (previous) => !previous
+            )
+          }
         >
-          <span className="location-trigger-text">{selectedLocation}</span>
-          <span>📍</span>
+          <span className="location-trigger-text">
+            {selectedLocation}
+          </span>
+
+          <span aria-hidden="true">📍</span>
         </button>
 
         {showLocationMenu && (
           <div className="location-list">
             <div className="location-actions">
-              <span className="location-actions-title">Toimipiste</span>
+              <span className="location-actions-title">
+                Toimipiste
+              </span>
             </div>
 
             <button
               type="button"
               className={`select-all-locations ${
-                selectedLocation === "Kaikki näytteenotot" ? "active" : ""
+                selectedLocation ===
+                "Kaikki näytteenotot"
+                  ? "active"
+                  : ""
               }`}
-              onClick={() => selectLocation("Kaikki näytteenotot")}
+              onClick={() =>
+                selectLocation(
+                  "Kaikki näytteenotot"
+                )
+              }
             >
-              <span className="select-all-radio"></span>
+              <span className="select-all-radio" />
               Kaikki näytteenotot
             </button>
 
@@ -100,16 +133,31 @@ function SummaryFilter({ onApply }) {
                 key={location}
                 type="button"
                 className={`select-all-locations ${
-                  selectedLocation === location ? "active" : ""
+                  selectedLocation === location
+                    ? "active"
+                    : ""
                 }`}
-                onClick={() => selectLocation(location)}
+                onClick={() =>
+                  selectLocation(location)
+                }
               >
-                <span className="select-all-radio"></span>
+                <span className="select-all-radio" />
                 {location}
               </button>
             ))}
           </div>
         )}
+      </div>
+
+      <div className="summary-fixed-range">
+        <span className="summary-fixed-range-label">
+          Tarkastelujakso
+        </span>
+
+        <p>
+          Viimeiset 30 päivää verrattuna
+          seuraaviin 30 päivään
+        </p>
       </div>
 
       <button
