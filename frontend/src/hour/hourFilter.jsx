@@ -33,15 +33,8 @@ function HourFilter({ onSubmit }) {
   const [showLocationMenu, setShowLocationMenu] = useState(false);
   const locationMenuRef = useRef(null);
 
-  const locations = [
-    "Kaikki toimipisteet",
-    "Lab1",
-    "Lab2",
-    "Lab3",
-    "Lab4",
-    "Lab5",
-    "Lab6",
-  ];
+  const locations = ["Lab1", "Lab2", "Lab3", "Lab4", "Lab5", "Lab6", "Lab7", "Lab8", "Lab9", "Lab10", "Lab11", "Lab12", "Lab13", "Lab14", "Lab15", "Lab16", "Lab17", "Lab18", "Lab19", "Lab20", "Lab21"];
+
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -173,10 +166,33 @@ function HourFilter({ onSubmit }) {
             value={forecastRange}
             onChange={(e) => setForecastRange(e.target.value)}
           >
-            <option>1 viikko</option>
-            <option>2 viikkoa</option>
-            <option>1 kuukausi</option>
-            <option>2 kuukautta</option>
+            <option value="24 tuntia">
+              24 tuntia
+            </option>
+
+            <option value="2 päivää">
+              2 päivää
+            </option>
+
+            <option value="3 päivää">
+              3 päivää
+            </option>
+
+            <option value="Viikko">
+              Viikko
+            </option>
+
+            <option value="2 viikkoa">
+              2 viikkoa
+            </option>
+
+            <option value="3 viikkoa">
+              3 viikkoa
+            </option>
+
+            <option value="Kuukausi">
+              Kuukausi
+            </option>
           </select>
 
           <button type="button" className="day-submit" onClick={handleSubmit}>

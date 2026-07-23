@@ -101,10 +101,31 @@ function toDateString(value) {
 }
 
 // Muotoilee päivämäärän graafissa näytettävään muotoon.
-function formatDate(dateString) {
-  const date = new Date(dateString);
+function formatDate(
+  dateString
+) {
+  if (!dateString) {
+    return "";
+  }
 
-  return `${date.getDate()}.${date.getMonth() + 1}.`;
+  const [
+    year,
+    month,
+    day,
+  ] = String(dateString)
+    .split("T")[0]
+    .split("-")
+    .map(Number);
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    return "";
+  }
+
+  return `${day}.${month}.`;
 }
 
 // Palauttaa backend-rivin ennustearvon.
@@ -236,25 +257,59 @@ function appendDateRows(
 }
 
 // Lisää puuttuvat kalenteripäivät dataan nolla-arvoilla.
-function fillMissingDates(data) {
+function fillMissingDates(
+  data,
+  rangeStart = null,
+  rangeEndExclusive = null
+) {
   if (!data.length) {
     return [];
   }
 
-  const sortedData = sortDataByDate(data);
-  const locations = getLocations(sortedData);
-  const startDate = startOfDay(sortedData[0].date);
-  const endDate = startOfDay(
-    sortedData[sortedData.length - 1].date
-  );
-  const existingData = createDataMap(sortedData);
-  const filledData = [];
-  const currentDate = new Date(startDate);
+  const sortedData =
+    sortDataByDate(data);
 
-  while (currentDate <= endDate) {
-    const dateString = currentDate
-      .toISOString()
-      .split("T")[0];
+  const locations =
+    getLocations(sortedData);
+
+  const dataStartDate =
+    startOfDay(
+      sortedData[0].date
+    );
+
+  const dataEndDateExclusive =
+    addOneDay(
+      sortedData[
+        sortedData.length - 1
+      ].date
+    );
+
+  const startDate =
+    startOfDay(rangeStart) ||
+    dataStartDate;
+
+  const endDateExclusive =
+    startOfDay(
+      rangeEndExclusive
+    ) ||
+    dataEndDateExclusive;
+
+  const existingData =
+    createDataMap(sortedData);
+
+  const filledData = [];
+
+  const currentDate =
+    new Date(startDate);
+
+  while (
+    currentDate <
+    endDateExclusive
+  ) {
+    const dateString =
+      toDateString(
+        currentDate
+      );
 
     appendDateRows(
       filledData,
@@ -263,7 +318,9 @@ function fillMissingDates(data) {
       locations
     );
 
-    currentDate.setDate(currentDate.getDate() + 1);
+    currentDate.setDate(
+      currentDate.getDate() + 1
+    );
   }
 
   return filledData;
@@ -275,12 +332,22 @@ function isValidDataRow(item) {
 }
 
 // Valmistelee datan suodatusta varten.
-function prepareSourceData(data) {
-  return fillMissingDates(data)
+function prepareSourceData(
+  data,
+  startDate,
+  endDateExclusive
+) {
+  return fillMissingDates(
+    data,
+    startDate,
+    endDateExclusive
+  )
     .filter(isValidDataRow)
     .sort(
       (first, second) =>
-        new Date(first.date) - new Date(second.date)
+        first.date.localeCompare(
+          second.date
+        )
     );
 }
 
@@ -581,15 +648,37 @@ function createLocationPath(
 }
 
 // Valitsee x-akselilla näytettävät päivämäärät.
-function getVisibleDateLabels(dates) {
-  const labelStep = Math.max(
-    1,
-    Math.ceil(dates.length / 10)
-  );
+function getVisibleDateLabels(
+  dates
+) {
+  if (!dates.length) {
+    return [];
+  }
 
-  return dates.filter(
-    (_, index) => index % labelStep === 0
-  );
+  const labelStep =
+    Math.max(
+      1,
+      Math.ceil(
+        dates.length / 10
+      )
+    );
+
+  const labels =
+    dates.filter(
+      (_, index) =>
+        index % labelStep === 0
+    );
+
+  const lastDate =
+    dates[dates.length - 1];
+
+  if (
+    !labels.includes(lastDate)
+  ) {
+    labels.push(lastDate);
+  }
+
+  return labels;
 }
 
 // Palauttaa toimipisteen kuvaajavärin.
@@ -1121,7 +1210,12 @@ function DayMain({ filters }) {
   const valueKey = getValueKey(mode);
   const selectedLocations = getSelectedLocations(filters);
   const allSelected = areAllLocationsSelected(selectedLocations);
-  const sourceData = prepareSourceData(dayData);
+  const sourceData =
+    prepareSourceData(
+      dayData,
+      visibleStartDate,
+      visibleEndDateExclusive
+    );
 
   const baseFilteredData = filterData(
     sourceData,

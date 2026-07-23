@@ -18,7 +18,7 @@ from .serializers import (
 from .services.finalization import create_records
 from .services.ingestion import process_file
 from api.services.prediction import PredictionService
-
+from api.services.hourly_prediction import HourlyPredictionService
 
 @api_view(["GET"])
 def hello(request):
@@ -560,3 +560,78 @@ def prediction_models(request):
     )
 
     return Response(serializer.data)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def hourly_prediction(request):
+    try:
+        days = int(
+            request.query_params.get(
+                "days",
+                7,
+            )
+        )
+    except (TypeError, ValueError):
+        return Response(
+            {
+                "detail": (
+                    "days-parametrin täytyy "
+                    "olla kokonaisluku."
+                )
+            },
+            status=400,
+        )
+
+    if days < 1:
+        return Response(
+            {
+                "detail": (
+                    "days-parametrin täytyy "
+                    "olla vähintään 1."
+                )
+            },
+            status=400,
+        )
+
+    location = request.query_params.get(
+        "location"
+    )
+
+    if location in {
+        "",
+        "Kaikki toimipisteet",
+        "Kaikki näytteenotot",
+    }:
+        location = None
+
+    try:
+        service = HourlyPredictionService(
+            organization=(
+                request.user.organization
+            )
+        )
+
+        predictions = service.predict(
+            days=days,
+            location=location,
+        )
+
+        return Response({
+            "predictions": predictions,
+        })
+
+    except ValueError as error:
+        return Response(
+            {
+                "detail": str(error),
+            },
+            status=400,
+        )
+
+    except FileNotFoundError as error:
+        return Response(
+            {
+                "detail": str(error),
+            },
+            status=404,
+        )

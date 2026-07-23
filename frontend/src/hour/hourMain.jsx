@@ -1,10 +1,14 @@
-import { Fragment } from "react";
+import {
+  Fragment,
+} from "react";
 import "./hourMain.css";
 import WaitingState from "../waitingState.jsx";
-import { useHourData } from "./hourData";
+import {
+  useHourData,
+} from "./hourData";
 import HourStat from "./hourStat.jsx";
 
-const hours = [
+const HOURS = [
   "07:00",
   "08:00",
   "09:00",
@@ -15,260 +19,718 @@ const hours = [
   "14:00",
 ];
 
+const FORECAST_DAYS = {
+  "24 tuntia": 1,
+  "2 päivää": 2,
+  "3 päivää": 3,
+  Viikko: 7,
+  "2 viikkoa": 14,
+  "3 viikkoa": 21,
+  Kuukausi: 30,
+};
+
 function toDate(value) {
   if (!value) return null;
-  return value instanceof Date ? value : new Date(value);
+
+  const date =
+    value instanceof Date
+      ? new Date(value)
+      : new Date(value);
+
+  return Number.isNaN(
+    date.getTime()
+  )
+    ? null
+    : date;
 }
 
 function startOfDay(value) {
-  const date = toDate(value);
+  const date =
+    toDate(value);
+
   if (!date) return null;
 
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
+  date.setHours(
+    0,
+    0,
+    0,
+    0
+  );
 
-function addDays(value, days) {
-  const date = startOfDay(value);
-  if (!date) return null;
-
-  date.setDate(date.getDate() + days);
   return date;
 }
 
-function toDateKey(value) {
-  const date = startOfDay(value);
+function addDays(
+  value,
+  days
+) {
+  const date =
+    startOfDay(value);
+
+  if (!date) return null;
+
+  date.setDate(
+    date.getDate() + days
+  );
+
+  return date;
+}
+
+function formatDay(value) {
+  const date =
+    toDate(value);
+
   if (!date) return "";
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  return date.toLocaleDateString(
+    "fi-FI",
+    {
+      weekday: "short",
+      day: "numeric",
+      month: "numeric",
+    }
+  );
 }
 
-function formatDay(dateString) {
-  const date = new Date(dateString);
+function formatDisplayDate(
+  value
+) {
+  const date =
+    toDate(value);
 
-  return date.toLocaleDateString("fi-FI", {
-    weekday: "short",
-    day: "numeric",
-    month: "numeric",
-  });
+  if (!date) return "";
+
+  return date.toLocaleDateString(
+    "fi-FI",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }
+  );
 }
 
-function formatDisplayDate(value) {
-  if (!value) return "";
-
-  const date = toDate(value);
-
-  if (!date || Number.isNaN(date.getTime())) {
-    return "";
+function getHeatColor(
+  value,
+  maxValue
+) {
+  if (
+    value === null ||
+    value === undefined ||
+    maxValue <= 0
+  ) {
+    return "#f8fafc";
   }
 
-  return date.toLocaleDateString("fi-FI", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const ratio = Math.min(
+    Math.max(
+      Number(value) / maxValue,
+      0
+    ),
+    1
+  );
+
+  // Korostaa hieman myös keskisuuria arvoja
+  const intensity = Math.pow(ratio, 0.8);
+
+  const start = {
+    r: 248,
+    g: 250,
+    b: 252,
+  };
+
+  const end = {
+    r: 29,
+    g: 78,
+    b: 216,
+  };
+
+  const r = Math.round(
+    start.r +
+      (end.r - start.r) *
+        intensity
+  );
+
+  const g = Math.round(
+    start.g +
+      (end.g - start.g) *
+        intensity
+  );
+
+  const b = Math.round(
+    start.b +
+      (end.b - start.b) *
+        intensity
+  );
+
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
-// kun valitaan esim. viikko, palautetaan 7 päivän tiedot
-function getForecastDays(range) {
-  if (range === "1 viikko") return 7;
-  if (range === "2 viikkoa") return 14;
-  if (range === "1 kuukausi") return 30;
-  if (range === "2 kuukautta") return 60;
-  return 7;
+function getRowTimestamp(
+  item
+) {
+  return (
+    item.hour_timestamp ||
+    item.timestamp ||
+    item.datetime ||
+    item.date ||
+    item.hour
+  );
 }
 
-function getHeatColor(value) {
-  if (value === null || value === undefined) return "#f8f8f8";
-  if (value >= 190) return "#7f0026";
-  if (value >= 170) return "#b6002e";
-  if (value >= 150) return "#dc2626";
-  if (value >= 130) return "#f97316";
-  if (value >= 110) return "#fb923c";
-  if (value >= 90) return "#facc15";
-  if (value >= 70) return "#fde68a";
-  if (value >= 50) return "#fef3c7";
-  return "#fffbea";
+function getHourFromTimestamp(
+  value
+) {
+  if (
+    typeof value !==
+    "string"
+  ) {
+    return null;
+  }
+
+  const timestampMatch =
+    value.match(
+      /T(\d{1,2}):/
+    );
+
+  if (
+    timestampMatch
+  ) {
+    return Number(
+      timestampMatch[1]
+    );
+  }
+
+  const timeMatch =
+    value.match(
+      /^(\d{1,2}):\d{2}/
+    );
+
+  if (timeMatch) {
+    return Number(
+      timeMatch[1]
+    );
+  }
+
+  return null;
 }
 
-function getTextColor(value) {
-  return value >= 130 ? "#ffffff" : "#111111";
+function getHourLabel(
+  item
+) {
+  if (
+    typeof item.hour ===
+      "number" &&
+    Number.isFinite(
+      item.hour
+    )
+  ) {
+    return `${String(
+      item.hour
+    ).padStart(
+      2,
+      "0"
+    )}:00`;
+  }
+
+  if (
+    typeof item.hour ===
+      "string" &&
+    /^\d{1,2}$/.test(
+      item.hour
+    )
+  ) {
+    return `${item.hour.padStart(
+      2,
+      "0"
+    )}:00`;
+  }
+
+  if (
+    typeof item.hour ===
+      "string" &&
+    /^\d{1,2}:\d{2}$/.test(
+      item.hour
+    )
+  ) {
+    return item.hour.padStart(
+      5,
+      "0"
+    );
+  }
+
+  const rawTimestamp =
+    item.hour_timestamp ||
+    item.timestamp ||
+    item.datetime ||
+    item.date;
+
+  const rawHour =
+    getHourFromTimestamp(
+      rawTimestamp
+    );
+
+  if (
+    rawHour !== null &&
+    Number.isFinite(rawHour)
+  ) {
+    return `${String(
+      rawHour
+    ).padStart(
+      2,
+      "0"
+    )}:00`;
+  }
+
+  return "";
 }
 
-function buildRows(data, valueKey) {
+function getDateKey(item) {
+  const rawTimestamp =
+    getRowTimestamp(item);
+
+  if (
+    typeof rawTimestamp ===
+    "string"
+  ) {
+    const match =
+      rawTimestamp.match(
+        /^(\d{4}-\d{2}-\d{2})/
+      );
+
+    if (match) {
+      return match[1];
+    }
+  }
+
+  const timestamp =
+    toDate(rawTimestamp);
+
+  if (!timestamp) {
+    return null;
+  }
+
+  return [
+    timestamp.getFullYear(),
+    String(
+      timestamp.getMonth() +
+        1
+    ).padStart(2, "0"),
+    String(
+      timestamp.getDate()
+    ).padStart(2, "0"),
+  ].join("-");
+}
+
+function getItemValue(
+  item,
+  valueKey
+) {
+  const value = Number(
+    item[valueKey] ??
+      item.samples_taken ??
+      item.total_samples ??
+      item.prediction ??
+      item.value ??
+      0
+  );
+
+  return Number.isFinite(
+    value
+  )
+    ? value
+    : 0;
+}
+
+function buildRows(
+  data,
+  valueKey
+) {
   const grouped = {};
 
   data.forEach((item) => {
-    const itemHour = item.hour.slice(11, 16);
+    const dateKey =
+      getDateKey(item);
 
-    if (!hours.includes(itemHour)) return;
+    if (!dateKey) return;
 
-    const key = item.date;
+    const hourLabel =
+      getHourLabel(item);
 
-    if (!grouped[key]) {
-      grouped[key] = {
-        date: item.date,
-        day: formatDay(item.date),
-        values: Array(hours.length).fill(null),
+    if (
+      !HOURS.includes(
+        hourLabel
+      )
+    ) {
+      return;
+    }
+
+    if (!grouped[dateKey]) {
+      const date =
+        new Date(
+          `${dateKey}T12:00:00`
+        );
+
+      grouped[dateKey] = {
+        date: dateKey,
+        timestamp: date,
+        day: formatDay(date),
+        values: Array(
+          HOURS.length
+        ).fill(null),
       };
     }
 
-    const hourIndex = hours.indexOf(itemHour);
-
-    grouped[key].values[hourIndex] =
-      (grouped[key].values[hourIndex] || 0) + item[valueKey];
-  });
-
-  return Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
-}
-
-function HourMain({ filters }) {
-  // oletusarvojen varmistus, jotta ei kaadu vaikkei filtersejä olisi vielä valittu
-  const safeFilters = filters || {
-    mode: "realized",
-    selectedLocation: "",
-    forecastRange: "24 tuntia",
-    dateRange: {
-      startDate: null,
-      endDate: null,
-      endDateExclusive: null,
-    },
-  };
-
-  const isForecast = safeFilters.mode === "forecast";
-
-  const selectedLocation = safeFilters.selectedLocation;
-
-  const hourData = useHourData(safeFilters);
-
-  // data aikajärjestykseen heatmapin rivejä varten
-  const sortedData = [...hourData].sort((a, b) =>
-    a.date.localeCompare(b.date)
-  );
-
-  const today = startOfDay(new Date());
-
-  const forecastStartDate = today;
-
-  const forecastEndDateExclusive = addDays(
-    forecastStartDate,
-    getForecastDays(safeFilters.forecastRange)
-  );
-
-  const startDate = isForecast
-    ? forecastStartDate
-    : startOfDay(safeFilters.dateRange?.startDate);
-
-  const endDateExclusive = isForecast
-    ? forecastEndDateExclusive
-    : startOfDay(
-        safeFilters.dateRange?.endDateExclusive ||
-          addDays(safeFilters.dateRange?.endDate, 1)
+    const hourIndex =
+      HOURS.indexOf(
+        hourLabel
       );
 
-  const isWaitingForFilters =
-    !isForecast && !selectedLocation && !startDate && !endDateExclusive;
+    const value =
+      getItemValue(
+        item,
+        valueKey
+      );
 
-  const filteredData = sortedData.filter((item) => {
-    const itemDate = startOfDay(item.date);
-
-    const locationMatches =
-      !selectedLocation ||
-      selectedLocation === "Kaikki toimipisteet" ||
-      item.location === selectedLocation;
-
-    if (!locationMatches) return false;
-
-    if (!startDate || !endDateExclusive) return true;
-
-    return itemDate >= startDate && itemDate < endDateExclusive;
+    grouped[
+      dateKey
+    ].values[hourIndex] =
+      (
+        grouped[
+          dateKey
+        ].values[
+          hourIndex
+        ] ?? 0
+      ) + value;
   });
 
-  const rows = buildRows(filteredData, isForecast ? "forecast" : "realized");
+  return Object.values(
+    grouped
+  ).sort(
+    (
+      first,
+      second
+    ) =>
+      first.date.localeCompare(
+        second.date
+      )
+  );
+}
 
-  const displayStartDate = startDate;
-  const displayEndDate = isForecast
-    ? addDays(endDateExclusive, -1)
-    : startOfDay(safeFilters.dateRange?.endDate);
+function HourMain({
+  filters,
+}) {
+  const safeFilters =
+    filters || {
+      hasApplied: false,
+      mode: "realized",
+      selectedLocation: "",
+      forecastRange:
+        "24 tuntia",
+      dateRange: {
+        startDate: null,
+        endDate: null,
+        endDateExclusive:
+          null,
+      },
+    };
+
+  const isForecast =
+    safeFilters.mode ===
+    "forecast";
+
+  const selectedLocation =
+    safeFilters.selectedLocation;
+
+  const {
+    data: hourData,
+    loading,
+    error,
+  } = useHourData(
+    safeFilters
+  );
+
+  const today =
+    startOfDay(
+      new Date()
+    );
+
+  const forecastDays =
+    FORECAST_DAYS[
+      safeFilters
+        .forecastRange
+    ] || 1;
+
+  const startDate =
+    isForecast
+      ? today
+      : startOfDay(
+          safeFilters
+            .dateRange
+            ?.startDate
+        );
+
+  const endDateExclusive =
+    isForecast
+      ? addDays(
+          today,
+          forecastDays
+        )
+      : startOfDay(
+          safeFilters
+            .dateRange
+            ?.endDateExclusive
+        ) ||
+        addDays(
+          safeFilters
+            .dateRange
+            ?.endDate,
+          1
+        );
+
+  const filteredData =
+    hourData.filter(
+      (item) => {
+        const rawTimestamp =
+          getRowTimestamp(
+            item
+          );
+
+        const itemDate =
+          startOfDay(
+            rawTimestamp
+          );
+
+        if (!itemDate) {
+          return false;
+        }
+
+        const locationMatches =
+          !selectedLocation ||
+          selectedLocation ===
+            "Kaikki toimipisteet" ||
+          selectedLocation ===
+            "Kaikki näytteenotot" ||
+          item.location ===
+            selectedLocation;
+
+        if (
+          !locationMatches
+        ) {
+          return false;
+        }
+
+        const dataTypeMatches =
+          isForecast
+            ? item.dataType ===
+              "forecast"
+            : item.dataType ===
+              "realized";
+
+        if (
+          !dataTypeMatches
+        ) {
+          return false;
+        }
+
+        if (
+          !startDate ||
+          !endDateExclusive
+        ) {
+          return true;
+        }
+
+        return (
+          itemDate >=
+            startDate &&
+          itemDate <
+            endDateExclusive
+        );
+      }
+    );
+
+  const valueKey =
+    isForecast
+      ? "forecast"
+      : "realized";
+
+  const rows =
+    buildRows(
+      filteredData,
+      valueKey
+    );
+
+  const heatmapValues =
+    rows.flatMap(
+      (row) =>
+        row.values.filter(
+          (value) =>
+            value !== null &&
+            value !==
+              undefined
+        )
+    );
+
+  const maxValue =
+    heatmapValues.length >
+    0
+      ? Math.max(
+          ...heatmapValues
+        )
+      : 0;
+
+  const displayEndDate =
+    endDateExclusive
+      ? addDays(
+          endDateExclusive,
+          -1
+        )
+      : null;
+
+  if (
+    !safeFilters.hasApplied
+  ) {
+    return (
+      <main className="hour-content">
+        <WaitingState />
+      </main>
+    );
+  }
 
   return (
     <main className="hour-content">
-      {isWaitingForFilters ? (
+      <div className="heatmap-header">
+        <div className="heatmap-selected-locations">
+          {selectedLocation ||
+            "Kaikki toimipisteet"}
+        </div>
+
+        <h3 className="heatmap-title">
+          {isForecast
+            ? "Ennuste tunneittain"
+            : "Näytteenotot tunneittain"}
+
+          {startDate &&
+            displayEndDate && (
+              <span className="heatmap-date-range">
+                {formatDisplayDate(
+                  startDate
+                )}
+                {" – "}
+                {formatDisplayDate(
+                  displayEndDate
+                )}
+              </span>
+            )}
+        </h3>
+      </div>
+
+      {loading ? (
         <WaitingState />
       ) : (
-        <>
-          <div className="heatmap-header">
-            <div className="heatmap-selected-locations">
-              {!selectedLocation ? "Kaikki toimipisteet" : selectedLocation}
-            </div>
-
-            <h3 className="heatmap-title">
-              {isForecast ? "Ennuste tunneittain" : "Näytteenotot tunneittain"}
-
-              {isForecast && (
-                <span className="heatmap-date-range">
-                  {safeFilters.forecastRange}
-                </span>
-              )}
-
-              {!isForecast && displayStartDate && (
-                <span className="heatmap-date-range">
-                  {displayEndDate
-                    ? `${formatDisplayDate(displayStartDate)} – ${formatDisplayDate(
-                        displayEndDate
-                      )}`
-                    : formatDisplayDate(displayStartDate)}
-                </span>
-              )}
-            </h3>
-          </div>
-
+        <div className="hour-layout">
           <section className="heatmap-card">
-            {rows.length === 0 ? (
+            {error ? (
               <div className="heatmap-error">
-                Valituilla suodattimilla ei löytynyt dataa.
+                {error}
+              </div>
+            ) : rows.length ===
+              0 ? (
+              <div className="heatmap-error">
+                Valituilla
+                suodattimilla ei
+                löytynyt dataa.
               </div>
             ) : (
               <div className="hour-heatmap-scroll">
                 <div className="hour-heatmap-grid">
                   <div className="hour-corner" />
 
-                  {hours.map((hour) => (
-                    <div key={hour} className="hour-header-cell">
-                      {hour}
-                    </div>
-                  ))}
+                  {HOURS.map(
+                    (hour) => (
+                      <div
+                        key={hour}
+                        className="hour-header-cell"
+                      >
+                        {hour}
+                      </div>
+                    )
+                  )}
 
-                  {rows.map((row) => (
-                    <Fragment key={row.date}>
-                      <div className="hour-day-cell">{row.day}</div>
-
-                      {row.values.map((value, index) => (
-                        <div
-                          key={`${row.date}-${hours[index]}`}
-                          className="hour-value-cell"
-                          style={{
-                            backgroundColor: getHeatColor(value),
-                            color: getTextColor(value),
-                          }}
-                          title={`${row.day} ${hours[index]}: ${value ?? 0}`}
-                        >
-                          {value ?? ""}
+                  {rows.map(
+                    (row) => (
+                      <Fragment
+                        key={
+                          row.date
+                        }
+                      >
+                        <div className="hour-day-cell">
+                          {
+                            row.day
+                          }
                         </div>
-                      ))}
-                    </Fragment>
-                  ))}
+
+                        {row.values.map(
+                          (
+                            value,
+                            index
+                          ) => {
+                            const ratio =
+                              maxValue >
+                              0
+                                ? Number(
+                                    value ||
+                                      0
+                                  ) /
+                                  maxValue
+                                : 0;
+
+                            return (
+                              <div
+                                key={`${row.date}-${HOURS[index]}`}
+                                className="hour-value-cell"
+                                style={{
+                                  backgroundColor:
+                                    getHeatColor(
+                                      value,
+                                      maxValue
+                                    ),
+                                  color:
+                                    ratio >
+                                    0.75
+                                      ? "#ffffff"
+                                      : "#111827",
+                                }}
+                                title={`${row.day} ${HOURS[index]}: ${
+                                  value ??
+                                  0
+                                }`}
+                              >
+                                {value ??
+                                  ""}
+                              </div>
+                            );
+                          }
+                        )}
+                      </Fragment>
+                    )
+                  )}
                 </div>
               </div>
             )}
           </section>
-          <HourStat data={filteredData} valueKey={isForecast ? "forecast" : "realized"} />
-        </>
+
+          <div className="hour-stat-column">
+            <HourStat
+              data={
+                filteredData
+              }
+              valueKey={
+                valueKey
+              }
+            />
+          </div>
+        </div>
       )}
     </main>
   );

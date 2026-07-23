@@ -29,14 +29,14 @@
 
 .heatmap-card {
   width: 100%;
-  min-height: calc(100vh - 150px);
   padding: 24px;
   background: #e5eaff;
   border: 1px solid #e5e7eb;
   border-radius: 18px;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
   box-sizing: border-box;
-  overflow: hidden;
+  height: fit-content;
+  align-self: start;
 }
 
 .heatmap-grid {
@@ -107,10 +107,9 @@
 
 .hour-heatmap-grid {
   display: grid;
-  grid-template-columns: 150px repeat(8, minmax(90px, 1fr));
-  gap: 6px;
-  width: 100%;
-  min-width: 900px;
+  grid-template-columns: 130px repeat(8, 70px);
+  gap: 5px;
+  width: fit-content;
 }
 
 .hour-corner {
@@ -118,7 +117,9 @@
 }
 
 .hour-header-cell {
-  height: 44px;
+  width: 70px;
+  min-width: 70px;
+  height: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -135,7 +136,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 14px;
+  width: 100px;
+  padding: 0 10px;
   background: #ffffff;
   border: 0px solid #e5e7eb;
   border-radius: 8px;
@@ -154,7 +156,11 @@
   font-size: 14px;
   font-weight: 700;
   transition: filter 0.12s ease;
+  width: 70px;
+  min-width: 70px;
+  height: 46px;
 }
+
 
 .hour-value-cell:hover {
   filter: brightness(0.95);
@@ -178,4 +184,31 @@
   font-size: 16px;
   font-weight: 600;
   color: #374151;
+}
+
+.hour-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 820px) 300px;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.heatmap-card {
+  min-width: 0;
+}
+
+.hour-stat-column {
+  display: flex;
+  min-width: 0;
+}
+
+.hour-stat-column .hour-stat-card {
+  flex: 1;
+}
+
+@media (max-width: 1050px) {
+  .hour-layout {
+    grid-template-columns: 1fr;
+  }
 }

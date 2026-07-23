@@ -1,6 +1,6 @@
 import "./hourStat.css";
 
-const OPEN_HOURS = [
+const BUSINESS_HOURS = [
   "07:00",
   "08:00",
   "09:00",
@@ -11,88 +11,436 @@ const OPEN_HOURS = [
   "14:00",
 ];
 
-function getHourLabel(item) {
-  if (!item.hour) return "";
+function toDate(value) {
+  if (!value) return null;
 
-  return item.hour.includes("T")
-    ? item.hour.slice(11, 16)
-    : item.hour.slice(0, 5);
+  const date =
+    value instanceof Date
+      ? new Date(value)
+      : new Date(value);
+
+  return Number.isNaN(date.getTime())
+    ? null
+    : date;
 }
 
-function HourStat({ data, valueKey = "realized" }) {
-  const openHourData = (data || []).filter((item) =>
-    OPEN_HOURS.includes(getHourLabel(item))
+function getRowTimestamp(item) {
+  return (
+    item.timestamp ||
+    item.date ||
+    item.hour_timestamp ||
+    item.datetime
+  );
+}
+
+function getDateKey(item) {
+  const date = toDate(
+    getRowTimestamp(item)
   );
 
-  if (openHourData.length === 0) return null;
+  if (!date) return null;
 
-  const totalPatients = openHourData.reduce(
-    (sum, item) => sum + item[valueKey],
+  const year = date.getFullYear();
+  const month = String(
+    date.getMonth() + 1
+  ).padStart(2, "0");
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function formatDate(value) {
+  const date = toDate(value);
+
+  if (!date) return "–";
+
+  return date.toLocaleDateString(
+    "fi-FI",
+    {
+      weekday: "short",
+      day: "numeric",
+      month: "numeric",
+    }
+  );
+}
+
+function getHourLabel(item) {
+  /*
+   * Ennustedatassa:
+   * hour: 7
+   */
+  if (
+    typeof item.hour === "number" &&
+    Number.isFinite(item.hour)
+  ) {
+    return `${String(item.hour).padStart(
+      2,
+      "0"
+    )}:00`;
+  }
+
+  /*
+   * Ennustedatassa mahdollisesti:
+   * hour: "7"
+   */
+  if (
+    typeof item.hour === "string" &&
+    /^\d{1,2}$/.test(item.hour)
+  ) {
+    return `${item.hour.padStart(
+      2,
+      "0"
+    )}:00`;
+  }
+
+  /*
+   * Valmis kellonaika:
+   * hour: "07:00"
+   */
+  if (
+    typeof item.hour === "string" &&
+    /^\d{1,2}:\d{2}$/.test(
+      item.hour
+    )
+  ) {
+    return item.hour.padStart(
+      5,
+      "0"
+    );
+  }
+
+  /*
+   * Aikaleima:
+   * hour: "2026-07-23T07:00:00"
+   */
+  const date = toDate(
+    item.hour ||
+      getRowTimestamp(item)
+  );
+
+  if (!date) return null;
+
+  return `${String(
+    date.getHours()
+  ).padStart(2, "0")}:00`;
+}
+
+function getValue(
+  item,
+  valueKey
+) {
+  const value = Number(
+    item[valueKey] ??
+      item.samples_taken ??
+      item.prediction ??
+      item.predicted_samples ??
+      item.predicted_value ??
+      item.value ??
+      0
+  );
+
+  return Number.isFinite(value)
+    ? value
+    : 0;
+}
+
+function EmptyStat() {
+  return (
+    <aside className="hour-stat-card">
+      <h3>Tilastot</h3>
+
+      <div className="hour-stat-empty">
+        Ei tilastotietoja
+      </div>
+    </aside>
+  );
+}
+
+function StatItem({
+  label,
+  value,
+  detail,
+}) {
+  return (
+    <div className="hour-stat-item">
+      <span className="hour-stat-label">
+        {label}
+      </span>
+
+      <strong className="hour-stat-value">
+        {value}
+      </strong>
+
+      {detail && (
+        <span className="hour-stat-detail">
+          {detail}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function HourStat({
+  data,
+  valueKey = "realized",
+}) {
+  if (
+    !Array.isArray(data) ||
+    data.length === 0
+  ) {
+    return <EmptyStat />;
+  }
+
+  /*
+   * Otetaan mukaan vain heatmapissa
+   * näytettävät aukiolotunnit.
+   */
+  const validRows = data
+    .map((item) => ({
+      ...item,
+      hourLabel:
+        getHourLabel(item),
+      dateKey:
+        getDateKey(item),
+      numericValue:
+        getValue(item, valueKey),
+    }))
+    .filter(
+      (item) =>
+        item.dateKey &&
+        BUSINESS_HOURS.includes(
+          item.hourLabel
+        )
+    );
+
+  if (validRows.length === 0) {
+    return <EmptyStat />;
+  }
+
+  /*
+   * Kokonaismäärä valitulla jaksolla.
+   */
+  const total = validRows.reduce(
+    (sum, item) =>
+      sum + item.numericValue,
     0
   );
 
-  const values = openHourData.map((item) => item[valueKey]);
+  /*
+   * Päiväkohtaiset summat.
+   */
+  const totalsByDate = {};
 
-  const averagePatients = Math.round(totalPatients / openHourData.length);
-  const maxPatients = Math.max(...values);
-  const minPatients = Math.min(...values);
+  validRows.forEach((item) => {
+    if (!totalsByDate[item.dateKey]) {
+      totalsByDate[item.dateKey] = {
+        total: 0,
+        timestamp:
+          getRowTimestamp(item),
+      };
+    }
 
-  const busiestHour = openHourData.reduce((max, item) =>
-    item[valueKey] > max[valueKey] ? item : max
-  );
+    totalsByDate[item.dateKey].total +=
+      item.numericValue;
+  });
 
-  const quietestHour = openHourData.reduce((min, item) =>
-    item[valueKey] < min[valueKey] ? item : min
-  );
+  const dateEntries =
+    Object.entries(totalsByDate);
 
-  const formatDateTime = (item) => {
-    const date = new Date(item.date);
-    const hour = getHourLabel(item);
+  const numberOfDays =
+    dateEntries.length;
 
-    const formattedDate = date.toLocaleDateString("fi-FI", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+  const averagePerDay =
+    numberOfDays > 0
+      ? Math.round(
+          total / numberOfDays
+        )
+      : 0;
 
-    return `${formattedDate} klo ${hour}`;
-  };
+  /*
+   * Keskiarvo kaikista näkyvistä
+   * päivä–tunti-yhdistelmistä.
+   */
+  const averagePerHour =
+    validRows.length > 0
+      ? Math.round(
+          total / validRows.length
+        )
+      : 0;
+
+  /*
+   * Selvitetään keskimäärin kiireisin
+   * kellonaika. Kukin tunti jaetaan niiden
+   * päivien määrällä, joilta kyseiselle
+   * tunnille löytyy dataa.
+   */
+  const totalsByHour = {};
+
+  validRows.forEach((item) => {
+    if (
+      !totalsByHour[item.hourLabel]
+    ) {
+      totalsByHour[item.hourLabel] = {
+        total: 0,
+        count: 0,
+      };
+    }
+
+    totalsByHour[
+      item.hourLabel
+    ].total += item.numericValue;
+
+    totalsByHour[
+      item.hourLabel
+    ].count += 1;
+  });
+
+  const hourAverages =
+    Object.entries(totalsByHour).map(
+      ([hour, values]) => ({
+        hour,
+        average:
+          values.count > 0
+            ? values.total /
+              values.count
+            : 0,
+      })
+    );
+
+  const busiestAverageHour =
+    hourAverages.reduce(
+      (busiest, current) =>
+        !busiest ||
+        current.average >
+          busiest.average
+          ? current
+          : busiest,
+      null
+    );
+
+  /*
+   * Kiireisin yksittäinen tunti:
+   * esimerkiksi torstai 08:00, 153 kpl.
+   */
+  const busiestSingleHour =
+    validRows.reduce(
+      (busiest, current) =>
+        !busiest ||
+        current.numericValue >
+          busiest.numericValue
+          ? current
+          : busiest,
+      null
+    );
+
+  /*
+   * Kiireisin kokonainen päivä.
+   */
+  const busiestDayEntry =
+    dateEntries.reduce(
+      (busiest, current) =>
+        !busiest ||
+        current[1].total >
+          busiest[1].total
+          ? current
+          : busiest,
+      null
+    );
+
+  const busiestDay =
+    busiestDayEntry
+      ? {
+          date:
+            busiestDayEntry[0],
+          total:
+            busiestDayEntry[1]
+              .total,
+        }
+      : null;
 
   return (
-    <section className="hour-stat-card">
-      <div className="hour-stat-header">
-        <h2>Tilastot</h2>
-        <span>Potilasmäärät valitulla aikavälillä</span>
-      </div>
+    <aside className="hour-stat-card">
+      <h3>Tilastot</h3>
 
-      <div className="hour-stat-grid">
-        <div className="hour-stat-box">
-          <span className="hour-stat-label">Yhteensä</span>
-          <strong>{totalPatients}</strong>
-          <span className="hour-stat-small">potilasta</span>
-        </div>
+      <StatItem
+        label={
+          valueKey === "forecast"
+            ? "Ennustettu yhteensä"
+            : "Näytteenottoja yhteensä"
+        }
+        value={Math.round(total)}
+        detail={`${numberOfDays} ${
+          numberOfDays === 1
+            ? "päivä"
+            : "päivää"
+        }`}
+      />
 
-        <div className="hour-stat-box">
-          <span className="hour-stat-label">Keskiarvo</span>
-          <strong>{averagePatients}</strong>
-          <span className="hour-stat-small">potilasta / tunti</span>
-        </div>
+      <StatItem
+        label="Keskimäärin päivässä"
+        value={averagePerDay}
+      />
 
-        <div className="hour-stat-box">
-          <span className="hour-stat-label">Vilkkain tunti</span>
-          <strong>{maxPatients}</strong>
-          <span className="hour-stat-small">{formatDateTime(busiestHour)}</span>
-        </div>
+      <StatItem
+        label="Keskimäärin tunnissa"
+        value={averagePerHour}
+      />
 
-        <div className="hour-stat-box">
-          <span className="hour-stat-label">Hiljaisin tunti</span>
-          <strong>{minPatients}</strong>
-          <span className="hour-stat-small">
-            {formatDateTime(quietestHour)}
-          </span>
-        </div>
-      </div>
-    </section>
+      <StatItem
+        label="Keskimäärin kiireisin tunti"
+        value={
+          busiestAverageHour?.hour ||
+          "–"
+        }
+        detail={
+          busiestAverageHour
+            ? `${Math.round(
+                busiestAverageHour.average
+              )} näytteenottoa`
+            : null
+        }
+      />
+
+      <StatItem
+        label="Kiireisin yksittäinen tunti"
+        value={
+          busiestSingleHour
+            ? busiestSingleHour.hourLabel
+            : "–"
+        }
+        detail={
+          busiestSingleHour
+            ? `${formatDate(
+                getRowTimestamp(
+                  busiestSingleHour
+                )
+              )}, ${Math.round(
+                busiestSingleHour.numericValue
+              )} näytteenottoa`
+            : null
+        }
+      />
+
+      <StatItem
+        label="Kiireisin päivä"
+        value={
+          busiestDay
+            ? formatDate(
+                busiestDay.date
+              )
+            : "–"
+        }
+        detail={
+          busiestDay
+            ? `${Math.round(
+                busiestDay.total
+              )} näytteenottoa`
+            : null
+        }
+      />
+    </aside>
   );
 }
 
