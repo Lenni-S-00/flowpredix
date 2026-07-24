@@ -255,3 +255,37 @@
   font-size: 12px;
   font-weight: 500;
 }
+
+.data-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 220px;
+
+  max-height: 300px; /* Näyttää noin 8–10 yksikköä */
+  overflow-y: auto;
+
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  z-index: 100;
+}
+.data-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.data-list::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.data-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+
+.data-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
