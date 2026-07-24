@@ -1,254 +1,64 @@
 .day-main {
+  width: 100%;
   min-height: 100vh;
-
-  padding: 88px 40px 40px;
-
+  padding: 32px 40px 40px;
+  background: #ffffff;
   box-sizing: border-box;
 }
+
+/* Sivun otsikko */
 
 .day-main-header {
-  margin-bottom: 22px;
-}
-
-.day-main-eyebrow {
-  margin: 0 0 4px;
-
-  font-size: 13px;
-  font-weight: 700;
-
-  color: #5f86d9;
-
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.day-main-header h1 {
-  margin: 0 0 6px;
-
-  font-size: 32px;
-  color: #25324a;
-}
-
-.day-main-header span {
-  font-size: 14px;
-  color: #7a879d;
-}
-
-/* chart card */
-
-.day-chart-card {
-  width: 100%;
-
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 22px;
-
-  padding: 28px;
-
-  box-shadow:
-    0 18px 40px rgba(30, 45, 75, 0.1),
-    0 4px 10px rgba(30, 45, 75, 0.05);
-
-  box-sizing: border-box;
-}
-
-.day-chart-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-start;
-  gap: 16px;
-
-  margin-bottom: 30px;
-}
-
-.day-chart-header h2 {
-  margin: 0 0 4px;
-
-  font-size: 22px;
-  color: #25324a;
-}
-
-.day-chart-header p {
-  margin: 0;
-
-  font-size: 14px;
-  color: #7a879d;
-}
-
-/* legend */
-
-.day-chart-legend {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-
-  font-size: 13px;
-  color: #526073;
-}
-
-.day-chart-legend span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.day-chart-legend i {
-  width: 10px;
-  height: 10px;
-
-  border-radius: 50%;
-}
-
-.legend-realized {
-  background: #5f86d9;
-}
-
-.legend-forecast {
-  background: #a8c4f8;
-}
-
-/* chart */
-
-.day-chart {
-  height: 480px;
-
-  display: flex;
-  gap: 16px;
-}
-
-.day-chart-y-axis {
-  width: 40px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-
-  padding-bottom: 26px;
-
-  font-size: 12px;
-  color: #8b98aa;
-}
-
-.day-chart-area {
-  position: relative;
-
-  flex: 1;
-
-  border-left: 1px solid #e5ebf3;
-  border-bottom: 1px solid #e5ebf3;
-}
-
-.day-chart-grid-line {
-  height: 25%;
-
-  border-top: 1px solid #eef2f7;
-
-  box-sizing: border-box;
-}
-
-.day-chart-bars {
-  position: absolute;
-  inset: 0;
-
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  align-items: end;
-
-  padding: 0 24px;
-}
-
-.day-chart-column {
-  height: 100%;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.day-bars {
-  height: calc(100% - 32px);
   width: 100%;
+  margin: 0 0 20px;
+}
 
+.day-header {
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
 }
 
-.day-bar {
-  width: 24px;
-  min-height: 4px;
-
-  border-radius: 10px 10px 0 0;
-
-  transition: 0.2s ease;
+.day-title {
+  margin: 0;
+  padding: 0;
+  color: #111827;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-.day-bar:hover {
-  transform: translateY(-4px);
-}
-
-.day-bar.realized {
-  background: #5f86d9;
-}
-
-.day-bar.forecast {
-  background: #a8c4f8;
-}
-
-.day-chart-label {
-  height: 28px;
-
+.day-header-meta {
   display: flex;
   align-items: center;
-
-  font-size: 13px;
-  color: #607089;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
-/* responsive */
-
-@media (max-width: 900px) {
-  .day-main {
-    padding: 72px 16px 32px;
-  }
-
-  .day-chart-card {
-    padding: 18px;
-  }
-
-  .day-chart {
-    height: 340px;
-  }
-
-  .day-chart-header {
-    flex-direction: column;
-  }
-
-  .day-bar {
-    width: 16px;
-  }
-    .day-empty-state {
-    min-height: 280px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border: 1px dashed #cfd8e3;
-    border-radius: 16px;
-
-    color: #7a879d;
-    font-size: 14px;
-    }
-
-    .day-chart-location {
-    font-size: 10px;
-    color: #8b98aa;
-    }
-
+.day-location {
+  color: #374151;
+  font-weight: 500;
 }
+
+.day-meta-divider {
+  color: #d1d5db;
+}
+
+.day-date-range {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Graafi- ja tilastoalue */
 
 .day-content-layout {
   display: grid;
@@ -260,50 +70,220 @@
 
 .day-chart-card {
   min-width: 0;
+  width: 100%;
   height: 100%;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow:
+    0 12px 28px rgb(30 45 75 / 8%),
+    0 3px 8px rgb(30 45 75 / 4%);
   box-sizing: border-box;
 }
 
 .day-stat-column {
+  display: flex;
   min-width: 0;
   height: 100%;
-  display: flex;
 }
 
-@media (max-width: 1050px) {
-  .day-content-layout {
-    grid-template-columns: 1fr;
-  }
+.day-stat-column > * {
+  width: 100%;
 }
+
+/* Graafikortin yläosa */
+
+.day-chart-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+/* Selite */
+
+.day-chart-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: #526073;
+  font-size: 13px;
+}
+
+.day-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.day-legend-item i {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Ajanjakson navigointi */
 
 .day-chart-navigation {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .day-chart-navigation-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 34px;
   height: 34px;
+  padding: 0;
   border: 1px solid #dbe2ea;
   border-radius: 8px;
   background: #ffffff;
-  cursor: pointer;
+  color: #475569;
   font-size: 18px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .day-chart-navigation-button:hover {
+  border-color: #cbd5e1;
   background: #f8fafc;
 }
 
 .day-chart-navigation-range {
-  border: none;
+  min-width: 100px;
+  padding: 6px 8px;
+  border: 0;
   background: transparent;
   color: #64748b;
   font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
   cursor: pointer;
+}
+
+.day-chart-navigation-range:hover:not(:disabled) {
+  color: #334155;
 }
 
 .day-chart-navigation-range:disabled {
   cursor: default;
+}
+
+/* Viivagraafi */
+
+.day-line-chart-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.day-line-chart {
+  display: block;
+  width: 100%;
+  min-width: 520px;
+  height: auto;
+}
+
+/* Tyhjä tila */
+
+.day-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  padding: 24px;
+  border: 1px dashed #cfd8e3;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #7a879d;
+  font-size: 14px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Tablet */
+
+@media (max-width: 1050px) {
+  .day-main {
+    padding: 24px;
+  }
+
+  .day-content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .day-stat-column {
+    width: 100%;
+  }
+}
+
+/* Pieni tablet */
+
+@media (max-width: 900px) {
+  .day-chart-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .day-chart-top {
+    align-items: flex-start;
+  }
+}
+
+/* Mobiili */
+
+@media (max-width: 600px) {
+  .day-main {
+    padding: 16px;
+  }
+
+  .day-main-header {
+    margin-bottom: 16px;
+  }
+
+  .day-title {
+    font-size: 1.1rem;
+  }
+
+  .day-header-meta {
+    gap: 6px;
+    font-size: 0.85rem;
+  }
+
+  .day-chart-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .day-chart-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .day-chart-navigation {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .day-chart-navigation-range {
+    flex: 1;
+  }
+
+  .day-line-chart {
+    min-width: 480px;
+  }
+
+  .day-empty-state {
+    min-height: 220px;
+    padding: 18px;
+  }
 }

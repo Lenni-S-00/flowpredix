@@ -9,7 +9,9 @@ from .views import (
     test_protected,
     predict_patient_flow,
     prediction_models,
-    hourly_prediction
+    hourly_prediction,
+    predict_employees,
+    data_availability
 )
 
 from rest_framework_simplejwt.views import (
@@ -34,4 +36,6 @@ urlpatterns = [
     path("predict/", predict_patient_flow,name="predict-patient-flow"),
     path("prediction-models/", prediction_models, name="prediction-models"),
     path("predict/hourly/", hourly_prediction, name="hourly-prediction"),
+    path("predict/employees/", predict_employees, name="predict-employees"),
+    path("data/availability/", data_availability, name="data-availability"),
 ]

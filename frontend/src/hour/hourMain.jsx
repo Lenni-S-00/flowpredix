@@ -599,32 +599,35 @@ function HourMain({
 
   return (
     <main className="hour-content">
-      <div className="heatmap-header">
-        <div className="heatmap-selected-locations">
-          {selectedLocation ||
-            "Kaikki toimipisteet"}
-        </div>
+      <div className="hour-main-header">
+        <div className="hour-header">
+          <h2 className="hour-title">
+            {isForecast
+              ? "Ennuste tunneittain"
+              : "Näytteenotot tunneittain"}
+          </h2>
 
-        <h3 className="heatmap-title">
-          {isForecast
-            ? "Ennuste tunneittain"
-            : "Näytteenotot tunneittain"}
+          <div className="hour-header-meta">
+            <span className="hour-location">
+              {selectedLocation || "Kaikki toimipisteet"}
+            </span>
 
-          {startDate &&
-            displayEndDate && (
-              <span className="heatmap-date-range">
-                {formatDisplayDate(
-                  startDate
-                )}
-                {" – "}
-                {formatDisplayDate(
-                  displayEndDate
-                )}
-              </span>
+            {startDate && displayEndDate && (
+              <>
+                <span className="hour-meta-divider">•</span>
+
+                <span className="hour-date-range">
+                  {formatDisplayDate(startDate)}
+                  {" – "}
+                  {formatDisplayDate(displayEndDate)}
+                </span>
+              </>
             )}
-        </h3>
+          </div>
+        </div>
       </div>
 
+      
       {loading ? (
         <WaitingState />
       ) : (

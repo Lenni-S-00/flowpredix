@@ -1083,13 +1083,38 @@ function SummaryMain({ filters }) {
   return (
     <main className="summary-main">
       <header className="summary-main-header">
-        <div>
-          <h2>
-            Asiakasvirran yhteenveto: {selectedLocation}
+        <div className="summary-header">
+          <h2 className="summary-title">
+            Asiakasvirran yhteenveto
           </h2>
-        </div>
 
+          <div className="summary-header-meta">
+            <span className="summary-location">
+              {selectedLocation}
+            </span>
+
+            {insights.forecastStart &&
+              insights.forecastEnd && (
+                <>
+                  <span className="summary-meta-divider">
+                    •
+                  </span>
+
+                  <span className="summary-date-range">
+                    {formatDate(
+                      insights.forecastStart
+                    )}
+                    {" – "}
+                    {formatDate(
+                      insights.forecastEnd
+                    )}
+                  </span>
+                </>
+              )}
+          </div>
+        </div>
       </header>
+
 
       <section className="summary-period-information">
         <div>

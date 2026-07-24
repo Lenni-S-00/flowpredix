@@ -19,6 +19,46 @@ from .services.finalization import create_records
 from .services.ingestion import process_file
 from api.services.prediction import PredictionService
 from api.services.hourly_prediction import HourlyPredictionService
+from api.services.employee_estimation import (EmployeeEstimator)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def data_availability(request):
+    """
+    Palauttaa päivät, joilta valitulla toimipisteellä on toteutunutta dataa.
+    """
+
+    location = request.query_params.get("location")
+
+    queryset = SampleData.objects.filter(
+        organization=request.user.organization
+    )
+
+    if location:
+        queryset = queryset.filter(location=location)
+
+    date_rows = (
+        queryset
+        .annotate(data_date=TruncDate("timestamp"))
+        .values_list("data_date", flat=True)
+        .distinct()
+        .order_by("data_date")
+    )
+
+    dates = [
+        date.isoformat()
+        for date in date_rows
+        if date is not None
+    ]
+
+    return Response({
+        "location": location,
+        "dates": dates,
+        "first_date": dates[0] if dates else None,
+        "last_date": dates[-1] if dates else None,
+        "day_count": len(dates),
+    })
 
 @api_view(["GET"])
 def hello(request):
@@ -634,4 +674,91 @@ def hourly_prediction(request):
                 "detail": str(error),
             },
             status=404,
+        )
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def predict_employees(request):
+    """Palauttaa tuntiennusteen ja historiallisen henkilöstöarvion."""
+    if not request.user.organization:
+        return Response(
+            {
+                "error": (
+                    "Käyttäjällä ei ole "
+                    "organisaatiota."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    location = request.GET.get(
+        "location"
+    )
+
+    try:
+        days = int(
+            request.GET.get(
+                "days",
+                1,
+            )
+        )
+    except (TypeError, ValueError):
+        return Response(
+            {
+                "error": (
+                    "days-parametrin pitää "
+                    "olla kokonaisluku."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not location:
+        return Response(
+            {
+                "error": (
+                    "Henkilöstöennuste tarvitsee "
+                    "toimipisteen."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        prediction_service = (
+            HourlyPredictionService(
+                organization=(
+                    request.user.organization
+                )
+            )
+        )
+
+        forecast_rows = (
+            prediction_service.predict(
+                days=days,
+                location=location,
+            )
+        )
+
+        estimator = EmployeeEstimator(
+            organization=(
+                request.user.organization
+            ),
+            location=location,
+        )
+
+        results = (
+            estimator.estimate_forecast_rows(
+                forecast_rows
+            )
+        )
+
+        return Response(results)
+
+    except ValueError as error:
+        return Response(
+            {
+                "error": str(error),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
         )

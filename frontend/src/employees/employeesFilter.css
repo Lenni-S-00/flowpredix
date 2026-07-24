@@ -1,0 +1,54 @@
+@import "../day/dayFilter.css";
+
+.employees-capacity-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+  width: 100%;
+}
+
+.employees-capacity-label {
+  color: #42506a;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.employees-capacity-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 14px;
+
+  border: 1px solid #cfd8e3;
+  border-radius: 10px;
+  background: #ffffff;
+
+  color: #42506a;
+  font-family: inherit;
+  font-size: 14px;
+
+  outline: none;
+  box-sizing: border-box;
+}
+
+.employees-capacity-input:focus {
+  border-color: #5f86d9;
+  box-shadow:
+    0 0 0 3px
+    rgba(95, 134, 217, 0.12);
+}
+
+.employees-capacity-input.invalid {
+  border-color: #d45b5b;
+}
+
+.employees-capacity-error {
+  color: #d45b5b;
+  font-size: 12px;
+}
+
+.day-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}

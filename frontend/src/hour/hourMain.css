@@ -212,3 +212,61 @@
     grid-template-columns: 1fr;
   }
 }
+
+.hour-main-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  margin: 0 0 20px;
+}
+
+.hour-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+}
+
+.hour-title {
+  margin: 0;
+  color: #111827;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.hour-header-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.hour-location {
+  color: #374151;
+  font-weight: 500;
+}
+
+.hour-meta-divider {
+  color: #d1d5db;
+}
+
+.hour-date-range {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .hour-title {
+    font-size: 1.1rem;
+  }
+
+  .hour-header-meta {
+    gap: 6px;
+    font-size: 0.85rem;
+  }
+}

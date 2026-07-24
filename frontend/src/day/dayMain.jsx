@@ -1025,23 +1025,57 @@ function ChartCard({
   );
 }
 
+// Muotoilee päivämäärän otsikossa näytettävään muotoon.
+function formatDisplayDate(value) {
+  const date = toDate(value);
+
+  if (!date || Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("fi-FI");
+}
+
 // Näyttää Day-näkymän otsikkoalueen.
 function DayHeader({
   mode,
   selectedLocations,
   allSelected,
+  startDate,
+  endDate,
 }) {
+  const locationLabel = allSelected
+    ? "Kaikki toimipisteet"
+    : selectedLocations.join(", ");
+
   return (
     <div className="day-main-header">
-      <div>
-        <h1>{getPageTitle(mode)}</h1>
+      <div className="day-header">
+        <h2 className="day-title">
+          {mode === "realized"
+            ? "Toteutuneet näytteet"
+            : "Ennustetut näytteet"}
+        </h2>
 
-        <span>
-          {getLocationLabel(
-            selectedLocations,
-            allSelected
+        <div className="day-header-meta">
+          <span className="day-location">
+            {allSelected
+              ? "Kaikki toimipisteet"
+              : selectedLocations.join(", ")}
+          </span>
+
+          {startDate && endDate && (
+            <>
+              <span className="day-meta-divider">•</span>
+
+              <span className="day-date-range">
+                {formatDisplayDate(startDate)}
+                {" – "}
+                {formatDisplayDate(endDate)}
+              </span>
+            </>
           )}
-        </span>
+        </div>
       </div>
     </div>
   );
@@ -1261,6 +1295,8 @@ function DayMain({ filters }) {
         mode={mode}
         selectedLocations={selectedLocations}
         allSelected={allSelected}
+        startDate={visibleStartDate}
+        endDate={addDays(visibleEndDateExclusive, -1)}
       />
 
       <DayContent

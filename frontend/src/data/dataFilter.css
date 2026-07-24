@@ -248,3 +248,10 @@
 .legend-dot.data-gap {
   background: #ffb0b0;
 }
+
+.data-filter-error {
+  margin-top: 6px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 500;
+}
