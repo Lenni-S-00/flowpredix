@@ -212,18 +212,10 @@ function calculateForecastDays(
 }
 
 
-// Lisää ennustepyyntöön toimipisteen, jos vain yksi on valittu.
-function addForecastLocationParam(
-  params,
-  selectedLocations,
-  allSelected
-) {
-  const hasSingleLocation =
-    selectedLocations.length === 1;
-
-  if (!allSelected && hasSingleLocation) {
-    params.location =
-      selectedLocations[0];
+// Lisää ennustepyyntöön yksittäisen toimipisteen.
+function addForecastLocationParam(params, location) {
+  if (location) {
+    params.location = location;
   }
 
   return params;
@@ -254,12 +246,11 @@ function logForecastParams(
 }
 
 
-// Muodostaa päiväennusteen API-parametrit.
+// Muodostaa päiväennusteen API-parametrit yhdelle toimipisteelle.
 function createForecastParams(
   filters,
-  selectedLocations,
-  allSelected,
-  endDateExclusive
+  endDateExclusive,
+  location = null
 ) {
   const params = {
     days: calculateForecastDays(
@@ -268,11 +259,7 @@ function createForecastParams(
     ),
   };
 
-  addForecastLocationParam(
-    params,
-    selectedLocations,
-    allSelected
-  );
+  addForecastLocationParam(params, location);
 
   logForecastParams(
     filters,
@@ -386,6 +373,18 @@ function mapPredictionRow(row) {
   };
 }
 
+// Lisää ennusteriville toimipisteen, jos backend ei palauta sitä.
+function attachLocationToPredictionRow(row, location) {
+  return {
+    ...row,
+    location:
+      row.location ||
+      row.location_name ||
+      location ||
+      "Kaikki näytteenotot",
+  };
+}
+
 
 // Hakee toteutuneen päiväkohtaisen datan annetulta aikaväliltä.
 async function fetchSummaryRange(
@@ -430,7 +429,37 @@ function filterPredictionRows(
 }
 
 
-// Hakee ennustedatan annetulta aikaväliltä.
+// Hakee yhden toimipisteen ennustedatan annetulta aikaväliltä.
+async function fetchLocationPredictionRange(
+  filters,
+  location,
+  startDate,
+  endDateExclusive
+) {
+  const params = createForecastParams(
+    filters,
+    endDateExclusive,
+    location
+  );
+
+  const response = await API.get(
+    "predict/",
+    { params }
+  );
+
+  const rows = getPredictionRows(response.data)
+    .map((row) =>
+      attachLocationToPredictionRow(row, location)
+    );
+
+  return filterPredictionRows(
+    rows,
+    startDate,
+    endDateExclusive
+  );
+}
+
+// Hakee ennustedatan kaikille valituille toimipisteille.
 async function fetchPredictionRange(
   filters,
   selectedLocations,
@@ -442,32 +471,42 @@ async function fetchPredictionRange(
     return [];
   }
 
-  const params = createForecastParams(
-    filters,
-    selectedLocations,
-    allSelected,
-    endDateExclusive
+  if (allSelected) {
+    const rows = await fetchLocationPredictionRange(
+      filters,
+      null,
+      startDate,
+      endDateExclusive
+    );
+
+    console.log(
+      "Backendin palauttama yhdistetty ennustedata:",
+      rows.length,
+      rows
+    );
+
+    return rows;
+  }
+
+  const requests = selectedLocations.map((location) =>
+    fetchLocationPredictionRange(
+      filters,
+      location,
+      startDate,
+      endDateExclusive
+    )
   );
 
-  const response = await API.get(
-    "predict/",
-    { params }
-  );
-
-  const rows =
-    getPredictionRows(response.data);
+  const responses = await Promise.all(requests);
+  const rows = responses.flat();
 
   console.log(
-    "Backendin palauttamat ennusterivit:",
+    "Backendin palauttamat toimipistekohtaiset ennusterivit:",
     rows.length,
     rows
   );
 
-  return filterPredictionRows(
-    rows,
-    startDate,
-    endDateExclusive
-  );
+  return rows;
 }
 
 

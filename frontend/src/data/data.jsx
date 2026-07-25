@@ -75,7 +75,10 @@ function Data() {
 
   return (
     <>
-      <Sidebar title="Datan suodattimet">
+      <Sidebar
+        title="Datan suodattimet"
+        defaultOpen={false}
+      >
         <DataFilter />
       </Sidebar>
 

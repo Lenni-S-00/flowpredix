@@ -3,20 +3,52 @@ import "./dayStat.css";
 function DayStat({ data, valueKey = "realized" }) {
   if (!data || data.length === 0) return null;
 
-  const totalPatients = data.reduce((sum, item) => sum + item[valueKey], 0);
+  // Yhdistää saman päivän eri toimipisteiden arvot.
+  const dailyTotals = Object.values(
+    data.reduce((acc, item) => {
+      if (!acc[item.date]) {
+        acc[item.date] = {
+          date: item.date,
+          value: 0,
+        };
+      }
 
-  const values = data.map((item) => item[valueKey]);
-  const averagePatients = Math.round(totalPatients / data.length);
-  const maxPatients = Math.max(...values);
-  const minPatients = Math.min(...values);
+      acc[item.date].value += item[valueKey];
 
-  const busiestDay = data.reduce((max, item) =>
-    item[valueKey] > max[valueKey] ? item : max
+      return acc;
+    }, {})
   );
 
-  const quietDay = data.reduce((min, item) =>
-    item[valueKey] > min[valueKey] ? item : min
+  // Käytetään päiväkohtaisia summia vain jos mukana on useampi toimipiste.
+  const multipleLocations =
+    new Set(data.map((item) => item.location)).size > 1;
+
+  const statsSource = multipleLocations
+    ? dailyTotals
+    : data.map((item) => ({
+        date: item.date,
+        value: item[valueKey],
+      }));
+
+  const totalPatients = statsSource.reduce(
+    (sum, item) => sum + item.value,
+    0
   );
+
+  const averagePatients = Math.round(
+    totalPatients / statsSource.length
+  );
+
+  const maxDay = statsSource.reduce((max, item) =>
+    item.value > max.value ? item : max
+  );
+
+  const minDay = statsSource.reduce((min, item) =>
+    item.value < min.value ? item : min
+  );
+
+  const maxPatients = maxDay.value;
+  const minPatients = minDay.value;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -46,13 +78,13 @@ function DayStat({ data, valueKey = "realized" }) {
         <div className="day-stat-box">
           <span className="day-stat-label">Suurin päivä</span>
           <strong>{maxPatients}</strong>
-          <span className="day-stat-small">{formatDate(busiestDay.date)}</span>
+          <span className="day-stat-small">{formatDate(maxDay.date)}</span>
         </div>
 
         <div className="day-stat-box">
           <span className="day-stat-label">Pienin päivä</span>
           <strong>{minPatients}</strong>
-          <span className="day-stat-small">{formatDate(quietDay.date)}</span>
+          <span className="day-stat-small">{formatDate(minDay.date)}</span>
         </div>
       </div>
     </section>

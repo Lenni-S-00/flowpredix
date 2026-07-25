@@ -1,8 +1,12 @@
 import { useState } from "react";
 import "./sidebar.css";
 
-function Sidebar({ title = "Suodattimet", children }) {
-  const [isOpen, setIsOpen] = useState(true);
+function Sidebar({
+  title = "Suodattimet",
+  children,
+  defaultOpen = true,
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <>

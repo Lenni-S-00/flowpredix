@@ -14,6 +14,21 @@ const COLORS = {
   Lab4: "#9333ea",
   Lab5: "#dc2626",
   Lab6: "#0891b2",
+  Lab7: "#ca8a04",
+  Lab8: "#db2777",
+  Lab9: "#4f46e5",
+  Lab10: "#059669",
+  Lab11: "#ea580c",
+  Lab12: "#7c3aed",
+  Lab13: "#0d9488",
+  Lab14: "#be123c",
+  Lab15: "#65a30d",
+  Lab16: "#0369a1",
+  Lab17: "#c026d3",
+  Lab18: "#a16207",
+  Lab19: "#475569",
+  Lab20: "#15803d",
+  Lab21: "#b91c1c",
 };
 
 const RANGE_DAYS = {
@@ -360,12 +375,17 @@ function getValueKey(mode) {
 }
 
 // Palauttaa käyttäjän valitsemat toimipisteet.
+// Palauttaa käyttäjän valitsemat toimipisteet aina taulukkona.
 function getSelectedLocations(filters) {
-  return (
-    filters.selectedLocations || [
-      "Kaikki näytteenotot",
-    ]
-  );
+  if (Array.isArray(filters?.selectedLocations)) {
+    return filters.selectedLocations;
+  }
+
+  if (filters?.selectedLocation) {
+    return [filters.selectedLocation];
+  }
+
+  return ["Kaikki näytteenotot"];
 }
 
 // Tarkistaa, ovatko kaikki toimipisteet valittuina.
@@ -1152,7 +1172,7 @@ function DayMain({ filters }) {
         forecastRange: filters?.forecastRange || null,
         startDate: toDateString(filters?.dateRange?.startDate),
         endDate: toDateString(filters?.dateRange?.endDate),
-        locations: filters?.selectedLocations || [],
+        locations: getSelectedLocations(filters),
       }),
     [
       mode,
@@ -1160,6 +1180,7 @@ function DayMain({ filters }) {
       filters?.dateRange?.startDate,
       filters?.dateRange?.endDate,
       filters?.selectedLocations,
+      filters?.selectedLocation,
     ]
   );
 
