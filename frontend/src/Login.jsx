@@ -68,21 +68,20 @@ export default function Login() {
   return (
     <main className="login-page">
       <section className="login-card">
-        <div className="login-brand">
-          <div className="login-logo">
-            FP
-          </div>
+        <div className="login-logo">
+          <img
+            src="/flowpredictor_logo.png"
+            alt="FlowPredictor logo"
+            className="login-logo-image"
+          />
 
-          <div>
-            <span className="login-brand-name">
-              FlowPredictor
-            </span>
-
-            <span className="login-brand-description">
-              Arvailusta ennakointiin
-            </span>
-          </div>
+          <img
+            src="/cele_logo.png"
+            alt="CeLe Solutions logo"
+            className="login-logo-image"
+          />
         </div>
+
 
         <div className="login-heading">
           <span className="login-eyebrow">

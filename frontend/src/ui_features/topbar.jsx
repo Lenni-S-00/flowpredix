@@ -70,7 +70,13 @@ const tabs = [
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <div className="topbar-logo">FlowPredictor</div>
+        <div className="topbar-logo">
+          <img
+            src="/fp_logo_background.png"
+            alt="FlowPredictor"
+            className="topbar-logo-image"
+          />
+        </div>
 
         <nav className="topbar-tabs">
           {tabs.map((tab) => (

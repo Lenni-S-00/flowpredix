@@ -41,31 +41,23 @@
 }
 
 .login-logo {
-  width: 48px;
-  height: 48px;
-
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 220px;
   flex-shrink: 0;
+}
 
-  border-radius: 14px;
-
-  background: #abc4ff;
-  color: #ffffff;
-
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 10px 22px rgba(139, 170, 254, 0.28);
+.login-logo-image {
+  width: 120px;
+  height: 72px;
+  object-fit: contain;
 }
 
 .login-brand > div:last-child {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0px;
 }
 
 .login-brand-name {
@@ -82,6 +74,7 @@
 }
 
 .login-heading {
+  margin-top: -50px;
   margin-bottom: 30px;
 }
 
@@ -274,7 +267,7 @@
   }
 
   .login-brand {
-    margin-bottom: 30px;
+    margin-bottom: 0px;
   }
 }
 

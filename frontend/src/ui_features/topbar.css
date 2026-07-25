@@ -68,3 +68,17 @@
   transform: none;
   white-space: nowrap;
 }
+
+.topbar-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.topbar-logo-image {
+  display: block;
+  width: 300px;
+  height: 48px;
+  object-fit: contain;
+  object-position: left center;
+}
