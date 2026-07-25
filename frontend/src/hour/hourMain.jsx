@@ -2,7 +2,8 @@ import {
   Fragment,
 } from "react";
 import "./hourMain.css";
-import WaitingState from "../waitingState.jsx";
+import WaitingState from "../ui_features/waitingState.jsx";
+import Loading from "../ui_features/loading.jsx";
 import {
   useHourData,
 } from "./hourData";
@@ -417,6 +418,22 @@ function buildRows(
   );
 }
 
+function WaitingView() {
+  return (
+    <main className="hour-content">
+      <WaitingState />
+    </main>
+  );
+}
+
+function LoadingView() {
+  return (
+    <main className="hour-content">
+      <Loading />
+    </main>
+  );
+}
+
 function HourMain({
   filters,
 }) {
@@ -587,14 +604,12 @@ function HourMain({
         )
       : null;
 
-  if (
-    !safeFilters.hasApplied
-  ) {
-    return (
-      <main className="hour-content">
-        <WaitingState />
-      </main>
-    );
+  if (!safeFilters.hasApplied) {
+    return <WaitingView />;
+  }
+
+  if (loading) {
+    return <LoadingView />;
   }
 
   return (
@@ -627,10 +642,7 @@ function HourMain({
         </div>
       </div>
 
-      
-      {loading ? (
-        <WaitingState />
-      ) : (
+      {(
         <div className="hour-layout">
           <section className="heatmap-card">
             {error ? (

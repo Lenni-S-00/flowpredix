@@ -201,10 +201,13 @@
 .hour-stat-column {
   display: flex;
   min-width: 0;
+  align-self: start;
+  align-items: flex-start;
 }
 
 .hour-stat-column .hour-stat-card {
-  flex: 1;
+  flex: 0 0 auto;
+  height: fit-content;
 }
 
 @media (max-width: 1050px) {

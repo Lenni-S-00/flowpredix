@@ -690,8 +690,11 @@ function getLocationsDependency(filters) {
 async function loadDayData(
   filters,
   isCancelled,
-  setData
+  setData,
+  setLoading
 ) {
+  setLoading(true);
+
   try {
     const rows =
       await fetchDayData(filters);
@@ -705,6 +708,10 @@ async function loadDayData(
     if (!isCancelled()) {
       setData([]);
     }
+  } finally {
+    if (!isCancelled()) {
+      setLoading(false);
+    }
   }
 }
 
@@ -712,6 +719,7 @@ async function loadDayData(
 // Tarjoaa päiväkohtaisen toteuma- ja ennustedatan React-komponenteille.
 export function useRealData(filters) {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const locationsDependency =
     getLocationsDependency(filters);
@@ -719,6 +727,8 @@ export function useRealData(filters) {
   useEffect(() => {
     if (!filters?.hasApplied) {
       setData([]);
+      setLoading(false);
+
       return undefined;
     }
 
@@ -732,7 +742,8 @@ export function useRealData(filters) {
     loadDayData(
       filters,
       isCancelled,
-      setData
+      setData,
+      setLoading
     );
 
     return () => {
@@ -750,5 +761,8 @@ export function useRealData(filters) {
     locationsDependency,
   ]);
 
-  return data;
+  return {
+    data,
+    loading,
+  };
 }

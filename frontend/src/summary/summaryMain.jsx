@@ -5,8 +5,8 @@ import {
 } from "react";
 
 import API from "../api";
-import WaitingState from "../waitingState.jsx";
-
+import WaitingState from "../ui_features/waitingState.jsx";
+import Loading from "../ui_features/loading.jsx";
 import "./summaryMain.css";
 
 const HISTORY_SEARCH_DAYS = 365;
@@ -659,6 +659,14 @@ function WaitingView() {
   );
 }
 
+function LoadingView() {
+  return (
+    <main className="summary-main">
+      <Loading />
+    </main>
+  );
+}
+
 function ErrorView({ message }) {
   return (
     <main className="summary-main">
@@ -1057,7 +1065,7 @@ function SummaryMain({ filters }) {
   }
 
   if (loading) {
-    return <WaitingView />;
+    return <LoadingView />;
   }
 
   if (error) {

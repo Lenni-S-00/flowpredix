@@ -1,79 +1,75 @@
 .hour-stat-card {
-  margin-top: 0;
-  height: 100%;
   width: 100%;
+  height: fit-content;
+  align-self: flex-start;
   box-sizing: border-box;
+  padding: 24px;
   background: #ffffff;
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .hour-stat-card h3 {
-  margin: 0 0 18px;
+  margin: 0 0 20px;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
   text-align: center;
-  font-size: 18px;
-  color: #0f172a;
 }
 
 .hour-stat-item {
-  flex: 1;
-  min-height: 95px;
-  margin-bottom: 14px;
-  box-sizing: border-box;
-  background: #f8fafc;
-  border-radius: 14px;
-  padding: 16px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
+  gap: 4px;
+  margin: 0;
+  padding: 0 0 14px;
+  border-bottom: 1px solid #f1f5f9;
+  background: transparent;
   text-align: center;
 }
 
+.hour-stat-item + .hour-stat-item {
+  margin-top: 16px;
+}
+
 .hour-stat-item:last-child {
-  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .hour-stat-label {
+  color: #6b7280;
   font-size: 13px;
-  color: #64748b;
+  font-weight: 500;
 }
 
 .hour-stat-value {
-  font-size: 30px;
-  line-height: 1;
+  color: #111827;
+  font-size: 28px;
   font-weight: 700;
-  color: #0f172a;
+  line-height: 1.1;
 }
 
 .hour-stat-detail {
-  font-size: 12px;
-  color: #64748b;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .hour-stat-empty {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #64748b;
+  padding: 32px 16px;
+  color: #6b7280;
   font-size: 14px;
   text-align: center;
 }
 
 @media (max-width: 1050px) {
   .hour-stat-card {
-    height: auto;
-  }
-
-  .hour-stat-card {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
+    gap: 16px;
+    height: fit-content;
   }
 
   .hour-stat-card h3 {
@@ -82,12 +78,19 @@
   }
 
   .hour-stat-item {
-    margin-bottom: 0;
+    margin: 0;
+    padding: 16px;
+    background: #f8fafc;
+    border-bottom: none;
+    border-radius: 12px;
+  }
+
+  .hour-stat-item + .hour-stat-item {
+    margin-top: 0;
   }
 
   .hour-stat-empty {
     grid-column: 1 / -1;
-    min-height: 120px;
   }
 }
 
@@ -100,5 +103,14 @@
 @media (max-width: 520px) {
   .hour-stat-card {
     grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .hour-stat-card h3 {
+    font-size: 18px;
+  }
+
+  .hour-stat-value {
+    font-size: 24px;
   }
 }

@@ -1,5 +1,5 @@
 import "./App.css";
-import Topbar from "./topbar";
+import Topbar from "./ui_features/topbar";
 import Summary from "./summary/summary";
 import Day from "./day/day";
 import "./loginout.css";

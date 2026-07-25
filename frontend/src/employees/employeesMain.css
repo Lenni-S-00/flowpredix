@@ -1,4 +1,5 @@
 .employees-content {
+  flex: 1;
   width: 100%;
   min-height: 100vh;
   padding: 32px;
@@ -6,45 +7,24 @@
   box-sizing: border-box;
 }
 
-.employees-heatmap-header {
-  margin-bottom: 20px;
-}
-
-
-
-.employees-heatmap-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 10px;
-  margin: 0;
-  color: #111827;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.employees-capacity-text {
-  margin-top: 8px;
-  color: #6b7280;
-  font-size: 14px;
-}
-
 .employees-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  align-items: start;
-  gap: 20px;
-  width: 100%;
+  grid-template-columns: minmax(0, 820px) 300px;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: stretch;
 }
 
 .employees-heatmap-card {
-  min-width: 0;
   width: 100%;
+  min-width: 0;
   height: fit-content;
-  padding: 20px;
-  border: 1px solid #dbe3ef;
-  border-radius: 14px;
-  background: #eef4ff;
+  align-self: start;
+  padding: 24px;
+  background: #e5eaff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
   box-sizing: border-box;
 }
 
@@ -56,71 +36,76 @@
 
 .employees-heatmap-grid {
   display: grid;
-  grid-template-columns:
-    minmax(90px, 120px)
-    repeat(8, minmax(70px, 1fr));
-  gap: 8px;
-  width: 100%;
-  min-width: 760px;
+  grid-template-columns: 130px repeat(8, 70px);
+  gap: 5px;
+  width: fit-content;
 }
 
 .employees-corner {
-  min-height: 42px;
+  height: 44px;
 }
 
 .employees-header-cell {
+  width: 70px;
+  min-width: 70px;
+  height: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 8px;
-  color: #475569;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #4b5563;
   font-size: 13px;
   font-weight: 700;
-  text-align: center;
   box-sizing: border-box;
 }
 
 .employees-day-cell {
+  width: 100px;
+  min-height: 58px;
   display: flex;
   align-items: center;
-  min-height: 54px;
-  padding: 10px 12px;
-  border-radius: 10px;
+  justify-content: flex-start;
+  padding: 0 10px;
   background: #ffffff;
-  color: #334155;
+  border: 0 solid #e5e7eb;
+  border-radius: 8px;
+  color: #4b5563;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
   box-sizing: border-box;
 }
 
 .employees-value-cell {
+  width: 70px;
+  min-width: 70px;
+  height: 46px;
+  min-height: 58px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 54px;
-  padding: 8px;
-  border: 1px solid rgb(255 255 255 / 70%);
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 700;
   text-align: center;
   box-sizing: border-box;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: filter 0.12s ease;
 }
 
 .employees-value-cell:hover {
-  z-index: 1;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgb(15 23 42 / 12%);
+  filter: brightness(0.95);
 }
 
 .employees-stat-column {
   display: flex;
-  align-self: start;
   min-width: 0;
+  align-items: flex-start;
+}
+
+.employees-stat-column .employees-stat-card {
+  flex: 0 0 auto;
   height: fit-content;
 }
 
@@ -129,108 +114,38 @@
 }
 
 .employees-error {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 260px;
-  padding: 24px;
-  border: 1px dashed #cbd5e1;
+  padding: 18px 20px;
   border-radius: 12px;
-  background: #ffffff;
-  color: #64748b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
   font-size: 15px;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-@media (max-width: 1100px) {
-  .employees-content {
-    padding: 24px;
-  }
-
-  .employees-layout {
-    grid-template-columns: minmax(0, 1fr) 240px;
-    gap: 16px;
-  }
-}
-
-@media (max-width: 900px) {
-  .employees-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .employees-stat-column {
-    width: 100%;
-  }
-
-  .employees-heatmap-card {
-    padding: 16px;
-  }
-}
-
-@media (max-width: 600px) {
-  .employees-content {
-    padding: 16px;
-  }
-
-  .employees-heatmap-title {
-    font-size: 20px;
-  }
-
-  .employees-heatmap-card {
-    padding: 12px;
-    border-radius: 12px;
-  }
-
-  .employees-heatmap-grid {
-    grid-template-columns:
-      minmax(80px, 100px)
-      repeat(8, minmax(62px, 1fr));
-    gap: 6px;
-    min-width: 660px;
-  }
-
-  .employees-header-cell {
-    min-height: 38px;
-    padding: 6px;
-    font-size: 12px;
-  }
-
-  .employees-day-cell,
-  .employees-value-cell {
-    min-height: 48px;
-    padding: 7px;
-    font-size: 13px;
-  }
-}
-
-
-.employees-date-range {
-  color: #9ca3af;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .employees-heatmap-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  width: 100%;
   gap: 16px;
-  margin-bottom: 20px;
+  margin: 0 0 20px;
 }
 
 .employees-header {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
+  text-align: left;
 }
 
 .employees-title {
   margin: 0;
+  color: #111827;
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.2;
-  color: #111827;
 }
 
 .employees-header-meta {
@@ -238,6 +153,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+  color: #6b7280;
   font-size: 0.9rem;
 }
 
@@ -250,18 +166,48 @@
   color: #d1d5db;
 }
 
+.employees-date-range {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
 
 .employees-capacity-text {
   display: flex;
   align-items: center;
   align-self: center;
+  margin: 0;
   color: #6b7280;
   font-size: 0.9rem;
   font-weight: 500;
   text-align: right;
 }
 
+@media (max-width: 1050px) {
+  .employees-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .employees-content {
+    padding: 20px;
+  }
+
+  .employees-heatmap-card {
+    padding: 16px;
+  }
+
+  .employees-stat-column {
+    width: 100%;
+  }
+}
+
 @media (max-width: 600px) {
+  .employees-content {
+    padding: 16px;
+  }
+
   .employees-heatmap-header {
     flex-direction: column;
     gap: 12px;
@@ -272,11 +218,26 @@
   }
 
   .employees-header-meta {
+    gap: 6px;
     font-size: 0.85rem;
   }
 
   .employees-capacity-text {
     align-self: flex-start;
     text-align: left;
+  }
+
+  .employees-heatmap-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .employees-header-cell {
+    font-size: 12px;
+  }
+
+  .employees-day-cell,
+  .employees-value-cell {
+    font-size: 13px;
   }
 }

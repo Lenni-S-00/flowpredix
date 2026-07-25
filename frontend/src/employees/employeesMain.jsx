@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import "./employeesMain.css";
-import WaitingState from "../waitingState.jsx";
+import WaitingState from "../ui_features/waitingState.jsx";
+import Loading from "../ui_features/loading.jsx";
 import { useEmployeesData } from "./employeesData.jsx";
 import EmployeesStat from "./employeesStat.jsx";
 
@@ -456,6 +457,24 @@ function addEmployeeValues(
   }));
 }
 
+// Näyttää tilan ennen suodattimien vahvistamista.
+function WaitingView() {
+  return (
+    <main className="employees-content">
+      <WaitingState />
+    </main>
+  );
+}
+
+// Näyttää latausnäkymän datan haun aikana.
+function LoadingView() {
+  return (
+    <main className="employees-content">
+      <Loading />
+    </main>
+  );
+}
+
 // Näyttää tuntikohtaisen henkilöstömäärän heatmapina.
 function EmployeesMain({ filters }) {
   const safeFilters =
@@ -609,11 +628,11 @@ function EmployeesMain({ filters }) {
       : null;
 
   if (!safeFilters.hasApplied) {
-    return (
-      <main className="employees-content">
-        <WaitingState />
-      </main>
-    );
+    return <WaitingView />;
+  }
+
+  if (loading) {
+    return <LoadingView />;
   }
 
   return (
@@ -652,9 +671,8 @@ function EmployeesMain({ filters }) {
   )}
 </div>
 
-      {loading ? (
-        <WaitingState />
-      ) : (
+      {(
+
         <div className="employees-layout">
           <section className="employees-heatmap-card">
             {error ? (

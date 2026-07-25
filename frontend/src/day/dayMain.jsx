@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import "./dayMain.css";
 
-import WaitingState from "../waitingState.jsx";
+import WaitingState from "../ui_features/waitingState.jsx";
+import Loading from "../ui_features/loading.jsx";
 import { useRealData } from "./dayData.jsx";
 import DayStat from "./dayStat.jsx";
 
@@ -727,6 +728,15 @@ function WaitingView() {
   );
 }
 
+// Näyttää latausnäkymän datan haun aikana.
+function LoadingView() {
+  return (
+    <main className="day-main">
+      <Loading />
+    </main>
+  );
+}
+
 // Näyttää tyhjän datan tilan.
 function EmptyDataView() {
   return (
@@ -1236,10 +1246,20 @@ function DayMain({ filters }) {
     ]
   );
 
-  const backendData = useRealData(navigationFilters);
-  const dayData = normalizeBackendData(backendData);
+  const {
+    data: backendData,
+    loading,
+  } = useRealData(navigationFilters);
 
-  if (!filters?.hasApplied) return <WaitingView />;
+  if (!filters?.hasApplied) {
+    return <WaitingView />;
+  }
+
+  if (loading) {
+    return <LoadingView />;
+  }
+
+  const dayData = normalizeBackendData(backendData);
 
   const valueKey = getValueKey(mode);
   const selectedLocations = getSelectedLocations(filters);

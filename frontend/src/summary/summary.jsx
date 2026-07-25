@@ -4,27 +4,32 @@ import Sidebar from "../sidebar/sidebar";
 import SummaryFilter from "./summaryFilter";
 import SummaryMain from "./summaryMain";
 
-function createSummaryFilters(selectedLocation) {
+function createSummaryFilters(
+  selectedLocation,
+  hasApplied = false
+) {
   return {
     selectedLocations: [
       selectedLocation ||
         "Kaikki näytteenotot",
     ],
-    hasApplied: true,
+    hasApplied,
   };
 }
 
 function Summary() {
   const [filters, setFilters] = useState(() =>
     createSummaryFilters(
-      "Kaikki näytteenotot"
+      "Kaikki näytteenotot",
+      false
     )
   );
 
   function handleApply(newFilters) {
     setFilters(
       createSummaryFilters(
-        newFilters.selectedLocation
+        newFilters.selectedLocation,
+        true
       )
     );
   }
