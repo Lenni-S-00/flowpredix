@@ -72,9 +72,15 @@ function SummaryFilter({
     setShowLocationMenu(false);
   }
 
+  function clearLocation() {
+    setSelectedLocation("");
+  }
+
   function applyFilters() {
     onApply({
-      selectedLocation,
+      selectedLocation:
+        selectedLocation ||
+        "Kaikki näytteenotot",
     });
   }
 
@@ -94,7 +100,8 @@ function SummaryFilter({
           }
         >
           <span className="location-trigger-text">
-            {selectedLocation}
+            {selectedLocation ||
+              "Valitse toimipiste"}
           </span>
 
           <span aria-hidden="true">📍</span>
@@ -106,44 +113,53 @@ function SummaryFilter({
               <span className="location-actions-title">
                 Toimipiste
               </span>
+
+              <button
+                type="button"
+                className="clear-locations-inline"
+                disabled={!selectedLocation}
+                onClick={clearLocation}
+              >
+                Tyhjennä
+              </button>
             </div>
 
-            <button
-              type="button"
-              className={`select-all-locations ${
-                selectedLocation ===
-                "Kaikki näytteenotot"
-                  ? "active"
-                  : ""
-              }`}
-              onClick={() =>
-                selectLocation(
+            <label className="location-item">
+              <input
+                type="radio"
+                name="summary-location"
+                checked={
+                  selectedLocation ===
                   "Kaikki näytteenotot"
-                )
-              }
-            >
-              <span className="select-all-radio" />
-              Kaikki näytteenotot
-            </button>
+                }
+                onChange={() =>
+                  selectLocation(
+                    "Kaikki näytteenotot"
+                  )
+                }
+              />
 
-            <div className="location-divider" />
+              Kaikki näytteenotot
+            </label>
 
             {LOCATIONS.map((location) => (
-              <button
+              <label
                 key={location}
-                type="button"
-                className={`select-all-locations ${
-                  selectedLocation === location
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() =>
-                  selectLocation(location)
-                }
+                className="location-item"
               >
-                <span className="select-all-radio" />
+                <input
+                  type="radio"
+                  name="summary-location"
+                  checked={
+                    selectedLocation === location
+                  }
+                  onChange={() =>
+                    selectLocation(location)
+                  }
+                />
+
                 {location}
-              </button>
+              </label>
             ))}
           </div>
         )}

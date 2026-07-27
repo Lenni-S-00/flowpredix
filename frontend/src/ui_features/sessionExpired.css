@@ -1,0 +1,86 @@
+.session-expired-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  background: rgba(171, 196, 255, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.session-expired-card {
+  width: min(100%, 430px);
+  padding: 38px;
+
+  text-align: center;
+
+  background: #ffffff;
+  border: 1px solid #d7e3ff;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(60, 90, 170, 0.15);
+}
+
+.session-expired-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 22px;
+
+  background: #abc4ff;
+  color: #2f4f85;
+
+  border-radius: 50%;
+
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.session-expired-card h2 {
+  margin: 0 0 14px;
+
+  color: #1f3b73;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.session-expired-card p {
+  margin: 0 0 28px;
+
+  color: #5f6f92;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.session-expired-button {
+  width: 100%;
+  padding: 13px 20px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #abc4ff;
+  color: #1f3b73;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.session-expired-button:hover {
+  background: #96b5ff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(171, 196, 255, 0.45);
+}
+
+.session-expired-button:active {
+  transform: translateY(0);
+}

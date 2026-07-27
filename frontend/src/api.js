@@ -7,6 +7,7 @@ const api = axios.create({
   },
 });
 
+// Lisää JWT automaattisesti kaikkiin pyyntöihin
 api.interceptors.request.use(
   (config) => {
     const token =
@@ -25,6 +26,31 @@ api.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+// Käsittelee vanhentuneen istunnon
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const requestUrl = error.config?.url || "";
+
+    const isLoginRequest = requestUrl.includes("/token/");
+    const isRefreshRequest = requestUrl.includes("/token/refresh/");
+
+    if (status === 401 && !isLoginRequest && !isRefreshRequest) {
+      console.warn("Istunto vanhentunut.");
+
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("access");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("refresh");
+
+      window.dispatchEvent(new Event("session-expired"));
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default api;

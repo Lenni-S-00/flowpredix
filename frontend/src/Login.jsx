@@ -4,26 +4,16 @@ import API from "./api";
 import "./login.css";
 
 export default function Login() {
-  const [username, setUsername] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const login = async (event) => {
     event.preventDefault();
 
     if (!username.trim() || !password) {
-      setError(
-        "Syötä käyttäjätunnus ja salasana."
-      );
-
+      setError("Syötä käyttäjätunnus ja salasana.");
       return;
     }
 
@@ -31,30 +21,19 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await API.post(
-        "token/",
-        {
-          username,
-          password,
-        }
-      );
+      const res = await API.post("token/", {
+        username,
+        password,
+      });
 
-      localStorage.setItem(
-        "access",
-        res.data.access
-      );
-
-      localStorage.setItem(
-        "refresh",
-        res.data.refresh
-      );
+      localStorage.setItem("access", res.data.access);
+      localStorage.setItem("refresh", res.data.refresh);
 
       window.location.reload();
     } catch (requestError) {
       console.error(
         "Kirjautuminen epäonnistui:",
-        requestError.response?.data ||
-          requestError
+        requestError.response?.data || requestError
       );
 
       setError(
@@ -74,14 +53,7 @@ export default function Login() {
             alt="FlowPredictor logo"
             className="login-logo-image"
           />
-
-          <img
-            src="/cele_logo.png"
-            alt="CeLe Solutions logo"
-            className="login-logo-image"
-          />
         </div>
-
 
         <div className="login-heading">
           <span className="login-eyebrow">
@@ -91,9 +63,7 @@ export default function Login() {
           <h1>Kirjaudu sisään</h1>
 
           <p>
-            Syötä käyttäjätunnuksesi ja
-            salasanasi jatkaaksesi
-            palveluun.
+            Syötä käyttäjätunnuksesi ja salasanasi.
           </p>
         </div>
 
@@ -105,19 +75,16 @@ export default function Login() {
             className="login-field"
             htmlFor="username"
           >
-            <span>Käyttäjätunnus</span>
 
             <input
               id="username"
               name="username"
               type="text"
               value={username}
-              placeholder="Syötä käyttäjätunnus"
+              placeholder="Käyttäjätunnus"
               autoComplete="username"
               onChange={(event) =>
-                setUsername(
-                  event.target.value
-                )
+                setUsername(event.target.value)
               }
             />
           </label>
@@ -126,19 +93,16 @@ export default function Login() {
             className="login-field"
             htmlFor="password"
           >
-            <span>Salasana</span>
 
             <input
               id="password"
               name="password"
               type="password"
               value={password}
-              placeholder="Syötä salasana"
+              placeholder="Salasana"
               autoComplete="current-password"
               onChange={(event) =>
-                setPassword(
-                  event.target.value
-                )
+                setPassword(event.target.value)
               }
             />
           </label>
@@ -164,9 +128,17 @@ export default function Login() {
         </form>
 
         <p className="login-footer">
-          FlowPredictor tukee organisaatioiden toimintaa 
-          ennakoimalla tulevaa kuormitusta. 
+          FlowPredictor tukee organisaatioiden toimintaa
+          ennakoimalla tulevaa kuormitusta.
         </p>
+
+        <div className="login-secondary-logo">
+          <img
+            src="/cele_logo.png"
+            alt="CeLe Solutions logo"
+            className="login-secondary-logo-image"
+          />
+        </div>
       </section>
     </main>
   );
