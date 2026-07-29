@@ -11,7 +11,8 @@ from .views import (
     prediction_models,
     hourly_prediction,
     predict_employees,
-    data_availability
+    data_availability,
+    TrainPredictionModelsView
 )
 
 from rest_framework_simplejwt.views import (
@@ -38,4 +39,10 @@ urlpatterns = [
     path("predict/hourly/", hourly_prediction, name="hourly-prediction"),
     path("predict/employees/", predict_employees, name="predict-employees"),
     path("data/availability/", data_availability, name="data-availability"),
+
+    path(
+        "train-models/",
+        TrainPredictionModelsView.as_view(),
+        name="train-models",
+    ),
 ]

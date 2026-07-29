@@ -21,6 +21,8 @@ from api.services.prediction import PredictionService
 from api.services.hourly_prediction import HourlyPredictionService
 from api.services.employee_estimation import (EmployeeEstimator)
 
+from django.core.management import call_command
+from rest_framework.views import APIView
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -761,4 +763,89 @@ def predict_employees(request):
                 "error": str(error),
             },
             status=status.HTTP_400_BAD_REQUEST,
+        )
+
+class TrainPredictionModelsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        locations = request.data.get("locations", [])
+
+        if not isinstance(locations, list):
+            return Response(
+                {
+                    "success": False,
+                    "message": "Toimipisteet täytyy antaa listana.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        locations = [
+            str(location).strip()
+            for location in locations
+            if str(location).strip()
+        ]
+
+        if not locations:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Valitse vähintään yksi koulutettava toimipiste.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        trained_locations = []
+        failed_locations = []
+
+        for location in locations:
+            try:
+                call_command(
+                    "train_prediction_models",
+                    location=location,
+                )
+
+                trained_locations.append(location)
+
+            except Exception as error:
+                failed_locations.append(
+                    {
+                        "location": location,
+                        "error": str(error),
+                    }
+                )
+
+        if failed_locations and not trained_locations:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Mallien koulutus epäonnistui.",
+                    "trained_locations": [],
+                    "failed_locations": failed_locations,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        if failed_locations:
+            return Response(
+                {
+                    "success": True,
+                    "message": (
+                        "Osa malleista koulutettiin onnistuneesti, "
+                        "mutta joidenkin koulutus epäonnistui."
+                    ),
+                    "trained_locations": trained_locations,
+                    "failed_locations": failed_locations,
+                },
+                status=status.HTTP_207_MULTI_STATUS,
+            )
+
+        return Response(
+            {
+                "success": True,
+                "message": "Mallit koulutettiin onnistuneesti.",
+                "trained_locations": trained_locations,
+                "failed_locations": [],
+            },
+            status=status.HTTP_200_OK,
         )

@@ -588,28 +588,36 @@ function Data() {
     setIsTraining(true);
 
     try {
-      const response = await API.post(
-        "train-models/",
-        {
-          locations: selectedTrainingLocations,
-        }
-      );
+      const response = await API.post("train-models/", {
+        locations: selectedTrainingLocations,
+      });
 
       const trainedLocations =
-        response.data?.trained_locations ||
-        selectedTrainingLocations;
+        response.data?.trained_locations ?? [];
 
       const failedLocations =
-        response.data?.failed_locations || [];
+        response.data?.failed_locations ?? [];
 
       if (failedLocations.length > 0) {
+        const failedLocationNames = failedLocations.map(
+          (failedLocation) => {
+            if (typeof failedLocation === "string") {
+              return failedLocation;
+            }
+
+            return failedLocation.location ?? "Tuntematon toimipiste";
+          }
+        );
+
         setTrainingStatus({
-          type: "warning",
+          type: trainedLocations.length > 0 ? "warning" : "error",
           message:
-            `${trainedLocations.length} mallia koulutettiin. ` +
-            `Koulutus epäonnistui: ${failedLocations.join(
-              ", "
-            )}.`,
+            trainedLocations.length > 0
+              ? `${trainedLocations.length} mallia koulutettiin. ` +
+                `Koulutus epäonnistui: ${failedLocationNames.join(", ")}.`
+              : `Mallien koulutus epäonnistui: ${failedLocationNames.join(
+                  ", "
+                )}.`,
         });
 
         return;
@@ -617,7 +625,9 @@ function Data() {
 
       setTrainingStatus({
         type: "success",
-        message: `${trainedLocations.length} mallia koulutettiin onnistuneesti.`,
+        message:
+          response.data?.message ??
+          `${trainedLocations.length} mallia koulutettiin onnistuneesti.`,
       });
     } catch (error) {
       console.error(
@@ -636,7 +646,6 @@ function Data() {
       setIsTraining(false);
     }
   }
-
   return (
     <>
       <Sidebar
