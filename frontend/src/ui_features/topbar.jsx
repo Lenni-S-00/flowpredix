@@ -7,8 +7,10 @@ const tabs = [
     label: "Yhteenveto",
     icon: (
       <svg viewBox="0 0 24 24" width="16" height="16">
-        <rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2"/>
+        <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
+        <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" strokeWidth="2"/>
+        <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" strokeWidth="2"/>
+        <line x1="8" y1="16" x2="13" y2="16" stroke="currentColor" strokeWidth="2"/>
       </svg>
     )
   },
@@ -18,11 +20,22 @@ const tabs = [
     label: "Päivätaso",
     icon: (
       <svg viewBox="0 0 24 24" width="16" height="16">
-        <rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2"/>
+        <polyline
+          points="4,16 9,11 13,14 20,7"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="4" cy="16" r="1.5" fill="currentColor"/>
+        <circle cx="9" cy="11" r="1.5" fill="currentColor"/>
+        <circle cx="13" cy="14" r="1.5" fill="currentColor"/>
+        <circle cx="20" cy="7" r="1.5" fill="currentColor"/>
       </svg>
     )
   },
+
   {
     id: "hour",
     label: "Tuntitaso",
@@ -72,7 +85,7 @@ const tabs = [
       <div className="topbar-inner">
         <div className="topbar-logo">
           <img
-            src="/fp_logo_background.png"
+            src="/fp_logo3.png"
             alt="FlowPredictor"
             className="topbar-logo-image"
           />

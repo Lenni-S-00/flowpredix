@@ -16,13 +16,16 @@
 
 .waiting-state h3 {
   margin: 0 0 8px;
-  font-size: 20px;
-  color: #222222;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: -0.2px;
 }
 
 .waiting-state p {
   margin: 0;
   max-width: 360px;
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: #6b7280;
 }

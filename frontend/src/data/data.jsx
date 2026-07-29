@@ -106,6 +106,8 @@ function CustomSelect({
   placeholder,
   options,
   onChange,
+  icon = null,
+  trailingIcon = null,
   disabled = false,
   menuClassName = "",
 }) {
@@ -160,24 +162,35 @@ function CustomSelect({
           setIsOpen((current) => !current);
         }}
       >
-        <span
-          className={
-            value
-              ? "data-select-value"
-              : "data-select-placeholder"
-          }
-        >
-          {value || placeholder}
-        </span>
+<div className="data-select-content">
+  {icon && (
+    <span
+      className="data-select-leading-icon"
+      aria-hidden="true"
+    >
+      {icon}
+    </span>
+  )}
 
-        <span
-          className={`data-select-arrow ${
-            isOpen ? "is-open" : ""
-          }`}
-          aria-hidden="true"
-        >
-          ▾
-        </span>
+          <span
+            className={
+              value
+                ? "data-select-value"
+                : "data-select-placeholder"
+            }
+          >
+            {value || placeholder}
+          </span>
+        </div>
+
+        {trailingIcon && (
+          <span
+            className="data-select-trailing-icon"
+            aria-hidden="true"
+          >
+            {trailingIcon}
+          </span>
+        )}
       </button>
 
       {isOpen && (
@@ -308,11 +321,10 @@ function TrainingLocationSelect({
         <span>{getSelectionText()}</span>
 
         <span
-          className={`data-select-arrow ${
-            isOpen ? "is-open" : ""
-          }`}
+          className="data-select-trailing-icon"
+          aria-hidden="true"
         >
-          ▾
+          📍
         </span>
       </button>
 
@@ -665,12 +677,10 @@ function Data() {
                 value={manualForm.location}
                 placeholder="Valitse toimipiste"
                 options={LOCATIONS}
+                trailingIcon="📍"
                 disabled={isSavingManualData}
                 onChange={(location) => {
-                  updateManualField(
-                    "location",
-                    location
-                  );
+                  updateManualField("location", location);
                 }}
               />
 
@@ -692,6 +702,7 @@ function Data() {
                   value={manualForm.time}
                   placeholder="Valitse kellonaika"
                   options={TIME_OPTIONS}
+                  trailingIcon="🕒"
                   menuClassName="data-time-menu"
                   disabled={isSavingManualData}
                   onChange={(time) => {
@@ -771,7 +782,7 @@ function Data() {
             </div>
 
             <div className="upload-area">
-              <div className="upload-icon">↑</div>
+              <div className="upload-icon">+</div>
 
               <p>
                 CSV-, XLSX- tai JSON-tiedosto
