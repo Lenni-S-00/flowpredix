@@ -88,6 +88,8 @@ class PredictionTrainer:
         )
 
         return self._create_training_result(
+            model=model,
+            feature_columns=list(x.columns),
             location=location,
             path=path,
             daily_df=daily_df,
@@ -366,10 +368,72 @@ class PredictionTrainer:
                 )
             ),
         }
+    # Laskee mallin feature importance -arvot.
+    def _calculate_feature_importance(
+        self,
+        model,
+        feature_columns,
+    ):
+        importance_values = model.feature_importances_
+
+        return {
+            feature: float(importance)
+            for feature, importance in zip(
+                feature_columns,
+                importance_values,
+            )
+        }
+
+    # Ryhmittelee featureiden tärkeydet historiaan, kalenteriin ja säähän.
+    def _group_feature_importance(
+        self,
+        feature_importance,
+    ):
+        history_importance = sum(
+            importance
+            for feature, importance
+            in feature_importance.items()
+            if feature.startswith("lag_")
+        )
+
+        calendar_features = {
+            "year",
+            "month",
+            "day_of_week",
+            "day_of_year",
+        }
+
+        weather_features = {
+            "temperature_mean",
+            "precipitation",
+            "snowfall",
+        }
+
+        calendar_importance = sum(
+            importance
+            for feature, importance
+            in feature_importance.items()
+            if feature in calendar_features
+        )
+
+        weather_importance = sum(
+            importance
+            for feature, importance
+            in feature_importance.items()
+            if feature in weather_features
+        )
+
+        return {
+            "history": float(history_importance),
+            "calendar": float(calendar_importance),
+            "weather": float(weather_importance),
+        }
 
     # Muodostaa koulutuksen palauttamat metatiedot.
     def _create_training_result(
         self,
+        model,
+        feature_columns,
         location,
         path,
         daily_df,
@@ -381,6 +445,19 @@ class PredictionTrainer:
         metrics = self._calculate_metrics(
             y_test,
             predictions,
+        )
+
+        feature_importance = (
+            self._calculate_feature_importance(
+                model=model,
+                feature_columns=feature_columns,
+            )
+        )
+
+        grouped_importance = (
+            self._group_feature_importance(
+                feature_importance
+            )
         )
 
         return {
@@ -410,6 +487,8 @@ class PredictionTrainer:
             "testing_rows": len(
                 x_test
             ),
+            "feature_importance": feature_importance,
+            "feature_importance_groups": grouped_importance,
         }
 
     # Muodostaa historiadatasta jatkuvan päiväkohtaisen DataFramen.

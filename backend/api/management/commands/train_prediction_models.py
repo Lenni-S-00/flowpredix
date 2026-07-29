@@ -226,6 +226,7 @@ class Command(BaseCommand):
 
         self._save_metadata(metadata)
         self._write_training_result(metadata)
+        self._write_feature_importance(result)
 
     # Tulostaa koulutettavan mallin nimen.
     def _write_training_start(self, location):
@@ -259,6 +260,95 @@ class Command(BaseCommand):
                 self._format_result(metadata)
             )
         )
+
+    # Tulostaa mallin featureiden suhteelliset tärkeydet.
+    def _write_feature_importance(self, result):
+        feature_importance = result.get(
+            "feature_importance",
+            {},
+        )
+
+        grouped_importance = result.get(
+            "feature_importance_groups",
+            {},
+        )
+
+        if not feature_importance:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Feature importance -arvoja "
+                    "ei löytynyt."
+                )
+            )
+            return
+
+        self.stdout.write("")
+        self.stdout.write(
+            self.style.SUCCESS(
+                "Feature importance:"
+            )
+        )
+
+        sorted_features = sorted(
+            feature_importance.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )
+
+        for feature, importance in sorted_features:
+            percentage = importance * 100
+
+            self.stdout.write(
+                f"  {feature}: "
+                f"{percentage:.2f} %"
+            )
+
+        if grouped_importance:
+            self.stdout.write("")
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Feature-ryhmien tärkeys:"
+                )
+            )
+
+            history_percentage = (
+                grouped_importance.get(
+                    "history",
+                    0,
+                )
+                * 100
+            )
+
+            calendar_percentage = (
+                grouped_importance.get(
+                    "calendar",
+                    0,
+                )
+                * 100
+            )
+
+            weather_percentage = (
+                grouped_importance.get(
+                    "weather",
+                    0,
+                )
+                * 100
+            )
+
+            self.stdout.write(
+                "  Mennyt kävijädata: "
+                f"{history_percentage:.2f} %"
+            )
+
+            self.stdout.write(
+                "  Kalenteritiedot: "
+                f"{calendar_percentage:.2f} %"
+            )
+
+            self.stdout.write(
+                "  Säätiedot: "
+                f"{weather_percentage:.2f} %"
+            )
 
     # Validoi ja normalisoi koulutuksen tuloksen.
     def _normalize_result(

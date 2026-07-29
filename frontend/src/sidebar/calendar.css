@@ -1,0 +1,38 @@
+.sidebar-calendar-popup {
+  user-select: none;
+  will-change: transform;
+}
+.sidebar-calendar-drag-handle {
+  width: 38px;
+  height: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 2px auto 6px;
+
+  border-radius: 999px;
+
+  background: #f1f4fb;
+  color: #9aa9c7;
+
+  cursor: grab;
+}
+
+.sidebar-calendar-drag-handle:hover {
+  background: #e8eefc;
+  color: #6689dd;
+}
+
+.sidebar-calendar-drag-handle:active {
+  cursor: grabbing;
+}
+
+.sidebar-calendar-drag-icon {
+  display: block;
+
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 1px;
+}
