@@ -47,7 +47,7 @@
 
   color: #1f3b73;
   font-size: 25px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .session-expired-card p {
@@ -69,7 +69,7 @@
   color: #1f3b73;
 
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 550;
 
   cursor: pointer;
   transition: all 0.2s ease;

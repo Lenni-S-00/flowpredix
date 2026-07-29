@@ -2,295 +2,20 @@
   width: 100%;
   min-height: 100%;
   padding: 32px;
+  background: #ffffff;
   box-sizing: border-box;
 }
 
-.summary-main-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 32px;
-  margin-bottom: 28px;
-}
-
-.summary-main-header h1 {
-  margin: 0 0 6px;
-  font-size: 28px;
-  font-weight: 700;
-  color: #172033;
-}
-
-.summary-main-header span {
-  color: #667085;
-  font-size: 15px;
-}
-
-.summary-main-header p {
-  max-width: 480px;
-  margin: 0;
-  color: #667085;
-  line-height: 1.6;
-  text-align: right;
-}
-
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
-  margin-bottom: 22px;
-}
-
-.summary-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 135px;
-  padding: 22px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 3px 12px rgb(15 23 42 / 4%);
-}
-
-.summary-card-label {
-  margin-bottom: 14px;
-  color: #667085;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.summary-card strong {
-  margin-bottom: 6px;
-  color: #172033;
-  font-size: 30px;
-  line-height: 1;
-}
-
-.summary-card small {
-  margin-top: auto;
-  color: #8a94a6;
-  font-size: 13px;
-}
-
-.summary-highlight-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-bottom: 22px;
-}
-
-.summary-highlight {
-  padding: 25px;
-  border: 1px solid #e5e7eb;
-  border-left-width: 5px;
-  border-radius: 14px;
-  background: #ffffff;
-}
-
-.summary-highlight-neutral {
-  border-left-color: #64748b;
-}
-
-.summary-highlight-low {
-  border-left-color: #16846b;
-}
-
-.summary-highlight-medium {
-  border-left-color: #d28a18;
-}
-
-.summary-highlight-high {
-  border-left-color: #c85050;
-}
-
-.summary-highlight-kicker,
-.summary-section-kicker {
-  display: block;
-  margin-bottom: 8px;
-  color: #667085;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.summary-highlight h2,
-.summary-recommendation h2 {
-  margin: 0 0 10px;
-  color: #172033;
-  font-size: 19px;
-}
-
-.summary-highlight p,
-.summary-recommendation p {
-  margin: 0;
-  color: #667085;
-  line-height: 1.6;
-}
-
-.summary-section {
-  margin-bottom: 22px;
-  padding: 26px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #ffffff;
-}
-
-.summary-section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 22px;
-}
-
-.summary-section-heading h2 {
-  margin: 0;
-  color: #172033;
-  font-size: 21px;
-}
-
-.summary-info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.summary-info-item {
-  min-height: 135px;
-  padding: 19px;
-  border: 1px solid #e9ecf1;
-  border-radius: 12px;
-  background: #fafbfc;
-}
-
-.summary-info-item h3 {
-  margin: 0 0 14px;
-  color: #667085;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.summary-info-item strong {
-  display: block;
-  margin-bottom: 7px;
-  color: #172033;
-  font-size: 21px;
-}
-
-.summary-info-item p {
-  margin: 0;
-  color: #7a8496;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.summary-recommendation {
-  display: flex;
-  gap: 18px;
-  align-items: flex-start;
-  padding: 25px;
-  border: 1px solid #dfe6ef;
-  border-radius: 14px;
-  background: #f7f9fc;
-}
-
-.summary-recommendation-icon {
-  display: flex;
-  flex: 0 0 38px;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #263449;
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.summary-empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  padding: 30px;
-  border: 1px dashed #d6dae1;
-  border-radius: 14px;
-  background: #ffffff;
-  color: #667085;
-  text-align: center;
-}
-
-@media (max-width: 1200px) {
-  .summary-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .summary-info-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 800px) {
-  .summary-main {
-    padding: 20px;
-  }
-
-  .summary-main-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .summary-main-header p {
-    max-width: none;
-    text-align: left;
-  }
-
-  .summary-cards,
-  .summary-highlight-grid,
-  .summary-info-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.summary-period-information {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.summary-period-information > div {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 5px;
-  padding: 14px 18px;
-  border: 1px solid #e2e6ed;
-  border-radius: 10px;
-  background: #f7f9fc;
-}
-
-.summary-period-information strong {
-  color: #344054;
-  font-size: 13px;
-}
-
-.summary-period-information span {
-  color: #667085;
-  font-size: 14px;
-}
-
-@media (max-width: 800px) {
-  .summary-period-information {
-    flex-direction: column;
-  }
-}
+/* =========================================================
+   OTSIKKO
+   ========================================================= */
 
 .summary-main-header {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
   width: 100%;
-  margin: 0 0 20px;
+  margin: 0 0 22px;
   padding: 0;
 }
 
@@ -298,17 +23,18 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 6px;
   text-align: left;
 }
 
 .summary-title {
   margin: 0;
   padding: 0;
-  color: #111827;
-  font-size: 1.25rem;
+  color: #263249;
+  font-size: 23px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .summary-header-meta {
@@ -316,32 +42,980 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: #77849a;
+  font-size: 15px;
   line-height: 1.4;
 }
 
 .summary-location {
-  color: #374151;
-  font-weight: 500;
+  color: #526079;
+  font-weight: 600;
 }
 
 .summary-meta-divider {
-  color: #d1d5db;
+  color: #c8d2e1;
 }
 
 .summary-date-range {
-  color: #9ca3af;
+  color: #8a96aa;
   font-weight: 500;
 }
 
-@media (max-width: 600px) {
+/* =========================================================
+   AJANJAKSOTIEDOT
+   ========================================================= */
+
+.summary-period-information {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.summary-period-information > div {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-height: 100px;
+  padding: 17px 18px;
+  overflow: hidden;
+  border: 1px solid #dfe8f5;
+  border-radius: 16px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgb(171 196 255 / 16%) 0,
+      transparent 150px
+    ),
+    linear-gradient(
+      145deg,
+      #f8fbff 0%,
+      #ffffff 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 85%),
+    0 5px 14px rgb(35 58 105 / 5%);
+  box-sizing: border-box;
+}
+
+.summary-period-information > div::before {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 18px;
+  height: 2px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #abc4ff,
+    transparent
+  );
+  content: "";
+  opacity: 0.75;
+}
+
+.summary-period-information strong {
+  color: #69778e;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.summary-period-information span {
+  color: #263249;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.summary-period-information small {
+  color: #8a96aa;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   PÄÄTILASTOKORTTIEN GRID
+   ========================================================= */
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+/* =========================================================
+   YKSITTÄINEN PÄÄTILASTOKORTTI
+   ========================================================= */
+
+.summary-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 145px;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid #dfe8f5;
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgb(171 196 255 / 18%) 0,
+      transparent 165px
+    ),
+    linear-gradient(
+      145deg,
+      #f9fbff 0%,
+      #ffffff 55%,
+      #ffffff 100%
+    );
+  box-shadow:
+    0 12px 28px rgb(35 58 105 / 7%),
+    0 3px 9px rgb(35 58 105 / 4%);
+  box-sizing: border-box;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.summary-card::before {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 18px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #abc4ff,
+    #7fa6ff,
+    transparent
+  );
+  content: "";
+  opacity: 0.7;
+}
+
+.summary-card::after {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #abc4ff;
+  content: "";
+  opacity: 0.85;
+}
+
+.summary-card:hover {
+  border-color: #cfddf1;
+  box-shadow:
+    0 16px 34px rgb(35 58 105 / 10%),
+    0 4px 11px rgb(35 58 105 / 5%);
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   PÄÄTILASTOKORTIN TEKSTIT
+   ========================================================= */
+
+.summary-card-label {
+  max-width: calc(100% - 22px);
+  margin-bottom: 18px;
+  color: #718096;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.summary-card strong {
+  display: block;
+  max-width: 100%;
+  margin: 0 0 8px;
+  color: #172033;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+}
+
+.summary-card small {
+  display: block;
+  max-width: 100%;
+  margin-top: auto;
+  color: #8a96aa;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   VIRHE- JA TYHJÄ TILA
+   ========================================================= */
+
+.summary-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 30px;
+  border: 1px dashed #cfdced;
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgb(171 196 255 / 13%) 0,
+      transparent 210px
+    ),
+    #fbfdff;
+  color: #77849a;
+  font-size: 16px;
+  line-height: 1.55;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   RESPONSIVE – OSA 1
+   ========================================================= */
+
+@media (max-width: 1200px) {
+  .summary-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .summary-main {
+    padding: 22px;
+  }
+
+  .summary-main-header {
+    margin-bottom: 18px;
+  }
+
+  .summary-period-information {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    min-height: 135px;
+  }
+}
+
+@media (max-width: 520px) {
+  .summary-main {
+    padding: 16px;
+  }
+
   .summary-title {
-    font-size: 1.1rem;
+    font-size: 21px;
   }
 
   .summary-header-meta {
     gap: 6px;
-    font-size: 0.85rem;
+    font-size: 14px;
+  }
+
+  .summary-period-information {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .summary-period-information > div {
+    min-height: 92px;
+    padding: 15px 16px;
+    border-radius: 14px;
+  }
+
+  .summary-cards {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .summary-card {
+    min-height: 128px;
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .summary-card-label {
+    margin-bottom: 15px;
+  }
+
+  .summary-card strong {
+    font-size: 29px;
+  }
+}
+
+
+/* =========================================================
+   HIGHLIGHT-KORTTIEN GRID
+   ========================================================= */
+
+.summary-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+/* =========================================================
+   YKSITTÄINEN HIGHLIGHT-KORTTI
+   ========================================================= */
+
+.summary-highlight {
+  position: relative;
+  min-width: 0;
+  min-height: 170px;
+  padding: 22px 22px 22px 25px;
+  overflow: hidden;
+  border: 1px solid #dfe8f5;
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgb(171 196 255 / 15%) 0,
+      transparent 190px
+    ),
+    linear-gradient(
+      145deg,
+      #fbfdff 0%,
+      #ffffff 100%
+    );
+  box-shadow:
+    0 12px 28px rgb(35 58 105 / 7%),
+    0 3px 9px rgb(35 58 105 / 4%);
+  box-sizing: border-box;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.summary-highlight::before {
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 0;
+  width: 4px;
+  border-radius: 0 999px 999px 0;
+  background: #abc4ff;
+  content: "";
+}
+
+.summary-highlight::after {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #abc4ff;
+  content: "";
+  opacity: 0.85;
+}
+
+.summary-highlight:hover {
+  border-color: #cfddf1;
+  box-shadow:
+    0 16px 34px rgb(35 58 105 / 10%),
+    0 4px 11px rgb(35 58 105 / 5%);
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   HIGHLIGHT-KORTTIEN TASOT
+   ========================================================= */
+
+.summary-highlight-neutral::before {
+  background: #8b9bb3;
+}
+
+.summary-highlight-neutral::after {
+  background: #9eacc0;
+}
+
+.summary-highlight-low::before {
+  background: #5da79a;
+}
+
+.summary-highlight-low::after {
+  background: #75b7ab;
+}
+
+.summary-highlight-medium::before {
+  background: #d5a553;
+}
+
+.summary-highlight-medium::after {
+  background: #e0b768;
+}
+
+.summary-highlight-high::before {
+  background: #d17d7d;
+}
+
+.summary-highlight-high::after {
+  background: #df9696;
+}
+
+/* =========================================================
+   HIGHLIGHT-KORTTIEN TEKSTIT
+   ========================================================= */
+
+.summary-highlight-kicker,
+.summary-section-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: #7b879a;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.summary-highlight h2 {
+  max-width: calc(100% - 24px);
+  margin: 0 0 10px;
+  color: #263249;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.summary-highlight p {
+  max-width: 100%;
+  margin: 0;
+  color: #6f7d92;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   ENNUSTEEN YKSITYISKOHDAT - PÄÄKORTTI
+   ========================================================= */
+
+.summary-section {
+  position: relative;
+  margin-bottom: 22px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid #dfe8f5;
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgb(171 196 255 / 13%) 0,
+      transparent 250px
+    ),
+    linear-gradient(
+      180deg,
+      #fbfdff 0%,
+      #ffffff 48%,
+      #ffffff 100%
+    );
+  box-shadow:
+    0 18px 42px rgb(35 58 105 / 8%),
+    0 4px 12px rgb(35 58 105 / 4%);
+  box-sizing: border-box;
+}
+
+.summary-section::before {
+  position: absolute;
+  top: 0;
+  right: 26px;
+  left: 26px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #abc4ff,
+    #7fa6ff,
+    transparent
+  );
+  content: "";
+  opacity: 0.75;
+}
+
+/* =========================================================
+   YKSITYISKOHTAOSION OTSIKKO
+   ========================================================= */
+
+.summary-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.summary-section-heading > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.summary-section-heading h2 {
+  margin: 0;
+  color: #263249;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+/* =========================================================
+   INFO-KORTTIEN GRID
+   ========================================================= */
+
+.summary-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* =========================================================
+   YKSITTÄINEN INFO-KORTTI
+   ========================================================= */
+
+.summary-info-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 150px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid #e4ebf5;
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      145deg,
+      rgb(248 251 255 / 96%) 0%,
+      rgb(255 255 255 / 98%) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 85%),
+    0 4px 11px rgb(30 45 75 / 4%);
+  box-sizing: border-box;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.summary-info-item::after {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #abc4ff;
+  content: "";
+  opacity: 0.8;
+}
+
+.summary-info-item:hover {
+  border-color: #d3e0f2;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 90%),
+    0 8px 18px rgb(30 45 75 / 7%);
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   INFO-KORTTIEN TEKSTIT
+   ========================================================= */
+
+.summary-info-item h3 {
+  max-width: calc(100% - 22px);
+  margin: 0 0 16px;
+  color: #748197;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.summary-info-item strong {
+  display: block;
+  max-width: 100%;
+  margin: 0 0 8px;
+  color: #172033;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+
+.summary-info-item p {
+  max-width: 100%;
+  margin: auto 0 0;
+  color: #7d899c;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Pitkien päivämäärien ja viikonpäivien arvo pysyy
+   samanarvoisena muiden pääarvojen kanssa. */
+
+.summary-info-item strong,
+.summary-info-item strong:first-letter {
+  text-transform: none;
+}
+
+/* =========================================================
+   RESPONSIVE – OSA 2
+   ========================================================= */
+
+@media (max-width: 1200px) {
+  .summary-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .summary-highlight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-highlight {
+    min-height: 155px;
+  }
+}
+
+@media (max-width: 800px) {
+  .summary-section {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .summary-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-info-item {
+    min-height: 135px;
+  }
+}
+
+@media (max-width: 520px) {
+  .summary-highlight-grid {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .summary-highlight {
+    min-height: 145px;
+    padding: 19px 18px 19px 21px;
+    border-radius: 16px;
+  }
+
+  .summary-highlight::before {
+    top: 15px;
+    bottom: 15px;
+  }
+
+  .summary-highlight h2 {
+    font-size: 19px;
+  }
+
+  .summary-highlight p {
+    font-size: 15px;
+  }
+
+  .summary-section {
+    margin-bottom: 18px;
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .summary-section::before {
+    right: 18px;
+    left: 18px;
+  }
+
+  .summary-section-heading {
+    margin-bottom: 16px;
+  }
+
+  .summary-section-heading h2 {
+    font-size: 20px;
+  }
+
+  .summary-info-grid {
+    gap: 12px;
+  }
+
+  .summary-info-item {
+    min-height: 128px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .summary-info-item h3 {
+    margin-bottom: 13px;
+  }
+
+  .summary-info-item strong {
+    font-size: 22px;
+  }
+
+  .summary-info-item p {
+    font-size: 14px;
+  }
+}
+
+/* =========================================================
+   TOIMINTASUOSITUS
+   ========================================================= */
+
+.summary-recommendation {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid #dfe8f5;
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgb(171 196 255 / 16%) 0,
+      transparent 240px
+    ),
+    linear-gradient(
+      180deg,
+      #fbfdff 0%,
+      #ffffff 100%
+    );
+  box-shadow:
+    0 18px 42px rgb(35 58 105 / 8%),
+    0 4px 12px rgb(35 58 105 / 4%);
+  box-sizing: border-box;
+}
+
+.summary-recommendation::before {
+  position: absolute;
+  top: 0;
+  right: 26px;
+  left: 26px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #abc4ff,
+    #7fa6ff,
+    transparent
+  );
+  content: "";
+  opacity: 0.75;
+}
+
+.summary-recommendation::after {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #abc4ff;
+  content: "";
+  opacity: 0.85;
+}
+
+.summary-recommendation:hover {
+  border-color: #cfddf1;
+  box-shadow:
+    0 22px 44px rgb(35 58 105 / 10%),
+    0 5px 13px rgb(35 58 105 / 5%);
+}
+
+/* =========================================================
+   IKONI (jos myöhemmin lisäät)
+   ========================================================= */
+
+.summary-recommendation-icon {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    #abc4ff,
+    #7fa6ff
+  );
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 35%),
+    0 6px 16px rgb(77 119 204 / 20%);
+}
+
+.summary-recommendation > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.summary-recommendation h2 {
+  margin: 0 0 12px;
+  color: #263249;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.summary-recommendation p {
+  margin: 0;
+  color: #6f7d92;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   PAREMPI TYPOGRAFIA
+   ========================================================= */
+
+.summary-card strong,
+.summary-info-item strong,
+.summary-highlight h2,
+.summary-section-heading h2,
+.summary-recommendation h2 {
+  text-wrap: balance;
+}
+
+.summary-card,
+.summary-highlight,
+.summary-info-item,
+.summary-recommendation {
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   YHTENÄISET SIIRTYMÄT
+   ========================================================= */
+
+.summary-card,
+.summary-highlight,
+.summary-info-item,
+.summary-recommendation,
+.summary-period-information > div {
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.summary-period-information > div:hover {
+  transform: translateY(-2px);
+  border-color: #cfddf1;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 85%),
+    0 10px 22px rgb(35 58 105 / 8%);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .summary-recommendation {
+    padding: 20px;
+  }
+
+  .summary-recommendation h2 {
+    font-size: 20px;
+  }
+
+  .summary-recommendation p {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 700px) {
+
+  .summary-recommendation {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .summary-recommendation-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 520px) {
+
+  .summary-main {
+    padding: 16px;
+  }
+
+  .summary-period-information,
+  .summary-cards,
+  .summary-highlight-grid,
+  .summary-info-grid {
+    gap: 12px;
+  }
+
+  .summary-card,
+  .summary-highlight,
+  .summary-info-item,
+  .summary-section,
+  .summary-recommendation {
+    border-radius: 16px;
+  }
+
+  .summary-recommendation {
+    padding: 18px;
+  }
+
+  .summary-recommendation::before,
+  .summary-section::before,
+  .summary-card::before {
+    right: 18px;
+    left: 18px;
+  }
+
+  .summary-recommendation h2 {
+    font-size: 19px;
+  }
+
+  .summary-recommendation p {
+    font-size: 15px;
+    line-height: 1.6;
   }
 }

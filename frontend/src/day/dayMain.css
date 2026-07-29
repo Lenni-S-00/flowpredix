@@ -20,41 +20,40 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 5px;
   text-align: left;
 }
 
 .day-title {
   margin: 0;
-  padding: 0;
-  color: #111827;
-  font-size: 1.25rem;
+  color: #172033;
+  font-size: 1.3rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
 .day-header-meta {
   display: flex;
   align-items: center;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: #77849a;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
 .day-location {
-  color: #374151;
-  font-weight: 500;
+  color: #40506a;
+  font-weight: 600;
 }
 
 .day-meta-divider {
-  color: #d1d5db;
+  color: #c7d0de;
 }
 
 .day-date-range {
-  color: #9ca3af;
+  color: #7b879a;
   font-weight: 500;
 }
 
@@ -64,22 +63,51 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
   align-items: stretch;
-  gap: 18px;
+  gap: 20px;
   width: 100%;
 }
 
 .day-chart-card {
-  min-width: 0;
+  position: relative;
   width: 100%;
+  min-width: 0;
   height: 100%;
-  padding: 24px;
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
+  padding: 24px 26px 26px;
+
+  overflow: hidden;
+
   background: #ffffff;
+  border: 1px solid #e3e8f0;
+  border-radius: 18px;
+
   box-shadow:
-    0 12px 28px rgb(30 45 75 / 8%),
-    0 3px 8px rgb(30 45 75 / 4%);
+    0 10px 30px rgba(30, 41, 59, 0.06),
+    0 2px 8px rgba(30, 41, 59, 0.035);
+
   box-sizing: border-box;
+}
+
+.day-chart-card::before {
+  position: absolute;
+  top: 0;
+  left: 26px;
+  right: 26px;
+
+  height: 3px;
+
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #abc4ff 20%,
+    #789cf0 50%,
+    #abc4ff 80%,
+    transparent 100%
+  );
+
+  border-radius: 0 0 999px 999px;
+
+  content: "";
+  opacity: 0.9;
 }
 
 .day-stat-column {
@@ -95,12 +123,19 @@
 /* Graafikortin yläosa */
 
 .day-chart-top {
+  position: relative;
+  z-index: 1;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
+
   margin-bottom: 18px;
+  padding-bottom: 16px;
+
+  border-bottom: 1px solid #edf0f5;
 }
 
 /* Selite */
@@ -109,22 +144,35 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 14px;
-  color: #526073;
+  gap: 16px;
+
+  color: #4f5d73;
   font-size: 13px;
+  font-weight: 500;
 }
 
 .day-legend-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .day-legend-item i {
   flex-shrink: 0;
+
   width: 10px;
   height: 10px;
+
+  border: 2px solid #ffffff;
   border-radius: 50%;
+
+  box-shadow: 0 0 0 1px rgba(71, 85, 105, 0.15);
 }
 
 /* Ajanjakson navigointi */
@@ -132,65 +180,166 @@
 .day-chart-navigation {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+
+  padding: 3px;
+
+  background: #f6f8fc;
+  border: 1px solid #e2e7ef;
+  border-radius: 10px;
 }
 
 .day-chart-navigation-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border: 1px solid #dbe2ea;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #475569;
+
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+
+  color: #5c687b;
   font-size: 18px;
+  line-height: 1;
+
   cursor: pointer;
+
   transition:
+    color 0.15s ease,
     background-color 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .day-chart-navigation-button:hover {
-  border-color: #cbd5e1;
-  background: #f8fafc;
+  background: #ffffff;
+  border-color: #d7dfeb;
+  color: #315fca;
+
+  box-shadow: 0 2px 6px rgba(30, 41, 59, 0.07);
+}
+
+.day-chart-navigation-button:active {
+  background: #eef3ff;
+}
+
+.day-chart-navigation-button:focus-visible {
+  outline: 3px solid rgba(171, 196, 255, 0.5);
+  outline-offset: 2px;
 }
 
 .day-chart-navigation-range {
-  min-width: 100px;
-  padding: 6px 8px;
+  min-width: 112px;
+  padding: 6px 10px;
+
   border: 0;
   background: transparent;
-  color: #64748b;
-  font-size: 0.875rem;
-  font-weight: 500;
+
+  color: #526077;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-align: center;
+
   cursor: pointer;
+
+  transition: color 0.15s ease;
 }
 
 .day-chart-navigation-range:hover:not(:disabled) {
-  color: #334155;
+  color: #2458c5;
 }
 
 .day-chart-navigation-range:disabled {
+  color: #7b8798;
   cursor: default;
 }
 
 /* Viivagraafi */
 
 .day-line-chart-wrapper {
+  position: relative;
+
   width: 100%;
+  min-height: 360px;
+
+  padding: 18px 14px 8px;
+
   overflow-x: auto;
   overflow-y: hidden;
+
+  background: #fbfcfe;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+
+  box-sizing: border-box;
+
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.day-line-chart-wrapper::before {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background: linear-gradient(
+    180deg,
+    rgba(240, 245, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0) 45%
+  );
+
+  content: "";
+}
+
+.day-line-chart-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.day-line-chart-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.day-line-chart-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.day-line-chart-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #aeb9c9;
 }
 
 .day-line-chart {
+  position: relative;
+  z-index: 1;
+
   display: block;
+
   width: 100%;
-  min-width: 520px;
+  min-width: 560px;
   height: auto;
+}
+
+/* SVG-elementtien oletustyyli */
+
+.day-line-chart text {
+  fill: #718096;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.day-line-chart line {
+  stroke-linecap: round;
+}
+
+.day-line-chart path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* Tyhjä tila */
@@ -199,14 +348,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 280px;
-  padding: 24px;
-  border: 1px dashed #cfd8e3;
+
+  min-height: 360px;
+  padding: 28px;
+
+  background: #fbfcfe;
+  border: 1px dashed #cdd7e5;
   border-radius: 14px;
-  background: #ffffff;
-  color: #7a879d;
+
+  color: #718096;
   font-size: 14px;
+  line-height: 1.5;
   text-align: center;
+
   box-sizing: border-box;
 }
 
@@ -230,8 +384,13 @@
 
 @media (max-width: 900px) {
   .day-chart-card {
-    padding: 18px;
+    padding: 20px;
     border-radius: 16px;
+  }
+
+  .day-chart-card::before {
+    left: 20px;
+    right: 20px;
   }
 
   .day-chart-top {
@@ -251,39 +410,62 @@
   }
 
   .day-title {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
   }
 
   .day-header-meta {
     gap: 6px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
   }
 
   .day-chart-card {
     padding: 14px;
-    border-radius: 12px;
+    border-radius: 14px;
+  }
+
+  .day-chart-card::before {
+    left: 14px;
+    right: 14px;
   }
 
   .day-chart-top {
     flex-direction: column;
+    align-items: stretch;
+    gap: 13px;
+
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+  }
+
+  .day-chart-legend {
     gap: 12px;
+  }
+
+  .day-legend-item {
+    font-size: 12px;
   }
 
   .day-chart-navigation {
     width: 100%;
-    justify-content: space-between;
+    box-sizing: border-box;
   }
 
   .day-chart-navigation-range {
     flex: 1;
   }
 
+  .day-line-chart-wrapper {
+    min-height: 300px;
+    padding: 12px 6px 4px;
+    border-radius: 11px;
+  }
+
   .day-line-chart {
-    min-width: 480px;
+    min-width: 500px;
   }
 
   .day-empty-state {
-    min-height: 220px;
+    min-height: 240px;
     padding: 18px;
   }
 }
