@@ -122,13 +122,6 @@
   opacity: 0.8;
 }
 
-.day-stat-box:hover {
-  border-color: #d5e1f3;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 85%),
-    0 8px 18px rgb(30 45 75 / 7%);
-  transform: translateY(-1px);
-}
 
 /* Tilastotekstit */
 

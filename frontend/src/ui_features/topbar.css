@@ -41,7 +41,7 @@
   align-items: center;
   gap: 4px;
 
-  background: #a8c5ff;
+  background: #8eb3f6;
   backdrop-filter: blur(14px);
 
   border: 1px solid rgba(255, 255, 255, 0.65);
@@ -100,15 +100,15 @@
 .topbar-tab.active {
   background: linear-gradient(
     180deg,
-    #b8ccfd 0%,
-    #b0c2e7 100%
+    #5f86d9 0%,
+    #456fc8 100%
   );
 
   color: #ffffff;
 
   box-shadow:
-    0 5px 14px rgba(70, 110, 220, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    0 6px 16px rgba(53, 88, 173, 0.35),
+    inset 0 1px 0 rgba(255,255,255,.25);
 
   transform: translateY(-1px);
 }

@@ -276,16 +276,27 @@
   color: #d45b5b;
 }
 
+
 .summary-submit {
   justify-content: center;
 
-  background: #a8c4f8;
-  color: white;
-  border-color: #a8c4f8;
+  background: #5f86d9;
+  color: #ffffff;
+  border-color: #5f86d9;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.15s ease;
 }
 
 .summary-submit:hover {
-  background: #4f78d3;
+  background: #a8c4f8;
+  border-color: #a8c4f8;
+}
+
+.summary-submit:active {
+  transform: translateY(1px);
 }
 
 .forecast-select {

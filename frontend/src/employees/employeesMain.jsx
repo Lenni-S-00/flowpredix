@@ -109,54 +109,34 @@ function getHeatColor(
     1
   );
 
-  // Korostaa hieman myös keskisuuria arvoja.
-  const intensity = Math.pow(
-    ratio,
-    0.8
-  );
 
-  const start = {
-    r: 248,
-    g: 250,
-    b: 252,
-  };
+  if (ratio === 0) {
+    return "#eaf3ff"; // vaaleansininen
+  }
+  
+  if (ratio < 0.25) {
+    return "#86bf91"; // hillitty vihreä
+  }
 
-  const end = {
-    r: 29,
-    g: 78,
-    b: 216,
-  };
+  if (ratio < 0.5) {
+    return "#facc15"; // keltainen
+  }
 
-  const r = Math.round(
-    start.r +
-      (end.r - start.r) *
-        intensity
-  );
+  if (ratio < 0.75) {
+    return "#fb923c"; // oranssi
+  }
 
-  const g = Math.round(
-    start.g +
-      (end.g - start.g) *
-        intensity
-  );
-
-  const b = Math.round(
-    start.b +
-      (end.b - start.b) *
-        intensity
-  );
-
-  return `rgb(${r}, ${g}, ${b})`;
+  return "#ef4444"; // punainen
 }
-
-// Palauttaa datarivin aikaleiman ilman pelkkää tuntiarvoa.
-function getRowTimestamp(item) {
+function getRowTimestamp(
+  item
+) {
   return (
     item.hour_timestamp ||
     item.timestamp ||
     item.datetime ||
-    item.date_time ||
     item.date ||
-    null
+    item.hour
   );
 }
 
