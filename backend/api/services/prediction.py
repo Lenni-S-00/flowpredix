@@ -2,6 +2,7 @@
 
 import holidays
 import pandas as pd
+from django.core.cache import cache
 
 from api.services.features import (
     TARGET_COLUMN,
@@ -16,6 +17,9 @@ from api.services.weather import WeatherService
 # Käytetään varsinaista sääennustetta tämän pituiselle jaksolle.
 WEATHER_FORECAST_DAYS = 14
 
+# Valmis ennuste säilytetään välimuistissa 30 minuuttia.
+PREDICTION_CACHE_SECONDS = 30 * 60
+
 
 class PredictionService:
 
@@ -29,13 +33,8 @@ class PredictionService:
     def predict(self, days=14, location=None):
         self._validate_days(days)
 
-        model = self.registry.load(location)
-        rows = self.repository.get_daily_data(
+        history_df = self._load_history(
             location
-        )
-
-        history_df = self._prepare_history(
-            rows
         )
 
         self._validate_history(
@@ -49,6 +48,22 @@ class PredictionService:
         history = self._get_initial_history(
             history_df
         )
+
+        cache_key = self._create_prediction_cache_key(
+            days=days,
+            location=location,
+            future_dates=future_dates,
+            history=history,
+        )
+
+        cached_predictions = cache.get(
+            cache_key
+        )
+
+        if cached_predictions is not None:
+            return cached_predictions
+
+        model = self.registry.load(location)
 
         feature_columns = (
             get_model_feature_columns()
@@ -68,7 +83,7 @@ class PredictionService:
             location=location,
         )
 
-        return self._predict_dates(
+        predictions = self._predict_dates(
             model=model,
             future_dates=future_dates,
             history=history,
@@ -77,6 +92,74 @@ class PredictionService:
             weather_by_date=weather_by_date,
             location=location,
         )
+
+        cache.set(
+            cache_key,
+            predictions,
+            timeout=PREDICTION_CACHE_SECONDS,
+        )
+
+        return predictions
+
+    # Hakee kaiken ennustamiseen käytettävän historiadatan.
+    def _load_history(self, location):
+        rows = self.repository.get_daily_data(
+            location
+        )
+
+        return self._prepare_history(
+            rows
+        )
+
+    # Muodostaa välimuistiavaimen ennusteen lähtötiedoista.
+    def _create_prediction_cache_key(
+        self,
+        days,
+        location,
+        future_dates,
+        history,
+    ):
+        model_path = self.registry.get_path(
+            location
+        )
+
+        self._validate_model_path_for_cache(
+            model_path
+        )
+
+        location_key = (
+            location
+            or "all_units"
+        )
+
+        history_key = "-".join(
+            str(float(value))
+            for value in history
+        )
+
+        start_date = (
+            future_dates.min()
+            .date()
+            .isoformat()
+        )
+
+        return (
+            f"prediction:{location_key}:"
+            f"{start_date}:{days}:"
+            f"{model_path.stat().st_mtime_ns}:"
+            f"{history_key}"
+        )
+
+    # Tarkistaa välimuistiavainta varten, että mallitiedosto löytyy.
+    def _validate_model_path_for_cache(
+        self,
+        model_path,
+    ):
+        if not model_path.exists():
+            raise FileNotFoundError(
+                f"Ennustemallia ei löytynyt: "
+                f"{model_path}"
+            )
 
     # Tarkistaa, että ennustepäivien määrä on kelvollinen.
     def _validate_days(self, days):
@@ -595,12 +678,14 @@ class PredictionService:
             rows
         )
 
-        dataframe = self._create_dataframe(
-            rows
+        totals_by_date = (
+            self._sum_rows_by_date(
+                rows
+            )
         )
 
-        daily = self._group_data_by_date(
-            dataframe
+        daily = self._create_daily_dataframe(
+            totals_by_date
         )
 
         return self._fill_missing_dates(
@@ -617,37 +702,46 @@ class PredictionService:
                 "Historiadataa ei löytynyt."
             )
 
-    # Muuntaa tietokantarivit DataFrameksi.
-    def _create_dataframe(
+    # Laskee toimipistekohtaiset tietokantarivit yhteen päivittäin.
+    def _sum_rows_by_date(
         self,
         rows,
     ):
-        dataframe = pd.DataFrame(
-            rows
-        )
+        totals_by_date = {}
 
-        dataframe["date"] = pd.to_datetime(
-            dataframe["date"]
-        )
+        for row in rows:
+            current_date = pd.Timestamp(
+                row["date"]
+            ).normalize()
 
-        return dataframe
-
-    # Ryhmittelee näytemäärät päivätasolle.
-    def _group_data_by_date(
-        self,
-        dataframe,
-    ):
-        return (
-            dataframe
-            .groupby("date")[
-                "samples_taken"
-            ]
-            .sum()
-            .to_frame(
-                TARGET_COLUMN
+            totals_by_date[current_date] = (
+                totals_by_date.get(
+                    current_date,
+                    0,
+                )
+                + float(
+                    row["samples_taken"]
+                )
             )
-            .sort_index()
+
+        return totals_by_date
+
+    # Muodostaa päiväkohtaisista summista DataFramen.
+    def _create_daily_dataframe(
+        self,
+        totals_by_date,
+    ):
+        daily = pd.DataFrame.from_dict(
+            totals_by_date,
+            orient="index",
+            columns=[TARGET_COLUMN],
         )
+
+        daily.index = pd.DatetimeIndex(
+            daily.index
+        )
+
+        return daily.sort_index()
 
     # Lisää puuttuvat päivät aikasarjaan nolla-arvoilla.
     def _fill_missing_dates(

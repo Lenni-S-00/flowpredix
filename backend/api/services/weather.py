@@ -5,6 +5,7 @@ from datetime import date
 
 import pandas as pd
 import requests
+from django.core.cache import cache
 
 
 class WeatherService:
@@ -25,6 +26,9 @@ class WeatherService:
 
     REQUEST_TIMEOUT_SECONDS = 15
 
+    FORECAST_CACHE_SECONDS = 30 * 60
+    HISTORY_CACHE_SECONDS = 30 * 24 * 60 * 60
+
     # Alustaa sääpalvelun ja käytettävät koordinaatit.
     def __init__(self):
         self.latitude = 60.4518
@@ -36,18 +40,20 @@ class WeatherService:
         dates,
         location=None,
     ):
-        normalized_dates = self._normalize_dates(dates)
+        normalized_dates = self._normalize_dates(
+            dates
+        )
 
         self._validate_dates(normalized_dates)
 
-        response_data = self._request_weather(
+        return self._get_cached_weather(
             url=self.FORECAST_URL,
             start_date=normalized_dates.min(),
             end_date=normalized_dates.max(),
-        )
-
-        return self._create_weather_by_date(
-            response_data
+            cache_type="forecast",
+            cache_seconds=(
+                self.FORECAST_CACHE_SECONDS
+            ),
         )
 
     # Hakee historialliset säätiedot annetuille päiville.
@@ -56,18 +62,107 @@ class WeatherService:
         dates,
         location=None,
     ):
-        normalized_dates = self._normalize_dates(dates)
+        normalized_dates = self._normalize_dates(
+            dates
+        )
 
         self._validate_dates(normalized_dates)
 
-        response_data = self._request_weather(
+        return self._get_cached_weather(
             url=self.HISTORY_URL,
             start_date=normalized_dates.min(),
             end_date=normalized_dates.max(),
+            cache_type="history",
+            cache_seconds=(
+                self.HISTORY_CACHE_SECONDS
+            ),
         )
 
-        return self._create_weather_by_date(
-            response_data
+    # Palauttaa säädatan välimuistista tai hakee sen rajapinnasta.
+    def _get_cached_weather(
+        self,
+        url,
+        start_date,
+        end_date,
+        cache_type,
+        cache_seconds,
+    ):
+        cache_key = self._create_cache_key(
+            cache_type=cache_type,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+        cached_weather = cache.get(
+            cache_key
+        )
+
+        if cached_weather is not None:
+            return cached_weather
+
+        response_data = self._request_weather(
+            url=url,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+        weather_by_date = (
+            self._create_weather_by_date(
+                response_data
+            )
+        )
+
+        cache.set(
+            cache_key,
+            weather_by_date,
+            timeout=cache_seconds,
+        )
+
+        return weather_by_date
+
+    # Muodostaa yksilöllisen välimuistiavaimen säähaulle.
+    def _create_cache_key(
+        self,
+        cache_type,
+        start_date,
+        end_date,
+    ):
+        latitude = self._format_cache_coordinate(
+            self.latitude
+        )
+
+        longitude = self._format_cache_coordinate(
+            self.longitude
+        )
+
+        start_date_text = self._to_api_date(
+            start_date
+        )
+
+        end_date_text = self._to_api_date(
+            end_date
+        )
+
+        variables = "-".join(
+            self.DAILY_VARIABLES
+        )
+
+        return (
+            f"weather:{cache_type}:"
+            f"{latitude}:{longitude}:"
+            f"{start_date_text}:{end_date_text}:"
+            f"{variables}"
+        )
+
+    # Muuntaa koordinaatin välimuistiavaimeen sopivaksi.
+    def _format_cache_coordinate(
+        self,
+        coordinate,
+    ):
+        return (
+            str(coordinate)
+            .replace("-", "minus")
+            .replace(".", "_")
         )
 
     # Valitsee parametrina tai ympäristömuuttujana annetun koordinaatin.
@@ -167,7 +262,11 @@ class WeatherService:
 
     # Muuntaa päivämäärän API:n käyttämään muotoon.
     def _to_api_date(self, value):
-        return pd.Timestamp(value).date().isoformat()
+        return (
+            pd.Timestamp(value)
+            .date()
+            .isoformat()
+        )
 
     # Tarkistaa, että vastaus sisältää päiväkohtaiset säätiedot.
     def _validate_response(self, response_data):
@@ -205,7 +304,9 @@ class WeatherService:
 
         weather_by_date = {}
 
-        for index, date_string in enumerate(dates):
+        for index, date_string in enumerate(
+            dates
+        ):
             weather_by_date[
                 date.fromisoformat(date_string)
             ] = self._create_weather_row(
@@ -221,38 +322,53 @@ class WeatherService:
         daily,
         index,
     ):
-        temperature_max = self._get_daily_value(
-            daily=daily,
-            variable="temperature_2m_max",
-            index=index,
+        temperature_max = (
+            self._get_daily_value(
+                daily=daily,
+                variable="temperature_2m_max",
+                index=index,
+            )
         )
-        temperature_min = self._get_daily_value(
-            daily=daily,
-            variable="temperature_2m_min",
-            index=index,
+
+        temperature_min = (
+            self._get_daily_value(
+                daily=daily,
+                variable="temperature_2m_min",
+                index=index,
+            )
         )
 
         return {
             "temperature_max": temperature_max,
             "temperature_min": temperature_min,
-            "temperature_mean": self._calculate_mean_temperature(
-                temperature_min=temperature_min,
-                temperature_max=temperature_max,
+            "temperature_mean": (
+                self._calculate_mean_temperature(
+                    temperature_min=(
+                        temperature_min
+                    ),
+                    temperature_max=(
+                        temperature_max
+                    ),
+                )
             ),
-            "precipitation": self._get_daily_value(
-                daily=daily,
-                variable="precipitation_sum",
-                index=index,
+            "precipitation": (
+                self._get_daily_value(
+                    daily=daily,
+                    variable="precipitation_sum",
+                    index=index,
+                )
             ),
             "rain": self._get_daily_value(
                 daily=daily,
                 variable="rain_sum",
                 index=index,
             ),
-            "snowfall": self._get_daily_value(
-                daily=daily,
-                variable="snowfall_sum",
-                index=index,
+            "snowfall": (
+                self._get_daily_value(
+                    daily=daily,
+                    variable="snowfall_sum",
+                    index=index,
+                )
             ),
         }
 

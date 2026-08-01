@@ -1,12 +1,16 @@
 # api/services/model_registry.py
 
 from pathlib import Path
+from threading import Lock
 
 import joblib
 from django.conf import settings
 
 
 class ModelRegistry:
+
+    _model_cache = {}
+    _cache_lock = Lock()
 
     # Alustaa mallien tallennushakemiston.
     def __init__(self):
@@ -60,6 +64,8 @@ class ModelRegistry:
 
         joblib.dump(model, path)
 
+        self._remove_from_cache(path)
+
         return path
 
     # Lataa aiemmin tallennetun mallin.
@@ -68,7 +74,78 @@ class ModelRegistry:
 
         self._validate_model_path(path)
 
-        return joblib.load(path)
+        cache_key = self._create_cache_key(path)
+
+        with self._cache_lock:
+            cached_model = self._model_cache.get(
+                cache_key
+            )
+
+            if cached_model is not None:
+                return cached_model
+
+            self._remove_old_cache_versions(
+                path
+            )
+
+            model = joblib.load(path)
+
+            self._model_cache[
+                cache_key
+            ] = model
+
+            return model
+
+    # Muodostaa välimuistiavaimen tiedostopolusta ja muokkausajasta.
+    def _create_cache_key(self, path):
+        return (
+            str(path.resolve()),
+            path.stat().st_mtime_ns,
+        )
+
+    # Poistaa tietyn mallitiedoston välimuistista.
+    def _remove_from_cache(self, path):
+        resolved_path = str(
+            path.resolve()
+        )
+
+        with self._cache_lock:
+            cache_keys = [
+                cache_key
+                for cache_key
+                in self._model_cache
+                if cache_key[0] ==
+                resolved_path
+            ]
+
+            for cache_key in cache_keys:
+                self._model_cache.pop(
+                    cache_key,
+                    None,
+                )
+
+    # Poistaa saman tiedoston vanhat välimuistiversiot.
+    def _remove_old_cache_versions(
+        self,
+        path,
+    ):
+        resolved_path = str(
+            path.resolve()
+        )
+
+        cache_keys = [
+            cache_key
+            for cache_key
+            in self._model_cache
+            if cache_key[0] ==
+            resolved_path
+        ]
+
+        for cache_key in cache_keys:
+            self._model_cache.pop(
+                cache_key,
+                None,
+            )
 
     # Tarkistaa, että mallitiedosto löytyy.
     def _validate_model_path(self, path):
