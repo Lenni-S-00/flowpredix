@@ -1,6 +1,19 @@
 .hour {
   display: flex;
+
   width: 100%;
+  min-width: 0;
   min-height: 100vh;
+
   background: #f5f5f5;
+
+  box-sizing: border-box;
+}
+
+/* Tabletti ja mobiili */
+
+@media (max-width: 1050px) {
+  .hour {
+    flex-direction: column;
+  }
 }

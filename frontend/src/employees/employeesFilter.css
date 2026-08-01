@@ -5,11 +5,16 @@
   flex-direction: column;
   align-items: stretch;
   gap: 7px;
+
   width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
 }
 
 .employees-capacity-label {
   color: #42506a;
+
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
@@ -17,26 +22,34 @@
 
 .employees-capacity-input {
   width: 100%;
+  min-width: 0;
   min-height: 38px;
+
   padding: 0 14px;
 
   border: 1px solid #cfd8e3;
   border-radius: 10px;
-  background: #ffffff;
 
+  background: #ffffff;
   color: #42506a;
+
   font-family: inherit;
   font-size: 14px;
+  line-height: 1.2;
 
   outline: none;
   box-sizing: border-box;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .employees-capacity-input:focus {
   border-color: #5f86d9;
+
   box-shadow:
-    0 0 0 3px
-    rgba(95, 134, 217, 0.12);
+    0 0 0 3px rgba(95, 134, 217, 0.12);
 }
 
 .employees-capacity-input.invalid {
@@ -45,10 +58,45 @@
 
 .employees-capacity-error {
   color: #d45b5b;
+
   font-size: 12px;
+  line-height: 1.4;
 }
 
 .day-submit:disabled {
-  cursor: not-allowed;
   opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Pienemmät kannettavat */
+
+@media (max-width: 1100px) {
+  .employees-capacity-field {
+    gap: 6px;
+  }
+
+  .employees-capacity-input {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
+
+/* Tabletit */
+
+@media (max-width: 700px) {
+  .employees-capacity-input {
+    min-height: 40px;
+  }
+}
+
+/* Mobiili */
+
+@media (max-width: 520px) {
+  .employees-capacity-field {
+    gap: 6px;
+  }
+
+  .employees-capacity-input {
+    min-height: 40px;
+  }
 }

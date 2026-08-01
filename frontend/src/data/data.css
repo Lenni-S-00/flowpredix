@@ -1,6 +1,7 @@
 .data-main {
-  width: 100%;
-  min-height: 100vh;
+  width: min(100%, 1600px);
+  min-height: 100%;
+  margin: 0 auto;
   padding: 32px 40px 40px;
   background: #ffffff;
   box-sizing: border-box;
@@ -17,7 +18,7 @@
   margin: 0;
   padding: 0;
   color: #172033;
-  font-size: 1.25rem;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.01em;
@@ -26,7 +27,7 @@
 .data-page-subtitle {
   margin: 6px 0 0;
   color: #77849a;
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.5;
 }
@@ -42,6 +43,7 @@
     minmax(0, 1fr);
   gap: 32px;
   width: 100%;
+  min-width: 0;
   padding: 28px;
   overflow: visible;
   border: 1px solid #dfe8f5;
@@ -82,7 +84,8 @@
   opacity: 0.75;
 }
 
-.data-column {
+ .data-column {
+  width: 100%;
   min-width: 0;
 }
 
@@ -198,8 +201,10 @@
 
 /* Yleinen tyylitelty dropdown */
 
-.data-custom-select {
+ .data-custom-select {
   position: relative;
+  width: 100%;
+  min-width: 0;
 }
 
 .data-select-button,
@@ -394,8 +399,10 @@
 
 /* Kalenteri manuaalisessa lisäyksessä */
 
-.data-calendar-field {
+ .data-calendar-field {
   position: relative;
+  width: 100%;
+  min-width: 0;
 }
 
 .data-calendar-field .sidebar-date-picker {
@@ -499,8 +506,10 @@
 
 /* Tiedoston lisäys */
 
-.upload-area {
+ .upload-area {
   position: relative;
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -657,16 +666,18 @@
   min-width: 0;
 }
 
-.training-controls {
+ .training-controls {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   gap: 12px;
+  min-width: 0;
 }
 
-.training-dropdown {
+ .training-dropdown {
   position: relative;
-  width: 230px;
+  width: min(230px, 100%);
+  min-width: 0;
 }
 
 .training-dropdown-menu {
@@ -831,6 +842,23 @@
   }
 }
 
+/* Pienemmät kannettavat */
+
+@media (max-width: 1250px) {
+  .data-main {
+    padding: 28px 30px 34px;
+  }
+
+  .data-content {
+    gap: 26px;
+    padding: 24px;
+  }
+
+  .training-row {
+    gap: 18px;
+  }
+}
+
 /* Tablet */
 
 @media (max-width: 1050px) {
@@ -841,9 +869,9 @@
 
 @media (max-width: 900px) {
   .data-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 26px;
-    padding: 24px;
+    padding: 22px;
   }
 
   .data-column-divider {
@@ -874,6 +902,33 @@
   }
 }
 
+/* Kapea tabletti */
+
+@media (max-width: 720px) {
+  .data-main {
+    padding: 20px;
+  }
+
+  .data-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .training-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .training-dropdown,
+  .training-button {
+    width: 100%;
+  }
+
+  .training-dropdown-menu {
+    right: auto;
+    left: 0;
+  }
+}
+
 /* Mobiili */
 
 @media (max-width: 600px) {
@@ -886,11 +941,11 @@
   }
 
   .data-page-title {
-    font-size: 1.15rem;
+    font-size: 20px;
   }
 
   .data-page-subtitle {
-    font-size: 0.85rem;
+    font-size: 14px;
   }
 
   .data-content {
@@ -902,10 +957,6 @@
   .data-content::before {
     right: 18px;
     left: 18px;
-  }
-
-  .data-form-row {
-    grid-template-columns: 1fr;
   }
 
   .upload-area {
@@ -930,22 +981,24 @@
     padding: 18px;
   }
 
-  .training-controls {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .training-dropdown,
-  .training-button {
-    width: 100%;
-  }
-
-  .training-dropdown-menu {
-    right: auto;
-    left: 0;
-  }
-
   .data-status {
     align-items: flex-start;
+  }
+}
+
+/* Erittäin kapeat näytöt */
+
+@media (max-width: 420px) {
+  .data-main {
+    padding: 14px;
+  }
+
+  .data-content {
+    padding: 16px;
+  }
+
+  .data-primary-button,
+  .upload-button {
+    width: 100%;
   }
 }

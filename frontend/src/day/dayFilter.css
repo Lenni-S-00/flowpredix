@@ -3,12 +3,19 @@
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
+
   width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
 }
 
 .day-mode-row {
   display: flex;
   gap: 10px;
+
+  width: 100%;
+  min-width: 0;
 }
 
 .day-mode-button,
@@ -16,44 +23,56 @@
 .day-submit,
 .forecast-select {
   min-height: 38px;
-  border: 1px solid #cfd8e3;
-  border-radius: 10px;
-  background: #ffffff;
-  padding: 0 14px;
-  font-size: 14px;
-  cursor: pointer;
-  box-sizing: border-box;
 
   display: flex;
   align-items: center;
+
+  padding: 0 14px;
+
+  border: 1px solid #cfd8e3;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  font-size: 14px;
+  line-height: 1.2;
+
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
 .day-mode-button {
   flex: 1;
-  gap: 8px;
+  min-width: 0;
+
   justify-content: center;
-  border: 0px solid #dce4ef;
+  gap: 8px;
+
+  border: 0;
 }
 
-
-
 .fake-checkbox {
-  width: 18px;
-  height: 18px;
-  border: 1px solid #9fb3c8;
-  border-radius: 5px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+
+  width: 18px;
+  height: 18px;
+
+  border: 1px solid #9fb3c8;
+  border-radius: 5px;
 
   font-size: 12px;
+  line-height: 1;
 }
 
 .location-dropdown,
 .date-picker {
   position: relative;
+
   width: 100%;
+  min-width: 0;
 }
 
 .location-trigger,
@@ -61,6 +80,7 @@
 .forecast-select,
 .day-submit {
   width: 100%;
+  min-width: 0;
 }
 
 .location-trigger {
@@ -74,6 +94,7 @@
 
   border: 1px solid #cfd8e3;
   border-radius: 12px;
+
   background: #ffffff;
 
   cursor: pointer;
@@ -82,19 +103,29 @@
 
 .location-trigger-text {
   flex: 1;
+  min-width: 0;
+
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  font-size: 14px;
   color: #42506a;
+
+  font-size: 14px;
+  line-height: 1.2;
   text-align: left;
 }
 
 .dropdown-arrow {
+  flex-shrink: 0;
+
   margin-left: auto;
-  font-size: 12px;
+
   color: #6c7a92;
+
+  font-size: 12px;
+  line-height: 1;
+
   transition: transform 0.18s ease;
 }
 
@@ -104,29 +135,36 @@
 
 .location-list {
   position: absolute;
-  top: 46px;
+  top: calc(100% + 8px);
   right: 0;
+  left: 0;
+  z-index: 50;
 
   width: 100%;
-  max-height: 320px;
-  overflow-y: auto;
+  min-width: 0;
+  max-height: min(320px, 50vh);
 
-  background: #ffffff;
+  padding: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
   border: 1px solid #dce4ef;
   border-radius: 14px;
 
-  padding: 8px;
-  z-index: 50;
+  background: #ffffff;
 
   box-shadow:
     0 12px 30px rgba(30, 45, 75, 0.12),
     0 2px 6px rgba(30, 45, 75, 0.06);
+
+  box-sizing: border-box;
 }
 
 .location-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 
   padding: 8px 8px 10px;
   margin-bottom: 6px;
@@ -135,29 +173,43 @@
 }
 
 .location-actions-title {
+  min-width: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color: #2d3748;
+
   font-size: 13px;
   font-weight: 600;
-  color: #2d3748;
+  line-height: 1.3;
 }
 
 .clear-locations-inline {
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
   border: 1px solid #f1d0d0;
+  border-radius: 8px;
+
   background: #fff6f6;
   color: #ca5252;
 
   font-size: 12px;
   font-weight: 600;
-
-  padding: 6px 10px;
-  border-radius: 8px;
+  line-height: 1.2;
 
   cursor: pointer;
 }
 
 .clear-locations-inline:disabled {
-  background: #f4f6f9;
   border-color: #e1e7ef;
+
+  background: #f4f6f9;
   color: #a9b4c2;
+
   cursor: not-allowed;
 }
 
@@ -172,10 +224,13 @@
 
   border-radius: 10px;
 
-  font-size: 14px;
   color: #3f4554;
 
+  font-size: 14px;
+  line-height: 1.35;
+
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .location-item:hover {
@@ -185,86 +240,102 @@
 .location-item input {
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
+
+  margin: 0;
+
   accent-color: #5f86d9;
 }
 
 .date-input {
   justify-content: space-between;
+  gap: 10px;
+
+  overflow: hidden;
 }
 
 .calendar-popup {
   position: absolute;
-  top: 46px;
+  top: calc(100% + 8px);
   right: 0;
+  z-index: 60;
 
-  width: 260px;
+  width: min(280px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
 
-  background: white;
+  padding: 12px;
 
   border: 1px solid #cfd8e3;
   border-radius: 12px;
 
-  padding: 12px;
-
-  z-index: 60;
+  background: #ffffff;
 
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+
+  box-sizing: border-box;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 
   margin-bottom: 10px;
 }
 
-.calendar-header button {
-  border: none;
-  background: #eef4ff;
-
-  border-radius: 8px;
-
-  padding: 6px 12px;
-
-  cursor: pointer;
-}
-
 .calendar-header-title {
-  font-weight: 600;
+  color: #263249;
+
   font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
 }
 
 .calendar-header button {
-  border: none;
-  background: #eef4ff;
-
-  border-radius: 6px;
+  min-width: 34px;
+  min-height: 30px;
 
   padding: 4px 10px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: #eef4ff;
+
+  font-size: 14px;
+  line-height: 1;
 
   cursor: pointer;
 }
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
-  text-align: center;
+
+  width: 100%;
+
   font-size: 12px;
+  text-align: center;
 }
 
 .calendar-day {
+  width: 100%;
+  min-width: 0;
   height: 28px;
+  padding: 0;
 
   border: none;
   border-radius: 6px;
 
   background: #f5f7fa;
 
-  cursor: pointer;
-
   font-size: 12px;
+  line-height: 1;
+
+  cursor: pointer;
 }
 
 .calendar-day:hover:not(:disabled) {
@@ -273,7 +344,7 @@
 
 .calendar-day.selected {
   background: #5f86d9;
-  color: white;
+  color: #ffffff;
 }
 
 .calendar-day.in-range {
@@ -292,9 +363,12 @@
 .day-submit {
   justify-content: center;
 
+  border-color: #5f86d9;
+
   background: #5f86d9;
   color: #ffffff;
-  border-color: #5f86d9;
+
+  font-weight: 600;
 
   transition:
     background 0.18s ease,
@@ -303,53 +377,167 @@
 }
 
 .day-submit:hover {
-  background: #a8c4f8;
   border-color: #a8c4f8;
+  background: #a8c4f8;
 }
 
 .day-submit:active {
   transform: translateY(1px);
 }
+
 .forecast-select {
   color: #42506a;
 }
 
 .select-all-locations {
-  width: 100%;
-  border: none;
-  background: transparent;
-  color: #111827;
-  padding: 8px 14px;
-  font-weight: 400;
-  cursor: pointer;
-  text-align: left;
-
   display: flex;
   align-items: center;
   gap: 12px;
 
+  width: 100%;
+  min-height: 38px;
+
+  padding: 8px 10px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #111827;
+
   font-size: 14px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: left;
+
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.select-all-locations:hover {
+  background: #f4f7fc;
 }
 
 .select-all-radio {
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
 
-  border-radius: 999px;
   border: 2px solid #9ca3af;
+  border-radius: 999px;
 
   box-sizing: border-box;
-  flex-shrink: 0;
 }
 
 .select-all-locations.active .select-all-radio {
   border-color: #2563eb;
+
   background: #2563eb;
-  box-shadow: inset 0 0 0 3px white;
+
+  box-shadow: inset 0 0 0 3px #ffffff;
 }
 
 .location-divider {
+  width: 100%;
   height: 1px;
-  background: #e5e7eb;
+
   margin: 10px 0;
+
+  background: #e5e7eb;
+}
+
+/* Pienemmät kannettavat */
+
+@media (max-width: 1100px) {
+  .day-filters {
+    gap: 11px;
+  }
+
+  .day-mode-row {
+    gap: 8px;
+  }
+
+  .day-mode-button,
+  .date-input,
+  .forecast-select,
+  .day-submit,
+  .location-trigger {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
+
+/* Tabletit ja kapeat sivupaneelit */
+
+@media (max-width: 700px) {
+  .day-mode-row {
+    flex-direction: column;
+  }
+
+  .day-mode-button {
+    width: 100%;
+    flex: none;
+  }
+
+  .calendar-popup {
+    right: auto;
+    left: 0;
+  }
+
+  .location-list {
+    max-height: min(280px, 45vh);
+  }
+}
+
+/* Mobiili */
+
+@media (max-width: 520px) {
+  .day-filters {
+    gap: 10px;
+  }
+
+  .day-mode-row {
+    gap: 8px;
+  }
+
+  .day-mode-button,
+  .date-input,
+  .forecast-select,
+  .day-submit,
+  .location-trigger {
+    min-height: 40px;
+  }
+
+  .location-list {
+    max-height: min(260px, 42vh);
+
+    padding: 6px;
+
+    border-radius: 12px;
+  }
+
+  .location-actions {
+    padding: 7px 6px 9px;
+  }
+
+  .location-item,
+  .select-all-locations {
+    min-height: 40px;
+    padding: 8px;
+  }
+
+  .calendar-popup {
+    width: min(280px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+
+    padding: 10px;
+  }
+
+  .calendar-grid {
+    gap: 3px;
+  }
+
+  .calendar-day {
+    height: 30px;
+  }
 }

@@ -1089,6 +1089,7 @@ function SummaryMain({ filters }) {
   }
 
   return (
+    <div className="pgae-content">
     <main className="summary-main">
       <header className="summary-main-header">
         <div className="summary-header">
@@ -1507,6 +1508,7 @@ function SummaryMain({ filters }) {
         </div>
       </section>
     </main>
+    </div>
   );
 }
 

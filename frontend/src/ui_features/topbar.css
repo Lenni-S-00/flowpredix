@@ -1,5 +1,11 @@
 .topbar {
+  width: 100%;
   height: 68px;
+  min-height: 68px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
 
   background: linear-gradient(
     135deg,
@@ -9,29 +15,36 @@
   );
 
   box-shadow: 0 2px 14px rgba(32, 67, 140, 0.06);
-
-  display: flex;
-  align-items: center;
+  box-sizing: border-box;
 }
 
 .topbar-inner {
   width: 100%;
+  min-width: 0;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 44px;
+  gap: 24px;
+
+  padding: 0 clamp(20px, 3vw, 44px);
+  box-sizing: border-box;
 }
 
 .topbar-logo {
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .topbar-logo-image {
   display: block;
-  width: 300px;
+
+  width: clamp(190px, 19vw, 300px);
+  max-width: 100%;
   height: 48px;
+
   object-fit: contain;
   object-position: left center;
 }
@@ -41,48 +54,72 @@
   align-items: center;
   gap: 4px;
 
+  min-width: 0;
+  margin: 8px 0;
+  padding: 5px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
   background: #8eb3f6;
   backdrop-filter: blur(14px);
 
   border: 1px solid rgba(255, 255, 255, 0.65);
-
-  padding: 5px;
   border-radius: 18px;
 
   box-shadow:
     0 4px 12px rgba(80, 120, 220, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  scrollbar-width: none;
+  box-sizing: border-box;
+}
+
+.topbar-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .topbar-tab {
   height: 34px;
   min-width: 105px;
-
-  border: none;
-  border-radius: 13px;
-  background: transparent;
-
-  color: #ffffff;
-
-  padding: 0 18px;
-
-  font-size: 14px;
-  font-weight: 600;
-
-  cursor: pointer;
+  flex-shrink: 0;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
+  padding: 0 18px;
+
+  border: none;
+  border-radius: 13px;
+
+  background: transparent;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
   text-shadow:
     0 1px 2px rgba(24, 54, 120, 0.45),
     0 0 1px rgba(24, 54, 120, 0.35);
 
-  transition: all 0.18s ease;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  box-sizing: border-box;
 }
 
 .topbar-tab svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+
   filter: drop-shadow(0 1px 1px rgba(32, 67, 140, 0.22));
 }
 
@@ -108,7 +145,7 @@
 
   box-shadow:
     0 6px 16px rgba(53, 88, 173, 0.35),
-    inset 0 1px 0 rgba(255,255,255,.25);
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 
   transform: translateY(-1px);
 }
@@ -118,13 +155,122 @@
 }
 
 .tab-icon {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
   margin-right: 8px;
+
   font-size: 14px;
+  line-height: 1;
 }
 
 .tab-label {
   opacity: 1;
   transform: none;
   white-space: nowrap;
+
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Keskikokoiset näytöt */
+
+@media (max-width: 1250px) {
+  .topbar-inner {
+    gap: 16px;
+    padding: 0 24px;
+  }
+
+  .topbar-logo-image {
+    width: 220px;
+  }
+
+  .topbar-tab {
+    min-width: 92px;
+    padding: 0 13px;
+  }
+
+  .tab-icon {
+    margin-right: 6px;
+  }
+}
+
+/* Pienemmät kannettavat tietokoneet */
+
+@media (max-width: 1000px) {
+  .topbar-logo-image {
+    width: 180px;
+  }
+
+  .topbar-tab {
+    min-width: 42px;
+    padding: 0 12px;
+  }
+
+  .tab-label {
+    display: none;
+  }
+
+  .tab-icon {
+    margin-right: 0;
+  }
+}
+
+/* Tabletit ja pienet näytöt */
+
+@media (max-width: 700px) {
+  .topbar {
+    height: 62px;
+    min-height: 62px;
+  }
+
+  .topbar-inner {
+    gap: 10px;
+    padding: 0 14px;
+  }
+
+  .topbar-logo-image {
+    width: 145px;
+    height: 42px;
+  }
+
+  .topbar-tabs {
+    gap: 2px;
+    padding: 4px;
+    border-radius: 15px;
+  }
+
+  .topbar-tab {
+    width: 36px;
+    min-width: 36px;
+    height: 32px;
+    padding: 0;
+
+    border-radius: 11px;
+  }
+
+  .topbar-tab svg,
+  .tab-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+}
+
+/* Erittäin kapeat näytöt */
+
+@media (max-width: 480px) {
+  .topbar-inner {
+    padding: 0 10px;
+  }
+
+  .topbar-logo-image {
+    width: 120px;
+  }
+
+  .topbar-tabs {
+    max-width: calc(100vw - 150px);
+  }
 }

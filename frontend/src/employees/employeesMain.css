@@ -1,9 +1,14 @@
 .employees-content {
   flex: 1;
-  width: 100%;
-  min-height: 100vh;
+
+  width: min(100%, 1600px);
+  min-height: 100%;
+
+  margin: 0 auto;
   padding: 32px 40px 40px;
+
   background: #ffffff;
+
   box-sizing: border-box;
 }
 
@@ -13,8 +18,11 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  width: 100%;
   gap: 16px;
+
+  width: 100%;
+  min-width: 0;
+
   margin: 0 0 20px;
 }
 
@@ -23,14 +31,19 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 5px;
+
+  min-width: 0;
+
   text-align: left;
 }
 
 .employees-title {
   margin: 0;
   padding: 0;
+
   color: #172033;
-  font-size: 1.3rem;
+
+  font-size: 21px;
   font-weight: 500;
   line-height: 1.25;
   letter-spacing: -0.015em;
@@ -41,8 +54,12 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+
+  min-width: 0;
+
   color: #77849a;
-  font-size: 0.9rem;
+
+  font-size: 14px;
   line-height: 1.4;
 }
 
@@ -57,7 +74,8 @@
 
 .employees-date-range {
   color: #8b97aa;
-  font-size: 0.9rem;
+
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -67,39 +85,58 @@
   display: flex;
   align-items: center;
   align-self: center;
+  flex-shrink: 0;
+
+  max-width: 100%;
+
   margin: 0;
   padding: 7px 12px;
+
   border: 1px solid #e1e9f5;
   border-radius: 999px;
+
   background: #f7faff;
   color: #637089;
-  font-size: 0.85rem;
+
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
   text-align: right;
+
   white-space: nowrap;
+
+  box-sizing: border-box;
 }
 
 /* Heatmap- ja tilastoalue */
 
 .employees-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(270px, 320px);
   align-items: start;
   gap: 20px;
+
   width: 100%;
+  min-width: 0;
 }
 
 .employees-heatmap-card {
   position: relative;
-  min-width: 0;
+
   width: 100%;
+  min-width: 0;
   height: fit-content;
   align-self: start;
+
   padding: 24px 26px 26px;
+
   overflow: hidden;
+
   border: 1px solid #dfe8f5;
   border-radius: 20px;
+
   background:
     radial-gradient(
       circle at top right,
@@ -112,9 +149,11 @@
       #ffffff 45%,
       #ffffff 100%
     );
+
   box-shadow:
     0 18px 42px rgb(35 58 105 / 9%),
     0 4px 12px rgb(35 58 105 / 5%);
+
   box-sizing: border-box;
 }
 
@@ -123,8 +162,11 @@
   top: 0;
   right: 32px;
   left: 32px;
+
   height: 3px;
+
   border-radius: 0 0 999px 999px;
+
   background: linear-gradient(
     90deg,
     transparent,
@@ -132,6 +174,7 @@
     #7fa6ff,
     transparent
   );
+
   content: "";
   opacity: 0.75;
 }
@@ -140,19 +183,27 @@
 
 .employees-heatmap-scroll {
   position: relative;
+
   width: 100%;
+  min-width: 0;
+
   padding: 12px;
+
   overflow-x: auto;
   overflow-y: hidden;
+
   border: 1px solid #edf2f8;
   border-radius: 16px;
+
   background:
     linear-gradient(
       180deg,
       rgb(245 249 255 / 78%) 0%,
       rgb(255 255 255 / 95%) 100%
     );
+
   box-sizing: border-box;
+
   scrollbar-width: thin;
   scrollbar-color: #c7d6ee transparent;
 }
@@ -180,6 +231,7 @@
   display: grid;
   grid-template-columns: 130px repeat(8, 70px);
   gap: 6px;
+
   width: fit-content;
   min-width: 100%;
 }
@@ -194,16 +246,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
   width: 70px;
   min-width: 70px;
   height: 46px;
+
   border: 1px solid #e1e9f4;
   border-radius: 10px;
+
   background: rgb(255 255 255 / 90%);
   color: #526177;
+
   font-size: 13px;
   font-weight: 700;
+  line-height: 1;
+
   box-shadow: 0 2px 7px rgb(30 45 75 / 4%);
+
   box-sizing: border-box;
 }
 
@@ -213,17 +272,27 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+
   width: 110px;
+  min-width: 110px;
   min-height: 58px;
+
   padding: 0 12px;
+
   border: 1px solid #e5ecf6;
   border-radius: 10px;
+
   background: rgb(255 255 255 / 88%);
   color: #47566d;
+
   font-size: 13px;
   font-weight: 700;
+  line-height: 1.3;
+
   white-space: nowrap;
+
   box-shadow: 0 2px 7px rgb(30 45 75 / 3%);
+
   box-sizing: border-box;
 }
 
@@ -231,21 +300,29 @@
 
 .employees-value-cell {
   position: relative;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   width: 70px;
   min-width: 70px;
   min-height: 58px;
+
   border: 1px solid rgb(255 255 255 / 42%);
   border-radius: 10px;
+
   font-size: 14px;
   font-weight: 700;
+  line-height: 1;
   text-align: center;
+
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 28%),
     0 3px 8px rgb(39 55 88 / 5%);
+
   box-sizing: border-box;
+
   transition:
     filter 0.15s ease,
     box-shadow 0.15s ease,
@@ -254,10 +331,13 @@
 
 .employees-value-cell:hover {
   z-index: 1;
+
   filter: brightness(0.97);
+
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 35%),
     0 7px 15px rgb(39 55 88 / 12%);
+
   transform: translateY(-2px);
 }
 
@@ -265,38 +345,78 @@
 
 .employees-stat-column {
   display: flex;
-  min-width: 0;
-  width: 100%;
   align-self: start;
   align-items: flex-start;
+
+  width: 100%;
+  min-width: 0;
 }
 
 .employees-stat-column > * {
   width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
 }
 
 .employees-stat-column .employees-stat-card {
   flex: 0 0 auto;
+
   width: 100%;
+  min-width: 0;
   height: fit-content;
 }
 
 /* Virhetila */
 
 .employees-error {
+  width: 100%;
+
   padding: 18px 20px;
+
   border: 1px solid #fecaca;
   border-radius: 14px;
+
   background: linear-gradient(
     180deg,
     #fff7f7 0%,
     #fef2f2 100%
   );
+
   color: #991b1b;
+
   font-size: 14px;
   font-weight: 600;
   line-height: 1.5;
+
   box-shadow: 0 5px 14px rgb(153 27 27 / 5%);
+
+  box-sizing: border-box;
+}
+
+/* Pienemmät kannettavat */
+
+@media (max-width: 1250px) {
+  .employees-content {
+    padding: 28px 30px 34px;
+  }
+
+  .employees-layout {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(250px, 285px);
+
+    gap: 18px;
+  }
+
+  .employees-heatmap-card {
+    padding: 22px;
+  }
+
+  .employees-heatmap-card::before {
+    right: 24px;
+    left: 24px;
+  }
 }
 
 /* Tablet */
@@ -307,11 +427,15 @@
   }
 
   .employees-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .employees-stat-column {
     width: 100%;
+  }
+
+  .employees-stat-column .employees-stat-card {
+    height: auto;
   }
 }
 
@@ -320,11 +444,38 @@
 @media (max-width: 900px) {
   .employees-heatmap-card {
     padding: 20px;
+
     border-radius: 18px;
+  }
+
+  .employees-heatmap-card::before {
+    right: 20px;
+    left: 20px;
   }
 
   .employees-heatmap-scroll {
     padding: 10px;
+  }
+}
+
+/* Kapea tabletti */
+
+@media (max-width: 720px) {
+  .employees-content {
+    padding: 20px;
+  }
+
+  .employees-heatmap-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .employees-capacity-text {
+    align-self: flex-start;
+
+    white-space: normal;
+    text-align: left;
   }
 }
 
@@ -336,34 +487,41 @@
   }
 
   .employees-heatmap-header {
-    flex-direction: column;
     gap: 12px;
     margin-bottom: 16px;
   }
 
   .employees-title {
-    font-size: 1.15rem;
+    font-size: 21px;
+  }
+
+  .employees-header-meta,
+  .employees-date-range {
+    font-size: 14px;
   }
 
   .employees-header-meta {
     gap: 6px;
-    font-size: 0.85rem;
   }
 
+  .employees-meta-divider {
+    display: none;
+  }
+
+  .employees-location,
   .employees-date-range {
-    font-size: 0.85rem;
+    width: 100%;
   }
 
   .employees-capacity-text {
-    align-self: flex-start;
-    padding: 5px 9px;
-    font-size: 0.8rem;
-    text-align: left;
-    white-space: normal;
+    padding: 6px 10px;
+
+    font-size: 14px;
   }
 
   .employees-heatmap-card {
     padding: 14px;
+
     border-radius: 14px;
   }
 
@@ -374,6 +532,7 @@
 
   .employees-heatmap-scroll {
     padding: 8px;
+
     border-radius: 12px;
   }
 
@@ -389,16 +548,40 @@
   }
 
   .employees-header-cell {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .employees-day-cell {
     width: 100px;
+    min-width: 100px;
+
     padding: 0 8px;
-    font-size: 12px;
+
+    font-size: 13px;
   }
 
   .employees-value-cell {
-    font-size: 13px;
+    font-size: 14px;
+  }
+}
+
+/* Erittäin kapeat näytöt */
+
+@media (max-width: 420px) {
+  .employees-content {
+    padding: 14px;
+  }
+
+  .employees-heatmap-card {
+    padding: 12px;
+  }
+
+  .employees-heatmap-card::before {
+    right: 14px;
+    left: 14px;
+  }
+
+  .employees-heatmap-scroll {
+    padding: 6px;
   }
 }

@@ -2,11 +2,11 @@
   position: fixed;
   top: 80px;
   right: 32px;
-
-  width: 360px;
-  max-width: 360px;
-
   z-index: 1000;
+
+  width: min(360px, calc(100vw - 64px));
+  max-width: 360px;
+  min-width: 0;
 
   transition:
     transform 0.25s ease,
@@ -14,19 +14,21 @@
 }
 
 .filter-sidebar.closed {
-  transform: translateX(120%);
+  transform: translateX(calc(100% + 48px));
   opacity: 0;
   pointer-events: none;
 }
 
 .filter-sidebar-card {
   width: 100%;
+  min-width: 0;
 
-  background: #ffffff;
+  padding: 18px;
+
   border: 1px solid #e2e8f0;
   border-radius: 18px;
 
-  padding: 18px;
+  background: #ffffff;
 
   box-shadow:
     0 18px 40px rgba(30, 45, 75, 0.12),
@@ -39,6 +41,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  min-width: 0;
 
   margin-bottom: 14px;
   padding-bottom: 12px;
@@ -47,16 +53,29 @@
 }
 
 .filter-sidebar-header h3 {
+  min-width: 0;
   margin: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color: #263244;
 
   font-size: 16px;
   font-weight: 700;
-  color: #263244;
+  line-height: 1.3;
 }
 
 .sidebar-close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
   width: 30px;
   height: 30px;
+  padding: 0;
 
   border: none;
   border-radius: 8px;
@@ -64,37 +83,46 @@
   background: #f3f6fb;
   color: #5b6780;
 
+  font-size: 14px;
+  line-height: 1;
+
   cursor: pointer;
 
-  font-size: 14px;
-
-  transition: 0.15s ease;
-  z-index: 1000;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .sidebar-close-button:hover {
   background: #e3ebf8;
 }
 
-.filter-sidebar-content {
-  width: 100%;
+.sidebar-close-button:active {
+  transform: translateY(1px);
 }
 
-/* open button */
+.filter-sidebar-content {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Avauspainike */
 
 .sidebar-open-button {
   position: fixed;
   top: 84px;
   right: 32px;
-
-  width: 46px;
-  height: 46px;
+  z-index: 1001;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border: 1px solid rgba(255,255,255,.55);
+  width: 46px;
+  height: 46px;
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 14px;
 
   background: linear-gradient(
@@ -103,69 +131,64 @@
     #5f86d9 100%
   );
 
-  color: #fff;
+  color: #ffffff;
+
+  font-size: 16px;
+  line-height: 1;
 
   cursor: pointer;
 
   box-shadow:
-    0 10px 24px rgba(60,93,170,.22),
-    inset 0 1px 0 rgba(255,255,255,.28);
+    0 10px 24px rgba(60, 93, 170, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
 
   transition:
-    transform .18s ease,
-    box-shadow .18s ease,
-    background .18s ease;
-  
-  z-index: 1001;
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
 }
 
+.sidebar-open-button:hover {
+  transform: translateY(-1px);
 
-/* responsive */
-
-@media (max-width: 900px) {
-  .filter-sidebar {
-    position: static;
-
-    width: auto;
-    max-width: none;
-
-    margin: 16px;
-  }
-
-  .filter-sidebar.closed {
-    display: none;
-  }
-
-  .sidebar-open-button {
-    top: 16px;
-    right: 16px;
-  }
+  box-shadow:
+    0 13px 28px rgba(60, 93, 170, 0.27),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
 
-/* calendar */
+.sidebar-open-button:active {
+  transform: translateY(1px);
+}
+
+/* Kalenteri */
 
 .sidebar-date-picker {
   position: relative;
+
   width: 100%;
+  min-width: 0;
 }
 
 .sidebar-date-input {
-  width: 100%;
-  min-height: 38px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 12px;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
 
   padding: 0 14px;
 
   border: 1px solid #cfd8e3;
   border-radius: 10px;
+
   background: #ffffff;
+  color: #42506a;
 
   font-size: 14px;
-  color: #42506a;
+  line-height: 1.2;
 
   cursor: pointer;
   box-sizing: border-box;
@@ -173,69 +196,89 @@
 
 .sidebar-calendar-popup {
   position: absolute;
-  top: 46px;
+  top: calc(100% + 8px);
   right: 0;
+  z-index: 1100;
 
-  width: 260px;
+  width: min(280px, calc(100vw - 64px));
+  max-width: calc(100vw - 64px);
 
-  background: white;
+  padding: 12px;
 
   border: 1px solid #cfd8e3;
   border-radius: 12px;
 
-  padding: 12px;
-
-  z-index: 100;
+  background: #ffffff;
 
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+
+  box-sizing: border-box;
 }
 
 .sidebar-calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 
   margin-bottom: 10px;
 }
 
 .sidebar-calendar-header button {
-  border: none;
-  background: #eef4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
+  min-width: 34px;
+  min-height: 30px;
+  padding: 4px 10px;
+
+  border: none;
   border-radius: 6px;
 
-  padding: 4px 10px;
+  background: #eef4ff;
+
+  font-size: 14px;
+  line-height: 1;
 
   cursor: pointer;
 }
 
 .sidebar-calendar-title {
-  font-weight: 600;
+  color: #263249;
+
   font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
 }
 
 .sidebar-calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 
-  text-align: center;
+  width: 100%;
 
   font-size: 12px;
+  text-align: center;
 }
 
 .sidebar-calendar-day {
+  width: 100%;
+  min-width: 0;
   height: 28px;
+  padding: 0;
 
   border: none;
   border-radius: 6px;
 
   background: #f5f7fa;
 
-  cursor: pointer;
-
   font-size: 12px;
+  line-height: 1;
+
+  cursor: pointer;
 }
 
 .sidebar-calendar-day:hover:not(:disabled) {
@@ -244,7 +287,7 @@
 
 .sidebar-calendar-day.selected {
   background: #5f86d9;
-  color: white;
+  color: #ffffff;
 }
 
 .sidebar-calendar-day.in-range {
@@ -258,4 +301,106 @@
 
 .weekend {
   color: #d45b5b;
+}
+
+/* Pienemmät kannettavat */
+
+@media (max-width: 1200px) {
+  .filter-sidebar {
+    right: 24px;
+    width: min(340px, calc(100vw - 48px));
+  }
+
+  .sidebar-open-button {
+    right: 24px;
+  }
+}
+
+/* Tabletit */
+
+@media (max-width: 900px) {
+  .filter-sidebar {
+    top: 76px;
+    right: 16px;
+    left: 16px;
+
+    width: auto;
+    max-width: none;
+  }
+
+  .filter-sidebar.closed {
+    display: block;
+
+    transform: translateX(calc(100% + 32px));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sidebar-open-button {
+    top: 76px;
+    right: 16px;
+  }
+
+  .filter-sidebar-card {
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .sidebar-calendar-popup {
+    right: 0;
+
+    width: min(280px, calc(100vw - 64px));
+    max-width: calc(100vw - 64px);
+  }
+}
+
+/* Mobiili */
+
+@media (max-width: 520px) {
+  .filter-sidebar {
+    top: 72px;
+    right: 12px;
+    left: 12px;
+  }
+
+  .filter-sidebar-card {
+    max-height: calc(100vh - 84px);
+
+    padding: 16px;
+
+    border-radius: 16px;
+  }
+
+  .sidebar-open-button {
+    top: 72px;
+    right: 12px;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 12px;
+  }
+
+  .sidebar-date-input {
+    min-height: 40px;
+  }
+
+  .sidebar-calendar-popup {
+    right: auto;
+    left: 0;
+
+    width: min(280px, calc(100vw - 56px));
+    max-width: calc(100vw - 56px);
+
+    padding: 10px;
+  }
+
+  .sidebar-calendar-grid {
+    gap: 3px;
+  }
+
+  .sidebar-calendar-day {
+    height: 30px;
+  }
 }

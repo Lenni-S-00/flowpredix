@@ -1,12 +1,20 @@
 .hour-stat-card {
   position: relative;
+
+  display: block;
+
   width: 100%;
+  min-width: 0;
   height: fit-content;
   align-self: flex-start;
+
   padding: 20px;
+
   overflow: hidden;
+
   border: 1px solid #dfe8f5;
   border-radius: 20px;
+
   background:
     radial-gradient(
       circle at top right,
@@ -19,9 +27,11 @@
       #ffffff 48%,
       #ffffff 100%
     );
+
   box-shadow:
     0 18px 42px rgb(35 58 105 / 9%),
     0 4px 12px rgb(35 58 105 / 5%);
+
   box-sizing: border-box;
 }
 
@@ -30,8 +40,11 @@
   top: 0;
   right: 26px;
   left: 26px;
+
   height: 3px;
+
   border-radius: 0 0 999px 999px;
+
   background: linear-gradient(
     90deg,
     transparent,
@@ -39,6 +52,7 @@
     #7fa6ff,
     transparent
   );
+
   content: "";
   opacity: 0.75;
 }
@@ -47,7 +61,9 @@
 
 .hour-stat-card h3 {
   margin: 0 0 16px;
+
   color: #263249;
+
   font-size: 19px;
   font-weight: 600;
   line-height: 1.3;
@@ -59,25 +75,40 @@
 
 .hour-stat-item {
   position: relative;
+
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 5px;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 105px;
+
   margin: 0;
   padding: 16px;
+
   overflow: hidden;
+
   border: 1px solid #e6edf7;
   border-radius: 14px;
+
   background:
     linear-gradient(
       145deg,
       rgb(247 250 255 / 96%) 0%,
       rgb(255 255 255 / 98%) 100%
     );
+
   text-align: left;
+
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 80%),
     0 4px 11px rgb(30 45 75 / 4%);
+
+  box-sizing: border-box;
+
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
@@ -88,10 +119,14 @@
   position: absolute;
   top: 14px;
   right: 14px;
+
   width: 7px;
   height: 7px;
+
   border-radius: 50%;
+
   background: #abc4ff;
+
   content: "";
   opacity: 0.8;
 }
@@ -103,58 +138,102 @@
 /* Tekstit */
 
 .hour-stat-label {
+  max-width: calc(100% - 22px);
+
   color: #77849a;
+
   font-size: 14px;
   font-weight: 600;
   line-height: 1.3;
+
+  overflow-wrap: anywhere;
 }
 
 .hour-stat-value {
+  display: block;
+
+  max-width: 100%;
+
   color: #172033;
+
   font-size: 30px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.025em;
+
+  overflow-wrap: anywhere;
 }
 
 .hour-stat-detail {
+  max-width: 100%;
+
   color: #8591a5;
+
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
+
+  overflow-wrap: anywhere;
 }
 
 /* Tyhjä tila */
 
 .hour-stat-empty {
+  width: 100%;
+
   padding: 28px 16px;
+
   border: 1px dashed #d8e3f5;
   border-radius: 14px;
+
   background: #fbfdff;
   color: #77849a;
+
   font-size: 14px;
+  line-height: 1.5;
   text-align: center;
+
+  box-sizing: border-box;
 }
 
-/* Tablet */
+/* Pienemmät kannettavat */
+
+@media (max-width: 1250px) {
+  .hour-stat-card {
+    padding: 18px;
+  }
+
+  .hour-stat-card::before {
+    right: 22px;
+    left: 22px;
+  }
+
+  .hour-stat-item {
+    min-height: 100px;
+    padding: 14px;
+  }
+}
+
+/* Tabletti */
 
 @media (max-width: 1050px) {
   .hour-stat-card {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
+
     height: fit-content;
   }
 
   .hour-stat-card h3 {
     grid-column: 1 / -1;
+
     margin-bottom: 2px;
   }
 
   .hour-stat-item {
-    margin: 0;
     min-height: 120px;
-    justify-content: center;
+    margin: 0;
   }
 
   .hour-stat-item + .hour-stat-item {
@@ -172,14 +251,20 @@
   .hour-stat-card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .hour-stat-item {
+    min-height: 112px;
+  }
 }
 
 /* Mobiili */
 
 @media (max-width: 520px) {
   .hour-stat-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+
     padding: 16px;
+
     border-radius: 16px;
   }
 
@@ -189,15 +274,15 @@
   }
 
   .hour-stat-card h3 {
-    font-size: 18px;
-  }
-
-  .hour-stat-value {
-    font-size: 28px;
+    font-size: 19px;
   }
 
   .hour-stat-item {
     min-height: 100px;
     padding: 15px;
+  }
+
+  .hour-stat-value {
+    font-size: 30px;
   }
 }

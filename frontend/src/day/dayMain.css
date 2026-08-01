@@ -1,8 +1,12 @@
 .day-main {
-  width: 100%;
-  min-height: 100vh;
+  width: min(100%, 1600px);
+  min-height: 100%;
+
+  margin: 0 auto;
   padding: 32px 40px 40px;
+
   background: #ffffff;
+
   box-sizing: border-box;
 }
 
@@ -12,6 +16,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+
   width: 100%;
   margin: 0 0 20px;
 }
@@ -21,13 +26,18 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 5px;
+
+  min-width: 0;
+
   text-align: left;
 }
 
 .day-title {
   margin: 0;
+
   color: #172033;
-  font-size: 1.3rem;
+
+  font-size: 21px;
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.02em;
@@ -38,8 +48,12 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+
+  min-width: 0;
+
   color: #77849a;
-  font-size: 0.875rem;
+
+  font-size: 14px;
   line-height: 1.4;
 }
 
@@ -61,22 +75,29 @@
 
 .day-content-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(270px, 320px);
   align-items: stretch;
   gap: 20px;
+
   width: 100%;
+  min-width: 0;
 }
 
 .day-chart-card {
   position: relative;
+
   width: 100%;
   min-width: 0;
   height: 100%;
+
   padding: 24px 26px 26px;
 
   overflow: hidden;
 
   background: #ffffff;
+
   border: 1px solid #e3e8f0;
   border-radius: 18px;
 
@@ -90,8 +111,8 @@
 .day-chart-card::before {
   position: absolute;
   top: 0;
-  left: 26px;
   right: 26px;
+  left: 26px;
 
   height: 3px;
 
@@ -112,12 +133,18 @@
 
 .day-stat-column {
   display: flex;
+
+  width: 100%;
   min-width: 0;
   height: 100%;
 }
 
 .day-stat-column > * {
   width: 100%;
+  min-width: 0;
+  height: 100%;
+
+  box-sizing: border-box;
 }
 
 /* Graafikortin yläosa */
@@ -131,6 +158,9 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
+
+  width: 100%;
+  min-width: 0;
 
   margin-bottom: 18px;
   padding-bottom: 16px;
@@ -146,9 +176,13 @@
   flex-wrap: wrap;
   gap: 16px;
 
+  min-width: 0;
+
   color: #4f5d73;
+
   font-size: 13px;
   font-weight: 500;
+  line-height: 1.3;
 }
 
 .day-legend-item {
@@ -156,18 +190,20 @@
   align-items: center;
   gap: 8px;
 
+  min-width: 0;
   padding: 0;
 
   border: 0;
+
   background: transparent;
+
   box-shadow: none;
 }
 
 .day-legend-item i {
-  flex-shrink: 0;
-
   width: 10px;
   height: 10px;
+  flex-shrink: 0;
 
   border: 2px solid #ffffff;
   border-radius: 50%;
@@ -181,28 +217,35 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 
   padding: 3px;
 
   background: #f6f8fc;
+
   border: 1px solid #e2e7ef;
   border-radius: 10px;
+
+  box-sizing: border-box;
 }
 
 .day-chart-navigation-button {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 
   width: 32px;
   height: 32px;
   padding: 0;
 
   background: transparent;
+
   border: 1px solid transparent;
   border-radius: 7px;
 
   color: #5c687b;
+
   font-size: 18px;
   line-height: 1;
 
@@ -237,11 +280,13 @@
   padding: 6px 10px;
 
   border: 0;
-  background: transparent;
 
+  background: transparent;
   color: #526077;
-  font-size: 0.85rem;
+
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
   text-align: center;
 
   cursor: pointer;
@@ -264,6 +309,7 @@
   position: relative;
 
   width: 100%;
+  min-width: 0;
   min-height: 360px;
 
   padding: 18px 14px 8px;
@@ -272,6 +318,7 @@
   overflow-y: hidden;
 
   background: #fbfcfe;
+
   border: 1px solid #e8edf4;
   border-radius: 14px;
 
@@ -328,6 +375,7 @@
 
 .day-line-chart text {
   fill: #718096;
+
   font-family: inherit;
   font-size: 11px;
   font-weight: 500;
@@ -349,14 +397,18 @@
   align-items: center;
   justify-content: center;
 
+  width: 100%;
   min-height: 360px;
+
   padding: 28px;
 
   background: #fbfcfe;
+
   border: 1px dashed #cdd7e5;
   border-radius: 14px;
 
   color: #718096;
+
   font-size: 14px;
   line-height: 1.5;
   text-align: center;
@@ -364,7 +416,32 @@
   box-sizing: border-box;
 }
 
-/* Tablet */
+/* Keskikokoiset kannettavat tietokoneet */
+
+@media (max-width: 1250px) {
+  .day-main {
+    padding: 28px 30px 34px;
+  }
+
+  .day-content-layout {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(250px, 285px);
+
+    gap: 18px;
+  }
+
+  .day-chart-card {
+    padding: 22px;
+  }
+
+  .day-chart-card::before {
+    right: 22px;
+    left: 22px;
+  }
+}
+
+/* Pienet kannettavat ja tabletit */
 
 @media (max-width: 1050px) {
   .day-main {
@@ -372,11 +449,16 @@
   }
 
   .day-content-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .day-stat-column {
     width: 100%;
+    height: auto;
+  }
+
+  .day-stat-column > * {
+    height: auto;
   }
 }
 
@@ -385,16 +467,48 @@
 @media (max-width: 900px) {
   .day-chart-card {
     padding: 20px;
+
     border-radius: 16px;
   }
 
   .day-chart-card::before {
-    left: 20px;
     right: 20px;
+    left: 20px;
   }
 
   .day-chart-top {
     align-items: flex-start;
+  }
+
+  .day-line-chart-wrapper {
+    min-height: 330px;
+  }
+}
+
+/* Kapea tabletti */
+
+@media (max-width: 720px) {
+  .day-main {
+    padding: 20px;
+  }
+
+  .day-chart-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 13px;
+  }
+
+  .day-chart-navigation {
+    width: 100%;
+  }
+
+  .day-chart-navigation-range {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .day-chart-legend {
+    gap: 12px;
   }
 }
 
@@ -410,27 +524,35 @@
   }
 
   .day-title {
-    font-size: 1.15rem;
+    font-size: 21px;
   }
 
   .day-header-meta {
     gap: 6px;
-    font-size: 0.82rem;
+    font-size: 14px;
+  }
+
+  .day-meta-divider {
+    display: none;
+  }
+
+  .day-location,
+  .day-date-range {
+    width: 100%;
   }
 
   .day-chart-card {
     padding: 14px;
+
     border-radius: 14px;
   }
 
   .day-chart-card::before {
-    left: 14px;
     right: 14px;
+    left: 14px;
   }
 
   .day-chart-top {
-    flex-direction: column;
-    align-items: stretch;
     gap: 13px;
 
     margin-bottom: 14px;
@@ -438,25 +560,30 @@
   }
 
   .day-chart-legend {
-    gap: 12px;
+    gap: 10px 12px;
   }
 
   .day-legend-item {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .day-chart-navigation {
     width: 100%;
-    box-sizing: border-box;
   }
 
   .day-chart-navigation-range {
     flex: 1;
+    min-width: 0;
+
+    padding-right: 6px;
+    padding-left: 6px;
   }
 
   .day-line-chart-wrapper {
     min-height: 300px;
+
     padding: 12px 6px 4px;
+
     border-radius: 11px;
   }
 
@@ -466,6 +593,37 @@
 
   .day-empty-state {
     min-height: 240px;
+
     padding: 18px;
+  }
+}
+
+/* Erittäin kapeat näytöt */
+
+@media (max-width: 420px) {
+  .day-main {
+    padding: 14px;
+  }
+
+  .day-chart-card {
+    padding: 12px;
+  }
+
+  .day-chart-card::before {
+    right: 12px;
+    left: 12px;
+  }
+
+  .day-chart-navigation-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .day-chart-navigation-range {
+    font-size: 13px;
+  }
+
+  .day-line-chart {
+    min-width: 460px;
   }
 }

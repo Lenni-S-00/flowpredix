@@ -2,13 +2,14 @@
   user-select: none;
   will-change: transform;
 }
-.sidebar-calendar-drag-handle {
-  width: 38px;
-  height: 14px;
 
+.sidebar-calendar-drag-handle {
   display: flex;
   align-items: center;
   justify-content: center;
+
+  width: 38px;
+  height: 14px;
 
   margin: 2px auto 6px;
 
@@ -18,6 +19,11 @@
   color: #9aa9c7;
 
   cursor: grab;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .sidebar-calendar-drag-handle:hover {
@@ -27,6 +33,7 @@
 
 .sidebar-calendar-drag-handle:active {
   cursor: grabbing;
+  transform: scale(0.96);
 }
 
 .sidebar-calendar-drag-icon {
@@ -35,4 +42,22 @@
   font-size: 10px;
   line-height: 1;
   letter-spacing: 1px;
+
+  pointer-events: none;
+}
+
+/* Mobiili */
+
+@media (max-width: 520px) {
+  .sidebar-calendar-drag-handle {
+    width: 44px;
+    height: 18px;
+
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+
+  .sidebar-calendar-drag-icon {
+    font-size: 10px;
+  }
 }

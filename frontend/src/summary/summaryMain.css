@@ -987,3 +987,232 @@
     line-height: 1.6;
   }
 }
+/* =========================================================
+   YHTENÄINEN RESPONSIVIINEN LAYOUT
+   Tekstikoot pysyvät samoina. Vain rakenne, välit ja padding
+   mukautuvat näytön leveyteen.
+   ========================================================= */
+
+.summary-main {
+  width: min(100%, 1600px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: clamp(20px, 2.4vw, 32px);
+}
+
+.summary-main-header,
+.summary-period-information,
+.summary-cards,
+.summary-highlight-grid,
+.summary-section,
+.summary-recommendation {
+  width: 100%;
+  min-width: 0;
+}
+
+.summary-period-information,
+.summary-cards,
+.summary-highlight-grid,
+.summary-info-grid {
+  gap: clamp(12px, 1.25vw, 16px);
+}
+
+.summary-card,
+.summary-highlight,
+.summary-info-item,
+.summary-period-information > div,
+.summary-section,
+.summary-recommendation {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Tekstikoot eivät skaalaudu näytön mukaan. */
+.summary-title {
+  font-size: 23px;
+}
+
+.summary-header-meta {
+  font-size: 15px;
+}
+
+.summary-period-information strong,
+.summary-period-information small,
+.summary-card-label,
+.summary-card small,
+.summary-info-item h3 {
+  font-size: 14px;
+}
+
+.summary-period-information span {
+  font-size: 17px;
+}
+
+.summary-card strong {
+  font-size: 32px;
+}
+
+.summary-highlight-kicker,
+.summary-section-kicker {
+  font-size: 13px;
+}
+
+.summary-highlight h2 {
+  font-size: 20px;
+}
+
+.summary-highlight p,
+.summary-recommendation p {
+  font-size: 16px;
+}
+
+.summary-section-heading h2 {
+  font-size: 21px;
+}
+
+.summary-info-item strong {
+  font-size: 24px;
+}
+
+.summary-info-item p {
+  font-size: 15px;
+}
+
+.summary-recommendation h2 {
+  font-size: 22px;
+}
+
+/* Suuret ja normaalit työpöytänäytöt. */
+@media (min-width: 1201px) {
+  .summary-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .summary-highlight-grid,
+  .summary-period-information {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-info-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Pienet kannettavat ja kapeat työpöytänäytöt. */
+@media (max-width: 1200px) {
+  .summary-main {
+    padding: 24px;
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tabletit. */
+@media (max-width: 900px) {
+  .summary-highlight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 800px) {
+  .summary-main {
+    padding: 20px;
+  }
+
+  .summary-period-information,
+  .summary-cards,
+  .summary-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card,
+  .summary-highlight,
+  .summary-info-item,
+  .summary-period-information > div {
+    min-height: auto;
+  }
+}
+
+/* Puhelimet. Tekstikoot säilyvät samoina, mutta korttien sisäinen
+   tila pienenee hieman. */
+@media (max-width: 520px) {
+  .summary-main {
+    padding: 16px;
+  }
+
+  .summary-main-header {
+    margin-bottom: 18px;
+  }
+
+  .summary-period-information > div {
+    padding: 15px 16px;
+  }
+
+  .summary-card {
+    padding: 17px;
+  }
+
+  .summary-highlight {
+    padding: 19px 18px 19px 21px;
+  }
+
+  .summary-section {
+    padding: 17px;
+  }
+
+  .summary-info-item {
+    padding: 16px;
+  }
+
+  .summary-recommendation {
+    padding: 18px;
+  }
+
+  .summary-title {
+    font-size: 23px;
+  }
+
+  .summary-header-meta {
+    font-size: 15px;
+  }
+
+  .summary-card strong {
+    font-size: 32px;
+  }
+
+  .summary-highlight h2 {
+    font-size: 20px;
+  }
+
+  .summary-highlight p,
+  .summary-recommendation p {
+    font-size: 16px;
+  }
+
+  .summary-section-heading h2 {
+    font-size: 21px;
+  }
+
+  .summary-info-item strong {
+    font-size: 24px;
+  }
+
+  .summary-info-item p {
+    font-size: 15px;
+  }
+
+  .summary-recommendation h2 {
+    font-size: 22px;
+  }
+}

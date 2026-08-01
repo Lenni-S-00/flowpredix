@@ -1,25 +1,102 @@
 /* dashboard/dashboard.css */
+
 .filters {
   display: flex;
-  gap: 16px;
   align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  width: 100%;
+  min-width: 0;
+
   margin-bottom: 40px;
+
+  box-sizing: border-box;
 }
 
 .filters select,
 .filters input,
 .filters button {
+  min-width: 0;
   height: 48px;
+
   padding: 0 16px;
+
   border: 1px solid #cfd8e3;
   border-radius: 10px;
-  background: white;
+
+  background: #ffffff;
+
   font-size: 15px;
+  line-height: 1.2;
+
+  box-sizing: border-box;
+}
+
+.filters button {
+  cursor: pointer;
 }
 
 .day-content {
-  text-align: center;
-  color: #666074;
-  font-size: 24px;
+  width: 100%;
+
   margin-top: 60px;
+  padding: 0 16px;
+
+  text-align: center;
+
+  color: #666074;
+
+  font-size: 24px;
+  line-height: 1.35;
+
+  box-sizing: border-box;
+}
+
+/* Keskikokoiset näytöt */
+
+@media (max-width: 1100px) {
+  .filters {
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+}
+
+/* Tabletit */
+
+@media (max-width: 768px) {
+  .filters {
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .filters select,
+  .filters input,
+  .filters button {
+    width: 100%;
+  }
+
+  .day-content {
+    margin-top: 40px;
+  }
+}
+
+/* Puhelimet */
+
+@media (max-width: 520px) {
+  .filters {
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .filters select,
+  .filters input,
+  .filters button {
+    height: 44px;
+  }
+
+  .day-content {
+    margin-top: 32px;
+    font-size: 24px;
+  }
 }
