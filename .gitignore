@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Lisäksi virtuaaliympäristö
+
+venv/
+.venv/
+
+# Ympäristömuuttujat (sitten kun tehdään, nyt vasta kovakoodatut)
+.env
+
+# Tätä ei tartte, kun sen saa Dockerista (kai?).
+postgres_data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -26,8 +37,12 @@ dist-ssr
 # Apply also to backend
 __pycache__/
 *.pyc
+
+# Devausdatabeissi (reliikki)
 backend/db.sqlite3
-backend/db.sqlite3
+# Devausdata
+devmodeldata.json
+
 backend/models/predictions/all_units.joblib
 backend/models/predictions/Lab1.joblib
 backend/models/predictions/Lab2.joblib
@@ -63,6 +78,3 @@ backend/models/predictions/Lab32.joblib
 backend/models/predictions/Lab34.joblib
 backend/models/predictions/Lab35.joblib
 backend/models/predictions/Lab36.joblib
-backend/db.sqlite3
-backend/db.sqlite3
-backend/db.sqlite3
