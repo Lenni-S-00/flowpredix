@@ -632,12 +632,26 @@ function EmployeesMain({ filters }) {
 
       {startDate && displayEndDate && (
         <>
-          <span className="employees-meta-divider">•</span>
+          <span className="employees-meta-divider">
+            •
+          </span>
 
           <span className="employees-date-range">
             {formatDisplayDate(startDate)}
             {" – "}
             {formatDisplayDate(displayEndDate)}
+          </span>
+        </>
+      )}
+
+      {isForecast && (
+        <>
+          <span className="employees-meta-divider">
+            •
+          </span>
+
+          <span className="employees-ai-label">
+            Ennuste on tekoälyn luoma arvio ja tarkoitettu päätöksenteon tueksi
           </span>
         </>
       )}

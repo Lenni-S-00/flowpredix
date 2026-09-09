@@ -834,25 +834,73 @@ function ChartGrid({
 // Piirtää toimipisteiden kuvaajaviivat.
 function ChartLines({
   locations,
-  mode,
+  dates,
   getPath,
 }) {
-  return locations.map((location) => (
-    <path
-      key={location}
-      d={getPath(location)}
-      fill="none"
-      stroke={getLocationColor(location)}
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeDasharray={
-        mode === "forecast"
-          ? "8 6"
-          : undefined
-      }
-    />
-  ));
+  const todayKey = toDateString(
+    new Date()
+  );
+
+  const pastDates = dates.filter(
+    (date) => date <= todayKey
+  );
+
+  const futureOnlyDates = dates.filter(
+    (date) => date > todayKey
+  );
+
+  const transitionDate =
+    pastDates.length > 0
+      ? pastDates[pastDates.length - 1]
+      : null;
+
+  const futureDates =
+    transitionDate &&
+    futureOnlyDates.length > 0
+      ? [
+          transitionDate,
+          ...futureOnlyDates,
+        ]
+      : futureOnlyDates;
+
+  return locations.map(
+    (location) => (
+      <g key={location}>
+        {pastDates.length > 1 && (
+          <path
+            d={getPath(
+              location,
+              pastDates
+            )}
+            fill="none"
+            stroke={getLocationColor(
+              location
+            )}
+            strokeWidth="1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+
+        {futureDates.length > 1 && (
+          <path
+            d={getPath(
+              location,
+              futureDates
+            )}
+            fill="none"
+            stroke={getLocationColor(
+              location
+            )}
+            strokeWidth="1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray="8 6"
+          />
+        )}
+      </g>
+    )
+  );
 }
 
 // Piirtää kuvaajan yksittäiset datapisteet.
@@ -936,7 +984,7 @@ function LineChart({
 
         <ChartLines
           locations={locations}
-          mode={mode}
+          dates={dates}
           getPath={getPath}
         />
 
@@ -1096,12 +1144,26 @@ function DayHeader({
 
           {startDate && endDate && (
             <>
-              <span className="day-meta-divider">•</span>
+              <span className="day-meta-divider">
+                •
+              </span>
 
               <span className="day-date-range">
                 {formatDisplayDate(startDate)}
                 {" – "}
                 {formatDisplayDate(endDate)}
+              </span>
+            </>
+          )}
+
+          {mode === "forecast" && (
+            <>
+              <span className="day-meta-divider">
+                •
+              </span>
+
+              <span className="day-ai-label">
+                Ennuste on tekoälyn luoma arvio ja tarkoitettu päätöksenteon tueksi
               </span>
             </>
           )}
@@ -1313,10 +1375,13 @@ function DayMain({ filters }) {
     innerHeight
   );
 
-  function getPath(location) {
+  function getPath(
+    location,
+    pathDates = dates
+  ) {
     return createLocationPath(
       location,
-      dates,
+      pathDates,
       filteredData,
       valueKey,
       getX,

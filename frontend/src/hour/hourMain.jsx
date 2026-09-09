@@ -612,12 +612,26 @@ function HourMain({
 
             {startDate && displayEndDate && (
               <>
-                <span className="hour-meta-divider">•</span>
+                <span className="hour-meta-divider">
+                  •
+                </span>
 
                 <span className="hour-date-range">
                   {formatDisplayDate(startDate)}
                   {" – "}
                   {formatDisplayDate(displayEndDate)}
+                </span>
+              </>
+            )}
+
+            {isForecast && (
+              <>
+                <span className="hour-meta-divider">
+                  •
+                </span>
+
+                <span className="hour-ai-label">
+                  Ennuste on tekoälyn luoma arvio ja tarkoitettu päätöksenteon tueksi
                 </span>
               </>
             )}

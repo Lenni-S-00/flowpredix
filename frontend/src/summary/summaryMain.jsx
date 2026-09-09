@@ -1096,7 +1096,6 @@ function SummaryMain({ filters }) {
           <h2 className="summary-title">
             Asiakasvirran yhteenveto
           </h2>
-
           <div className="summary-header-meta">
             <span className="summary-location">
               {selectedLocation}
@@ -1120,6 +1119,14 @@ function SummaryMain({ filters }) {
                   </span>
                 </>
               )}
+
+            <span className="summary-meta-divider">
+              •
+            </span>
+
+            <span className="summary-ai-label">
+              Ennuste on tekoälyn luoma arvio ja tarkoitettu päätöksenteon tueksi 
+            </span>
           </div>
         </div>
       </header>
