@@ -19,12 +19,28 @@ class Command(BaseCommand):
     )
 
     # Lisää komennon komentoriviargumentit.
+    # Lisää komennon komentoriviargumentit.
     def add_arguments(self, parser):
-        group = parser.add_mutually_exclusive_group()
+        group = (
+            parser.add_mutually_exclusive_group()
+        )
 
         self._add_location_argument(group)
         self._add_all_locations_argument(group)
         self._add_combined_argument(group)
+
+        # Organisaation ID ei kuulu mutually exclusive
+        # -ryhmään, koska se voidaan antaa yhdessä
+        # minkä tahansa koulutustavan kanssa.
+        parser.add_argument(
+            "--organization-id",
+            type=int,
+            required=False,
+            help=(
+                "Organisaation ID, johon "
+                "koulutettu malli kuuluu."
+            ),
+        )
 
     # Lisää yhden toimipisteen koulutusargumentin.
     def _add_location_argument(self, group):
@@ -64,9 +80,23 @@ class Command(BaseCommand):
         trainer = PredictionTrainer()
         repository = SampleDataRepository()
 
+        # Luetaan komennolle annetut argumentit.
         location = options.get("location")
-        all_locations = options.get("all_locations")
+        all_locations = options.get(
+            "all_locations"
+        )
         combined = options.get("combined")
+
+        # Organisaation ID tulee esimerkiksi
+        # käyttöliittymän TrainPredictionModelsView:stä.
+        organization_id = options.get(
+            "organization_id"
+        )
+
+        # Tallennetaan organisaation ID command-olioon,
+        # jotta sitä voidaan käyttää myöhemmin
+        # PredictionModel-rivin tallennuksessa.
+        self.organization_id = organization_id
 
         if location:
             self._train_location(
@@ -422,42 +452,89 @@ class Command(BaseCommand):
         )
         self._create_prediction_model(metadata)
 
-    # Poistaa vanhan mallin aktiivisesta käytöstä.
-    def _deactivate_previous_model(self, location):
+    # Poistaa saman organisaation vanhan mallin
+    # aktiivisesta käytöstä.
+    def _deactivate_previous_model(
+        self,
+        location,
+    ):
         PredictionModel.objects.filter(
+
+            # Rajataan vain tähän organisaatioon.
+            organization_id=(
+                self.organization_id
+            ),
+
+            # Rajataan samaan toimipisteeseen.
             location=location,
+
+            # Vain aktiivinen malli poistetaan käytöstä.
             is_active=True,
         ).update(
             is_active=False
         )
 
     # Luo uuden mallin metatietorivin.
-    def _create_prediction_model(self, metadata):
+    def _create_prediction_model(
+        self,
+        metadata,
+    ):
         PredictionModel.objects.create(
+
+            # Liitetään malli organisaatioon.
+            #
+            # organization_id voidaan antaa suoraan
+            # ilman että Organization-oliota tarvitsee
+            # hakea erikseen tietokannasta.
+            organization_id=(
+                self.organization_id
+            ),
+
+            # Toimipiste.
+            # Yhdistetyllä mallilla arvo voi olla None.
             location=metadata["location"],
-            model_file=metadata["model_file"],
-            model_type=metadata["model_type"],
+
+            # Tallennetun mallin tiedosto.
+            model_file=metadata[
+                "model_file"
+            ],
+
+            # Käytetty mallityyppi.
+            model_type=metadata[
+                "model_type"
+            ],
+
+            # Feature-rakenteen versio.
             feature_version=metadata[
                 "feature_version"
             ],
+
+            # Koulutukseen käytetyn datan aikaväli.
             training_start=metadata[
                 "training_start"
             ],
             training_end=metadata[
                 "training_end"
             ],
+
+            # Koulutus- ja testidatan rivimäärät.
             training_rows=metadata[
                 "training_rows"
             ],
             testing_rows=metadata[
                 "testing_rows"
             ],
+
+            # Mallin testidatalla lasketut
+            # tarkkuusmittarit.
             r2=metadata["r2"],
             mae=metadata["mae"],
             mse=metadata["mse"],
+
+            # Uusi malli otetaan aktiiviseksi.
             is_active=True,
         )
-
+        
     # Muodostaa koulutustuloksen komentoriviyhteenvedon.
     def _format_result(self, metadata):
         location = self._get_display_name(

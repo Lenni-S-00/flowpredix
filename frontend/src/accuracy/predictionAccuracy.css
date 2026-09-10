@@ -1,0 +1,223 @@
+/* =========================================
+   ENNUSTEEN TARKKUUS
+   ========================================= */
+
+/* Tarkkuuskortti toimii leveänä ja matalana
+   yhden rivin infopalkkina. */
+.prediction-accuracy {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  max-width: none;
+
+  gap: 18px;
+
+  margin: 28px 0 16px;
+  padding: 12px 18px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.04),
+    0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+
+/* =========================================
+   OTSIKKO JA SANALLINEN ARVIO
+   ========================================= */
+
+/* Otsikko ja tarkkuusarvio pidetään
+   samalla rivillä. */
+.prediction-accuracy-header {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  flex-shrink: 0;
+}
+
+
+/* "Ennusteen tarkkuus". */
+.prediction-accuracy-header h3 {
+  margin: 0;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #334155;
+
+  white-space: nowrap;
+}
+
+
+/* Sanallinen arvio,
+   esimerkiksi "Hyvä". */
+.prediction-accuracy-rating {
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #1e293b;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   SANALLINEN KUVAUS
+   ========================================= */
+
+/* Tarkkuuden lyhyt selitys pysyy
+   samalla rivillä muun sisällön kanssa. */
+.prediction-accuracy-description {
+  margin: 0;
+
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.3;
+
+  color: #94a3b8;
+
+  white-space: nowrap;
+
+  /* Kuvaus saa käyttää vapaaksi jäävän tilan. */
+  flex: 1;
+}
+
+
+/* =========================================
+   TEKNISET MITTARIT
+   ========================================= */
+
+/* R², MAE ja RMSE samalla rivillä. */
+.prediction-accuracy-values {
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+
+  padding: 0;
+
+  flex-shrink: 0;
+}
+
+
+/* Yksittäinen mittari. */
+.prediction-accuracy-item {
+  display: flex;
+  align-items: baseline;
+
+  gap: 5px;
+
+  white-space: nowrap;
+}
+
+
+/* Mittarin nimi. */
+.prediction-accuracy-metric-label,
+.prediction-accuracy-label {
+  font-size: 10px;
+  font-weight: 500;
+
+  color: #94a3b8;
+}
+
+
+/* Mittarin arvo. */
+.prediction-accuracy-item strong {
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #475569;
+}
+
+
+/* =========================================
+   TESTIDATAN LISÄTIETO
+   ========================================= */
+
+/* Testidatan selite sijoitetaan
+   saman rivin oikeaan reunaan. */
+.prediction-accuracy-info {
+  margin: 0;
+  padding: 0 0 0 16px;
+
+  border-top: none;
+  border-left: 1px solid #e2e8f0;
+
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.3;
+
+  color: #a0aec0;
+
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+
+/* =========================================
+   PIENEMMÄT NÄYTÖT
+   ========================================= */
+
+/* Keskikokoisella näytöllä sallitaan
+   hallittu rivittyminen tarvittaessa. */
+@media (max-width: 1100px) {
+  .prediction-accuracy {
+    flex-wrap: wrap;
+
+    gap: 8px 16px;
+  }
+
+  .prediction-accuracy-description {
+    white-space: normal;
+
+    min-width: 250px;
+  }
+
+  .prediction-accuracy-info {
+    border-left: none;
+
+    padding-left: 0;
+  }
+}
+
+
+/* Mobiilissa sisältö saa rivittyä,
+   jotta kortti ei ylitä näytön leveyttä. */
+@media (max-width: 600px) {
+  .prediction-accuracy {
+    gap: 8px 12px;
+
+    margin-top: 20px;
+    padding: 12px 14px;
+  }
+
+  .prediction-accuracy-header {
+    width: 100%;
+  }
+
+  .prediction-accuracy-description {
+    width: 100%;
+    min-width: 0;
+
+    white-space: normal;
+  }
+
+  .prediction-accuracy-values {
+    gap: 12px;
+  }
+
+  .prediction-accuracy-info {
+    width: 100%;
+
+    white-space: normal;
+  }
+}

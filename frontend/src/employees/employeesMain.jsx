@@ -4,6 +4,8 @@ import WaitingState from "../ui_features/waitingState.jsx";
 import Loading from "../ui_features/loading.jsx";
 import { useEmployeesData } from "./employeesData.jsx";
 import EmployeesStat from "./employeesStat.jsx";
+import PredictionAccuracy from "../accuracy/predictionAccuracy.jsx";
+import { usePredictionAccuracy } from "../accuracy/predictionAccuracyData.jsx";
 
 const HOURS = [
   "07:00",
@@ -478,6 +480,17 @@ function EmployeesMain({ filters }) {
   const selectedLocation =
     safeFilters.selectedLocation;
 
+  // Haetaan valitun toimipisteen ennustemallin tarkkuustiedot.
+  const {
+    model: accuracyModel,
+    loading: accuracyLoading,
+    error: accuracyError,
+  } = usePredictionAccuracy(
+    isForecast
+      ? selectedLocation
+      : null
+  );
+
   const samplesPerEmployee = Number(
     safeFilters.samplesPerEmployee ??
       safeFilters
@@ -761,6 +774,20 @@ function EmployeesMain({ filters }) {
           </div>
         </div>
       )}
+            {(
+        <div className="employees-layout">
+          {/* Nykyinen sisältö pysyy ennallaan. */}
+        </div>
+      )}
+      {isForecast &&
+        selectedLocation && (
+          <PredictionAccuracy
+            model={accuracyModel}
+            loading={accuracyLoading}
+            error={accuracyError}
+          />
+        )}
+
     </main>
   );
 }

@@ -8,6 +8,8 @@ import API from "../api";
 import WaitingState from "../ui_features/waitingState.jsx";
 import Loading from "../ui_features/loading.jsx";
 import "./summaryMain.css";
+import PredictionAccuracy from "../accuracy/predictionAccuracy.jsx";
+import { usePredictionAccuracy } from "../accuracy/predictionAccuracyData.jsx";
 
 const HISTORY_SEARCH_DAYS = 365;
 const REALIZED_DAY_COUNT = 30;
@@ -703,6 +705,15 @@ function SummaryMain({ filters }) {
   const allLocationsSelected =
     selectedLocation ===
     "Kaikki näytteenotot";
+
+  // Haetaan valitun toimipisteen aktiivisen ennustemallin tarkkuustiedot.
+  const {
+    model: accuracyModel,
+    loading: accuracyLoading,
+    error: accuracyError,
+  } = usePredictionAccuracy(
+    selectedLocation
+  );
 
   useEffect(() => {
     if (!filters?.hasApplied) {
@@ -1514,7 +1525,38 @@ function SummaryMain({ filters }) {
           </p>
         </div>
       </section>
+
+      <section className="summary-recommendation">
+        <div>
+          <span className="summary-section-kicker">
+            Toimintasuositus
+          </span>
+
+          <h2>
+            Ennusteen soveltaminen
+          </h2>
+
+          <p>
+            {
+              insights
+                .recommendation
+            }
+          </p>
+        </div>
+      </section>
+
+      {/*
+        Ennustemallin tarkkuus näytetään yhteenvedon lopussa lisätietona.
+        Valitulle toimipisteelle näytetään sen oman mallin tarkkuus.
+      */}
+      <PredictionAccuracy
+        model={accuracyModel}
+        loading={accuracyLoading}
+        error={accuracyError}
+      />
+
     </main>
+
     </div>
   );
 }

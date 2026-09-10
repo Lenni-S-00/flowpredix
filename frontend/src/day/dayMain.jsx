@@ -5,6 +5,8 @@ import WaitingState from "../ui_features/waitingState.jsx";
 import Loading from "../ui_features/loading.jsx";
 import { useRealData } from "./dayData.jsx";
 import DayStat from "./dayStat.jsx";
+import PredictionAccuracy from "../accuracy/predictionAccuracy.jsx";
+import { usePredictionAccuracy } from "../accuracy/predictionAccuracyData.jsx";
 
 const COLORS = {
   "Kaikki näytteenotot": "#2563eb",
@@ -1329,10 +1331,41 @@ function DayMain({ filters }) {
     ]
   );
 
+  // Haetaan päivädata backendistä.
   const {
     data: backendData,
     loading,
-  } = useRealData(navigationFilters);
+  } = useRealData(
+    navigationFilters
+  );
+
+  // Selvitetään käyttäjän valitsemat toimipisteet.
+  const selectedLocations =
+    getSelectedLocations(filters);
+
+  // Tarkistetaan, onko valittuna kaikki toimipisteet.
+  const allSelected =
+    areAllLocationsSelected(
+      selectedLocations
+    );
+
+  // Valitaan tarkkuustietojen mallille oikea toimipiste.
+  const accuracyLocation =
+    allSelected
+      ? "Kaikki näytteenotot"
+      : selectedLocations.length === 1
+        ? selectedLocations[0]
+        : null;
+
+  const {
+    model: accuracyModel,
+    loading: accuracyLoading,
+    error: accuracyError,
+  } = usePredictionAccuracy(
+    mode === "forecast"
+      ? accuracyLocation
+      : null
+  );
 
   if (!filters?.hasApplied) {
     return <WaitingView />;
@@ -1342,18 +1375,22 @@ function DayMain({ filters }) {
     return <LoadingView />;
   }
 
-  const dayData = normalizeBackendData(backendData);
+  // Muutetaan backendin palauttama data frontendin käyttämään muotoon.
+  const dayData =
+    normalizeBackendData(
+      backendData
+    );
 
-  const valueKey = getValueKey(mode);
-  const selectedLocations = getSelectedLocations(filters);
-  const allSelected = areAllLocationsSelected(selectedLocations);
+  const valueKey =
+    getValueKey(mode);
+
+  // Valmistellaan data näkyvälle aikavälille.
   const sourceData =
     prepareSourceData(
       dayData,
       visibleStartDate,
       visibleEndDateExclusive
     );
-
   const baseFilteredData = filterData(
     sourceData,
     selectedLocations,
@@ -1402,7 +1439,10 @@ function DayMain({ filters }) {
         selectedLocations={selectedLocations}
         allSelected={allSelected}
         startDate={visibleStartDate}
-        endDate={addDays(visibleEndDateExclusive, -1)}
+        endDate={addDays(
+          visibleEndDateExclusive,
+          -1
+        )}
       />
 
       <DayContent
@@ -1412,8 +1452,12 @@ function DayMain({ filters }) {
         statisticsData={statisticsData}
         valueKey={valueKey}
         dates={dates}
-        visibleDateLabels={visibleDateLabels}
-        roundedMaxValue={roundedMaxValue}
+        visibleDateLabels={
+          visibleDateLabels
+        }
+        roundedMaxValue={
+          roundedMaxValue
+        }
         getX={getX}
         getY={getY}
         getPath={getPath}
@@ -1439,6 +1483,15 @@ function DayMain({ filters }) {
         isShifted={periodOffset !== 0}
         rangeLabel={rangeLabel}
       />
+
+        {mode === "forecast" &&
+        accuracyLocation && (
+          <PredictionAccuracy
+            model={accuracyModel}
+            loading={accuracyLoading}
+            error={accuracyError}
+          />
+        )}
     </main>
   );
 }

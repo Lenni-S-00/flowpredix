@@ -800,9 +800,17 @@ class TrainPredictionModelsView(APIView):
 
         for location in locations:
             try:
+                # Käynnistetään valitun toimipisteen mallin koulutus.
+                #
+                # Mukaan välitetään kirjautuneen käyttäjän
+                # organisaation ID, jotta koulutettu malli
+                # tallennetaan oikealle organisaatiolle.
                 call_command(
                     "train_prediction_models",
                     location=location,
+                    organization_id=(
+                        request.user.organization.id
+                    ),
                 )
 
                 trained_locations.append(location)

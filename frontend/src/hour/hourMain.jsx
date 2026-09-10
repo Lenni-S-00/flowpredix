@@ -8,6 +8,8 @@ import {
   useHourData,
 } from "./hourData";
 import HourStat from "./hourStat.jsx";
+import PredictionAccuracy from "../accuracy/predictionAccuracy.jsx";
+import { usePredictionAccuracy } from "../accuracy/predictionAccuracyData.jsx";
 
 const HOURS = [
   "07:00",
@@ -441,6 +443,18 @@ function HourMain({
 
   const selectedLocation =
     safeFilters.selectedLocation;
+  
+  // Haetaan valitun toimipisteen ennustemallin tarkkuustiedot.
+  // Tarkkuustietoja haetaan vain silloin, kun käyttäjä tarkastelee ennustetta.
+  const {
+    model: accuracyModel,
+    loading: accuracyLoading,
+    error: accuracyError,
+  } = usePredictionAccuracy(
+    isForecast
+      ? selectedLocation
+      : null
+  );
 
   const {
     data: hourData,
@@ -744,6 +758,27 @@ function HourMain({
           </div>
         </div>
       )}
+
+      <div className="hour-layout">
+        {/* 
+          Nykyinen heatmap ja HourStat
+          pysyvät tässä ennallaan.
+        */}
+      </div>
+
+      {/*
+        Ennustemallin tarkkuus näytetään
+        tuntinäkymän alaosassa lisätietona.
+      */}
+      {isForecast &&
+        selectedLocation && (
+          <PredictionAccuracy
+            model={accuracyModel}
+            loading={accuracyLoading}
+            error={accuracyError}
+          />
+        )}
+
     </main>
   );
 }
