@@ -1,6 +1,26 @@
+import { useEffect, useRef, useState } from "react";
 import "./topbar.css";
 
-function Topbar({ activeTab, setActiveTab }) {
+function Topbar({ activeTab, setActiveTab, onLogout }) {
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target)
+      ) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 const tabs = [
   {
     id: "summary",
@@ -104,6 +124,70 @@ const tabs = [
             </button>
           ))}
         </nav>
+
+
+        <div className="topbar-user" ref={userMenuRef}>
+          <button
+            type="button"
+            className={`topbar-user-button ${
+              activeTab === "profile" ? "active" : ""
+            }`}
+            onClick={() => setUserMenuOpen((open) => !open)}
+            aria-label="Käyttäjävalikko"
+            aria-expanded={userMenuOpen}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="21"
+              height="21"
+              aria-hidden="true"
+            >
+              <circle
+                cx="12"
+                cy="8"
+                r="4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path
+                d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+
+          {userMenuOpen && (
+            <div className="topbar-user-menu">
+              <button
+                type="button"
+                className="topbar-user-menu-item"
+                onClick={() => {
+                  setActiveTab("profile");
+                  setUserMenuOpen(false);
+                }}
+              >
+                Oma profiili
+              </button>
+
+              <div className="topbar-user-menu-divider" />
+
+              <button
+                type="button"
+                className="topbar-user-menu-item logout"
+                onClick={() => {
+                  setUserMenuOpen(false);
+                  onLogout();
+                }}
+              >
+                Kirjaudu ulos
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

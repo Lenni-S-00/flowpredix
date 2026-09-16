@@ -19,10 +19,15 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from accounts.views import ProfileView, ChangePasswordView, ChangeEmailView
 
 urlpatterns = [
     path("hello/", hello),
     path("whoami", whoami),
+
+    path("profile/", ProfileView.as_view(), name="profile"),
+    path("profile/change-password/", ChangePasswordView.as_view(), name="change-password"),
+    path("profile/change-email/", ChangeEmailView.as_view(), name="change-email"),
 
     path("data/", sample_data_list),
     path("data/summary/", data_day),

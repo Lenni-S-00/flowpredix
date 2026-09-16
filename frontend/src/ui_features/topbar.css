@@ -274,3 +274,105 @@
     max-width: calc(100vw - 150px);
   }
 }
+
+/* Käyttäjävalikko */
+
+.topbar-user {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: 18px;
+  flex-shrink: 0;
+}
+
+.topbar-user-button {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(32, 67, 140, 0.12);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.55);
+  color: #40557a;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.topbar-user-button:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(32, 67, 140, 0.22);
+  color: #244b91;
+}
+
+.topbar-user-button.active {
+  background: #ffffff;
+  color: #244b91;
+  border-color: rgba(36, 75, 145, 0.25);
+}
+
+.topbar-user-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+
+  width: 190px;
+  padding: 7px;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  box-shadow: 0 12px 32px rgba(32, 67, 140, 0.14);
+
+  z-index: 100000;
+}
+
+.topbar-user-menu-item {
+  width: 100%;
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #374151;
+  font-size: 14px;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.topbar-user-menu-item:hover {
+  background: #f3f6fb;
+  color: #244b91;
+}
+
+.topbar-user-menu-divider {
+  height: 1px;
+  margin: 5px 4px;
+  background: #e5e7eb;
+}
+
+.topbar-user-menu-item.logout {
+  color: #b42318;
+}
+
+.topbar-user-menu-item.logout:hover {
+  background: #fff3f2;
+  color: #9b1c14;
+}

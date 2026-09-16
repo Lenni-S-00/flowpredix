@@ -9,6 +9,7 @@ import Day from "./day/day";
 import Hour from "./hour/hour";
 import Employees from "./employees/employees";
 import Data from "./data/data";
+import ProfileMain from "./profile/profileMain";
 
 export default function Dashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("summary");
@@ -18,6 +19,7 @@ export default function Dashboard({ onLogout }) {
       <Topbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        onLogout={onLogout}
       />
 
       <main className="main-content">
@@ -65,15 +67,17 @@ export default function Dashboard({ onLogout }) {
         >
           <Data />
         </div>
+
+        <div
+          style={{
+            display:
+              activeTab === "profile" ? "block" : "none",
+          }}
+        >
+          <ProfileMain />
+        </div>
       </main>
 
-      <button
-        type="button"
-        className="logout-button"
-        onClick={onLogout}
-      >
-        Kirjaudu ulos
-      </button>
     </div>
   );
 }
