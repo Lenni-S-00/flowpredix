@@ -1,4 +1,5 @@
-# api/services/features.py
+# Muodostaa ennustemallin käyttämät kalenteri-, sää- ja lag-featuret
+# päiväkohtaisesta datasta.
 
 import pandas as pd
 
@@ -38,15 +39,9 @@ def create_daily_features(df):
     _validate_target_column(dataframe)
     _validate_weather_columns(dataframe)
 
-    dataframe = _normalize_weather_features(
-        dataframe
-    )
-    dataframe = _add_calendar_features(
-        dataframe
-    )
-    dataframe = _add_lag_features(
-        dataframe
-    )
+    dataframe = _normalize_weather_features(dataframe)
+    dataframe = _add_calendar_features(dataframe)
+    dataframe = _add_lag_features(dataframe)
 
     return _drop_missing_rows(dataframe)
 
@@ -63,10 +58,7 @@ def _copy_dataframe(df):
 
 # Varmistaa, että DataFramessa on DatetimeIndex.
 def _ensure_datetime_index(df):
-    if not isinstance(
-        df.index,
-        pd.DatetimeIndex,
-    ):
+    if not isinstance(df.index, pd.DatetimeIndex):
         df.index = pd.to_datetime(df.index)
 
     return df.sort_index()
@@ -76,8 +68,7 @@ def _ensure_datetime_index(df):
 def _validate_target_column(df):
     if TARGET_COLUMN not in df.columns:
         raise ValueError(
-            f"DataFramesta puuttuu "
-            f"{TARGET_COLUMN}-sarake."
+            f"DataFramesta puuttuu {TARGET_COLUMN}-sarake."
         )
 
 
@@ -90,9 +81,7 @@ def _validate_weather_columns(df):
     ]
 
     if missing_columns:
-        missing_text = ", ".join(
-            missing_columns
-        )
+        missing_text = ", ".join(missing_columns)
 
         raise ValueError(
             "DataFramesta puuttuvat seuraavat "
@@ -115,12 +104,8 @@ def _normalize_weather_features(df):
 def _add_calendar_features(df):
     df["year"] = df.index.year
     df["month"] = df.index.month
-    df["day_of_week"] = (
-        df.index.dayofweek
-    )
-    df["day_of_year"] = (
-        df.index.dayofyear
-    )
+    df["day_of_week"] = df.index.dayofweek
+    df["day_of_year"] = df.index.dayofyear
 
     return df
 

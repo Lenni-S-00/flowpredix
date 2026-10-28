@@ -15,11 +15,11 @@ from .serializers import (
     PredictionResultSerializer,
     SampleDataSerializer,
 )
-from .services.finalization import create_records
-from .services.ingestion import process_file
-from api.services.prediction import PredictionService
-from api.services.hourly_prediction import HourlyPredictionService
-from api.services.employee_estimation import (EmployeeEstimator)
+from .services.services1.prediction1.finalization import create_records
+from .services.services1.data1.ingestion import process_file
+from api.services.resolver import get_service
+from .services.services1.prediction1.hourly_prediction import HourlyPredictionService
+from .services.services1.prediction1.employee_estimation import (EmployeeEstimator)
 
 from django.core.management import call_command
 from rest_framework.views import APIView
@@ -493,6 +493,10 @@ def predict_patient_flow(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    PredictionService = get_service(
+        request.user,
+        "prediction"
+    )
     service = PredictionService()
 
     try:

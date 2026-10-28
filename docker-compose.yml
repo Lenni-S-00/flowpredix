@@ -63,3 +63,5 @@ services:
 
 volumes:
   postgres_data:
+    external: true
+    name: flow-predictor-web_postgres_data

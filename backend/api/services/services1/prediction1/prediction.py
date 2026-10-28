@@ -1,16 +1,17 @@
-# api/services/prediction.py
+# Muodostaa päiväkohtaiset asiakasmääräennusteet historiadatan,
+# säädatan, pyhäpäivien ja koulutetun ennustemallin perusteella.
 
 import holidays
 import pandas as pd
 from django.core.cache import cache
 
-from api.services.features import (
+from api.services.services1.ml1.features import (
     TARGET_COLUMN,
     WEATHER_FEATURE_COLUMNS,
     get_model_feature_columns,
 )
-from api.services.model_registry import ModelRegistry
-from api.services.repositories import SampleDataRepository
+from api.services.services1.ml1.model_registry import ModelRegistry
+from api.services.services1.data1.repositories import SampleDataRepository
 from api.services.weather import WeatherService
 
 
@@ -23,7 +24,6 @@ PREDICTION_CACHE_SECONDS = 30 * 60
 
 class PredictionService:
 
-    # Alustaa ennustamisessa käytettävät palvelut.
     def __init__(self):
         self.repository = SampleDataRepository()
         self.registry = ModelRegistry()
@@ -33,21 +33,11 @@ class PredictionService:
     def predict(self, days=14, location=None):
         self._validate_days(days)
 
-        history_df = self._load_history(
-            location
-        )
+        history_df = self._load_history(location)
+        self._validate_history(history_df)
 
-        self._validate_history(
-            history_df
-        )
-
-        future_dates = self._create_future_dates(
-            days
-        )
-
-        history = self._get_initial_history(
-            history_df
-        )
+        future_dates = self._create_future_dates(days)
+        history = self._get_initial_history(history_df)
 
         cache_key = self._create_prediction_cache_key(
             days=days,
@@ -56,27 +46,17 @@ class PredictionService:
             history=history,
         )
 
-        cached_predictions = cache.get(
-            cache_key
-        )
+        cached_predictions = cache.get(cache_key)
 
         if cached_predictions is not None:
             return cached_predictions
 
         model = self.registry.load(location)
+        feature_columns = get_model_feature_columns()
 
-        feature_columns = (
-            get_model_feature_columns()
-        )
+        self._validate_model_features(model, feature_columns)
 
-        self._validate_model_features(
-            model,
-            feature_columns,
-        )
-
-        finnish_holidays = self._get_holidays(
-            future_dates
-        )
+        finnish_holidays = self._get_holidays(future_dates)
 
         weather_by_date = self._get_weather_data(
             future_dates=future_dates,
@@ -103,13 +83,8 @@ class PredictionService:
 
     # Hakee kaiken ennustamiseen käytettävän historiadatan.
     def _load_history(self, location):
-        rows = self.repository.get_daily_data(
-            location
-        )
-
-        return self._prepare_history(
-            rows
-        )
+        rows = self.repository.get_daily_data(location)
+        return self._prepare_history(rows)
 
     # Muodostaa välimuistiavaimen ennusteen lähtötiedoista.
     def _create_prediction_cache_key(
@@ -119,29 +94,12 @@ class PredictionService:
         future_dates,
         history,
     ):
-        model_path = self.registry.get_path(
-            location
-        )
+        model_path = self.registry.get_path(location)
+        self._validate_model_path_for_cache(model_path)
 
-        self._validate_model_path_for_cache(
-            model_path
-        )
-
-        location_key = (
-            location
-            or "all_units"
-        )
-
-        history_key = "-".join(
-            str(float(value))
-            for value in history
-        )
-
-        start_date = (
-            future_dates.min()
-            .date()
-            .isoformat()
-        )
+        location_key = location or "all_units"
+        history_key = "-".join(str(float(value)) for value in history)
+        start_date = future_dates.min().date().isoformat()
 
         return (
             f"prediction:{location_key}:"
@@ -151,44 +109,34 @@ class PredictionService:
         )
 
     # Tarkistaa välimuistiavainta varten, että mallitiedosto löytyy.
-    def _validate_model_path_for_cache(
-        self,
-        model_path,
-    ):
+    def _validate_model_path_for_cache(self, model_path):
         if not model_path.exists():
             raise FileNotFoundError(
-                f"Ennustemallia ei löytynyt: "
-                f"{model_path}"
+                f"Ennustemallia ei löytynyt: {model_path}"
             )
 
     # Tarkistaa, että ennustepäivien määrä on kelvollinen.
     def _validate_days(self, days):
         if not isinstance(days, int):
             raise ValueError(
-                "Ennustepäivien määrän täytyy "
-                "olla kokonaisluku."
+                "Ennustepäivien määrän täytyy olla kokonaisluku."
             )
 
         if days < 1:
             raise ValueError(
-                "Ennustepäivien määrän täytyy "
-                "olla vähintään yksi."
+                "Ennustepäivien määrän täytyy olla vähintään yksi."
             )
 
     # Tarkistaa, että ennustamiseen on riittävästi historiadataa.
     def _validate_history(self, history_df):
         if len(history_df) < 7:
             raise ValueError(
-                "Ennustamiseen tarvitaan vähintään "
-                "seitsemän päivän historia."
+                "Ennustamiseen tarvitaan vähintään seitsemän päivän historia."
             )
 
     # Luo ennustettavien päivien päivämäärät.
     def _create_future_dates(self, days):
-        start_date = (
-            pd.Timestamp.today()
-            .normalize()
-        )
+        start_date = pd.Timestamp.today().normalize()
 
         return pd.date_range(
             start=start_date,
@@ -206,11 +154,7 @@ class PredictionService:
         )
 
     # Tarkistaa, että tallennettu malli käyttää oikeita featureita.
-    def _validate_model_features(
-        self,
-        model,
-        feature_columns,
-    ):
+    def _validate_model_features(self, model, feature_columns):
         model_columns = getattr(
             model,
             "feature_names_in_",
@@ -220,11 +164,7 @@ class PredictionService:
         if model_columns is None:
             return
 
-        model_columns = list(
-            model_columns
-        )
-
-        if model_columns != feature_columns:
+        if list(model_columns) != feature_columns:
             raise ValueError(
                 "Tallennettu ennustemalli käyttää eri "
                 "featureita kuin nykyinen sovellus. "
@@ -241,44 +181,25 @@ class PredictionService:
         )
 
     # Hakee sääarvot koko ennustejaksolle.
-    def _get_weather_data(
-        self,
-        future_dates,
-        location,
-    ):
-        forecast_dates = future_dates[
-            :WEATHER_FORECAST_DAYS
-        ]
-
-        long_range_dates = future_dates[
-            WEATHER_FORECAST_DAYS:
-        ]
+    def _get_weather_data(self, future_dates, location):
+        forecast_dates = future_dates[:WEATHER_FORECAST_DAYS]
+        long_range_dates = future_dates[WEATHER_FORECAST_DAYS:]
 
         weather_by_date = {}
 
         if len(forecast_dates) > 0:
-            forecast_weather = (
-                self.weather_service.get_forecast(
-                    dates=forecast_dates,
-                    location=location,
-                )
+            forecast_weather = self.weather_service.get_forecast(
+                dates=forecast_dates,
+                location=location,
             )
-
-            weather_by_date.update(
-                forecast_weather
-            )
+            weather_by_date.update(forecast_weather)
 
         if len(long_range_dates) > 0:
-            long_range_weather = (
-                self._get_long_range_weather(
-                    future_dates=long_range_dates,
-                    location=location,
-                )
+            long_range_weather = self._get_long_range_weather(
+                future_dates=long_range_dates,
+                location=location,
             )
-
-            weather_by_date.update(
-                long_range_weather
-            )
+            weather_by_date.update(long_range_weather)
 
         return self._fill_missing_weather(
             future_dates=future_dates,
@@ -287,75 +208,44 @@ class PredictionService:
         )
 
     # Käyttää pitkän aikavälin sääarviona edellisen vuoden säätä.
-    def _get_long_range_weather(
-        self,
-        future_dates,
-        location,
-    ):
-        proxy_date_mapping = (
-            self._create_proxy_date_mapping(
-                future_dates
-            )
-        )
+    def _get_long_range_weather(self, future_dates, location):
+        proxy_date_mapping = self._create_proxy_date_mapping(future_dates)
+        proxy_dates = list(proxy_date_mapping.values())
 
-        proxy_dates = list(
-            proxy_date_mapping.values()
-        )
-
-        historical_weather = (
-            self.weather_service.get_history(
-                dates=proxy_dates,
-                location=location,
-            )
+        historical_weather = self.weather_service.get_history(
+            dates=proxy_dates,
+            location=location,
         )
 
         weather_by_future_date = {}
 
-        for future_date, proxy_date in (
-            proxy_date_mapping.items()
-        ):
-            weather = historical_weather.get(
-                proxy_date
-            )
+        for future_date, proxy_date in proxy_date_mapping.items():
+            weather = historical_weather.get(proxy_date)
 
             if weather is not None:
-                weather_by_future_date[
-                    future_date
-                ] = weather
+                weather_by_future_date[future_date] = weather
 
         return weather_by_future_date
 
     # Muodostaa tuleville päiville edellisen vuoden vertailupäivät.
-    def _create_proxy_date_mapping(
-        self,
-        future_dates,
-    ):
+    def _create_proxy_date_mapping(self, future_dates):
         mapping = {}
 
         for future_timestamp in future_dates:
-            future_date = (
-                future_timestamp.date()
-            )
-
-            proxy_date = (
-                self._get_previous_year_date(
-                    future_timestamp
-                )
-            )
+            future_date = future_timestamp.date()
+            proxy_date = self._get_previous_year_date(future_timestamp)
 
             mapping[future_date] = proxy_date
 
         return mapping
 
     # Palauttaa vastaavan päivän edelliseltä vuodelta.
-    def _get_previous_year_date(
-        self,
-        timestamp,
-    ):
+    def _get_previous_year_date(self, timestamp):
         try:
             return timestamp.replace(
                 year=timestamp.year - 1
             ).date()
+
         except ValueError:
             # Karkausvuoden 29.2. korvataan 28.2. päivällä.
             return timestamp.replace(
@@ -370,28 +260,20 @@ class PredictionService:
         weather_by_date,
         location,
     ):
-        completed_weather = dict(
-            weather_by_date
-        )
+        completed_weather = dict(weather_by_date)
 
         missing_dates = [
             timestamp
             for timestamp in future_dates
-            if timestamp.date()
-            not in completed_weather
+            if timestamp.date() not in completed_weather
         ]
 
         if missing_dates:
-            fallback_weather = (
-                self._get_long_range_weather(
-                    future_dates=missing_dates,
-                    location=location,
-                )
+            fallback_weather = self._get_long_range_weather(
+                future_dates=missing_dates,
+                location=location,
             )
-
-            completed_weather.update(
-                fallback_weather
-            )
+            completed_weather.update(fallback_weather)
 
         self._validate_weather_data(
             future_dates=future_dates,
@@ -408,10 +290,7 @@ class PredictionService:
     ):
         for timestamp in future_dates:
             current_date = timestamp.date()
-
-            weather = weather_by_date.get(
-                current_date
-            )
+            weather = weather_by_date.get(current_date)
 
             if weather is None:
                 raise ValueError(
@@ -421,15 +300,12 @@ class PredictionService:
 
             missing_columns = [
                 column
-                for column
-                in WEATHER_FEATURE_COLUMNS
+                for column in WEATHER_FEATURE_COLUMNS
                 if weather.get(column) is None
             ]
 
             if missing_columns:
-                missing_text = ", ".join(
-                    missing_columns
-                )
+                missing_text = ", ".join(missing_columns)
 
                 raise ValueError(
                     "Säätiedosta puuttuvat arvot "
@@ -451,32 +327,21 @@ class PredictionService:
         predictions = []
 
         for current_date in future_dates:
-            weather = weather_by_date[
-                current_date.date()
-            ]
+            weather = weather_by_date[current_date.date()]
 
-            prediction = (
-                self._predict_single_date(
-                    model=model,
-                    current_date=current_date,
-                    history=history,
-                    weather=weather,
-                    feature_columns=feature_columns,
-                    finnish_holidays=(
-                        finnish_holidays
-                    ),
-                    location=location,
-                )
+            prediction = self._predict_single_date(
+                model=model,
+                current_date=current_date,
+                history=history,
+                weather=weather,
+                feature_columns=feature_columns,
+                finnish_holidays=finnish_holidays,
+                location=location,
             )
 
-            predictions.append(
-                prediction
-            )
-
+            predictions.append(prediction)
             history.append(
-                prediction[
-                    "predicted_patient_count"
-                ]
+                prediction["predicted_patient_count"]
             )
 
         return predictions
@@ -492,21 +357,15 @@ class PredictionService:
         finnish_holidays,
         location,
     ):
-        feature_row = (
-            self._create_feature_row(
-                current_date=current_date,
-                history=history,
-                weather=weather,
-            )
+        feature_row = self._create_feature_row(
+            current_date=current_date,
+            history=history,
+            weather=weather,
         )
 
-        prediction_input = (
-            self._create_prediction_input(
-                feature_row=feature_row,
-                feature_columns=(
-                    feature_columns
-                ),
-            )
+        prediction_input = self._create_prediction_input(
+            feature_row=feature_row,
+            feature_columns=feature_columns,
         )
 
         value = self._predict_value(
@@ -542,12 +401,8 @@ class PredictionService:
         row = {
             "year": current_date.year,
             "month": current_date.month,
-            "day_of_week": (
-                current_date.dayofweek
-            ),
-            "day_of_year": (
-                current_date.dayofyear
-            ),
+            "day_of_week": current_date.dayofweek,
+            "day_of_year": current_date.dayofyear,
         }
 
         self._add_weather_features(
@@ -563,33 +418,16 @@ class PredictionService:
         return row
 
     # Lisää päivän sääarvot featureihin.
-    def _add_weather_features(
-        self,
-        row,
-        weather,
-    ):
-        for column in (
-            WEATHER_FEATURE_COLUMNS
-        ):
-            row[column] = float(
-                weather[column]
-            )
+    def _add_weather_features(self, row, weather):
+        for column in WEATHER_FEATURE_COLUMNS:
+            row[column] = float(weather[column])
 
     # Lisää seitsemän edellisen päivän arvot featureihin.
-    def _add_lag_features(
-        self,
-        row,
-        history,
-    ):
+    def _add_lag_features(self, row, history):
         lags = history[-7:][::-1]
 
-        for index, value in enumerate(
-            lags,
-            start=1,
-        ):
-            row[f"lag_{index}"] = (
-                float(value)
-            )
+        for index, value in enumerate(lags, start=1):
+            row[f"lag_{index}"] = float(value)
 
     # Muuntaa yhden päivän featuret DataFrameksi.
     def _create_prediction_input(
@@ -603,37 +441,17 @@ class PredictionService:
         )
 
     # Muodostaa ja pyöristää mallin ennusteen.
-    def _predict_value(
-        self,
-        model,
-        prediction_input,
-    ):
-        value = model.predict(
-            prediction_input
-        )[0]
+    def _predict_value(self, model, prediction_input):
+        value = model.predict(prediction_input)[0]
 
-        return max(
-            0,
-            int(round(value)),
-        )
+        return max(0, int(round(value)))
 
     # Tarkistaa, onko päivä suomalainen pyhäpäivä.
-    def _is_holiday(
-        self,
-        current_date,
-        finnish_holidays,
-    ):
-        return (
-            current_date.date()
-            in finnish_holidays
-        )
+    def _is_holiday(self, current_date, finnish_holidays):
+        return current_date.date() in finnish_holidays
 
     # Asettaa pyhäpäivän ennusteen nollaksi.
-    def _apply_holiday_rule(
-        self,
-        value,
-        is_holiday,
-    ):
+    def _apply_holiday_rule(self, value, is_holiday):
         if is_holiday:
             return 0
 
@@ -649,64 +467,34 @@ class PredictionService:
         weather,
     ):
         return {
-            "date": (
-                current_date
-                .date()
-                .isoformat()
-            ),
-            "location": (
-                location
-                or "Kaikki näytteenotot"
-            ),
+            "date": current_date.date().isoformat(),
+            "location": location or "Kaikki näytteenotot",
             "predicted_patient_count": value,
             "holiday": is_holiday,
             "weather": {
-                column: float(
-                    weather[column]
-                )
-                for column
-                in WEATHER_FEATURE_COLUMNS
+                column: float(weather[column])
+                for column in WEATHER_FEATURE_COLUMNS
             },
         }
 
     # Muodostaa historiadatasta jatkuvan päiväkohtaisen aikasarjan.
-    def _prepare_history(
-        self,
-        rows,
-    ):
-        self._validate_rows(
-            rows
-        )
+    def _prepare_history(self, rows):
+        self._validate_rows(rows)
 
-        totals_by_date = (
-            self._sum_rows_by_date(
-                rows
-            )
-        )
+        totals_by_date = self._sum_rows_by_date(rows)
+        daily = self._create_daily_dataframe(totals_by_date)
 
-        daily = self._create_daily_dataframe(
-            totals_by_date
-        )
-
-        return self._fill_missing_dates(
-            daily
-        )
+        return self._fill_missing_dates(daily)
 
     # Tarkistaa, että historiadataa löytyi.
-    def _validate_rows(
-        self,
-        rows,
-    ):
+    def _validate_rows(self, rows):
         if not rows:
             raise ValueError(
                 "Historiadataa ei löytynyt."
             )
 
     # Laskee toimipistekohtaiset tietokantarivit yhteen päivittäin.
-    def _sum_rows_by_date(
-        self,
-        rows,
-    ):
+    def _sum_rows_by_date(self, rows):
         totals_by_date = {}
 
         for row in rows:
@@ -715,44 +503,27 @@ class PredictionService:
             ).normalize()
 
             totals_by_date[current_date] = (
-                totals_by_date.get(
-                    current_date,
-                    0,
-                )
-                + float(
-                    row["samples_taken"]
-                )
+                totals_by_date.get(current_date, 0)
+                + float(row["samples_taken"])
             )
 
         return totals_by_date
 
     # Muodostaa päiväkohtaisista summista DataFramen.
-    def _create_daily_dataframe(
-        self,
-        totals_by_date,
-    ):
+    def _create_daily_dataframe(self, totals_by_date):
         daily = pd.DataFrame.from_dict(
             totals_by_date,
             orient="index",
             columns=[TARGET_COLUMN],
         )
 
-        daily.index = pd.DatetimeIndex(
-            daily.index
-        )
+        daily.index = pd.DatetimeIndex(daily.index)
 
         return daily.sort_index()
 
     # Lisää puuttuvat päivät aikasarjaan nolla-arvoilla.
-    def _fill_missing_dates(
-        self,
-        daily,
-    ):
-        full_index = (
-            self._create_date_index(
-                daily
-            )
-        )
+    def _fill_missing_dates(self, daily):
+        full_index = self._create_date_index(daily)
 
         return daily.reindex(
             full_index,
@@ -760,10 +531,7 @@ class PredictionService:
         )
 
     # Luo jatkuvan päivämääräindeksin.
-    def _create_date_index(
-        self,
-        daily,
-    ):
+    def _create_date_index(self, daily):
         return pd.date_range(
             daily.index.min(),
             daily.index.max(),

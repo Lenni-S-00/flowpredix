@@ -7,8 +7,8 @@ from django.core.management.base import (
 from django.db import transaction
 
 from api.models import PredictionModel
-from api.services.repositories import SampleDataRepository
-from api.services.training import PredictionTrainer
+from backend.api.services.services1.data1.repositories import SampleDataRepository
+from backend.api.services.services1.ml1.training import PredictionTrainer
 
 
 class Command(BaseCommand):

@@ -1,4 +1,5 @@
-# api/services/training.py
+# Kouluttaa päiväkohtaisen Random Forest -ennustemallin historiadatan,
+# säädatan ja muodostettujen featureiden perusteella.
 
 import pandas as pd
 
@@ -9,20 +10,19 @@ from sklearn.metrics import (
     r2_score,
 )
 
-from api.services.features import (
+from backend.api.services.services1.ml1.features import (
     TARGET_COLUMN,
     WEATHER_FEATURE_COLUMNS,
     create_daily_features,
     get_model_feature_columns,
 )
-from api.services.model_registry import ModelRegistry
-from api.services.repositories import SampleDataRepository
+from backend.api.services.services1.ml1.model_registry import ModelRegistry
+from backend.api.services.services1.data1.repositories import SampleDataRepository
 from api.services.weather import WeatherService
 
 
 class PredictionTrainer:
 
-    # Alustaa koulutuksessa käytettävät palvelut.
     def __init__(self):
         self.repository = SampleDataRepository()
         self.registry = ModelRegistry()
@@ -30,47 +30,28 @@ class PredictionTrainer:
 
     # Kouluttaa ja tallentaa yhden ennustemallin.
     def train(self, location=None):
-        rows = self.repository.get_daily_data(
-            location
-        )
+        rows = self.repository.get_daily_data(location)
 
-        daily_df = self._prepare_dataframe(
-            rows
-        )
-
-        self._validate_training_data(
-            daily_df
-        )
+        daily_df = self._prepare_dataframe(rows)
+        self._validate_training_data(daily_df)
 
         daily_df = self._add_weather_data(
             daily_df=daily_df,
             location=location,
         )
 
-        feature_df = create_daily_features(
-            daily_df
-        )
-
-        self._validate_feature_data(
-            feature_df
-        )
+        feature_df = create_daily_features(daily_df)
+        self._validate_feature_data(feature_df)
 
         x, y = self._separate_features_and_target(
             feature_df
         )
 
-        (
-            x_train,
-            x_test,
-            y_train,
-            y_test,
-        ) = self._split_training_data(
-            x,
-            y,
+        x_train, x_test, y_train, y_test = (
+            self._split_training_data(x, y)
         )
 
         model = self._create_model()
-
         self._train_model(
             model,
             x_train,
@@ -100,10 +81,7 @@ class PredictionTrainer:
         )
 
     # Tarkistaa, että koulutusdataa on riittävästi.
-    def _validate_training_data(
-        self,
-        daily_df,
-    ):
+    def _validate_training_data(self, daily_df):
         if len(daily_df) < 30:
             raise ValueError(
                 "Mallin kouluttamiseen tarvitaan "
@@ -111,10 +89,7 @@ class PredictionTrainer:
             )
 
     # Tarkistaa, että featureiden muodostamisen jälkeen dataa jäi riittävästi.
-    def _validate_feature_data(
-        self,
-        feature_df,
-    ):
+    def _validate_feature_data(self, feature_df):
         if len(feature_df) < 20:
             raise ValueError(
                 "Koulutukseen jäi liian vähän rivejä "
@@ -122,16 +97,10 @@ class PredictionTrainer:
             )
 
     # Hakee historiallisen sään ja lisää sen päiväkohtaiseen dataan.
-    def _add_weather_data(
-        self,
-        daily_df,
-        location,
-    ):
-        weather_by_date = (
-            self.weather_service.get_history(
-                dates=daily_df.index,
-                location=location,
-            )
+    def _add_weather_data(self, daily_df, location):
+        weather_by_date = self.weather_service.get_history(
+            dates=daily_df.index,
+            location=location,
         )
 
         weather_df = self._create_weather_dataframe(
@@ -148,10 +117,7 @@ class PredictionTrainer:
         )
 
     # Muuntaa sääpalvelun vastauksen DataFrameksi.
-    def _create_weather_dataframe(
-        self,
-        weather_by_date,
-    ):
+    def _create_weather_dataframe(self, weather_by_date):
         if not weather_by_date:
             raise ValueError(
                 "Historiallisia säätietoja ei löytynyt."
@@ -165,7 +131,6 @@ class PredictionTrainer:
         weather_df.index = pd.to_datetime(
             weather_df.index
         )
-
         weather_df.index.name = "date"
 
         return weather_df[
@@ -173,27 +138,10 @@ class PredictionTrainer:
         ].sort_index()
 
     # Täydentää yksittäiset puuttuvat sääarvot.
-    def _handle_missing_weather(
-        self,
-        dataframe,
-    ):
+    def _handle_missing_weather(self, dataframe):
         dataframe = dataframe.copy()
 
-        missing_columns = [
-            column
-            for column in WEATHER_FEATURE_COLUMNS
-            if column not in dataframe.columns
-        ]
-
-        if missing_columns:
-            missing_text = ", ".join(
-                missing_columns
-            )
-
-            raise ValueError(
-                "Säädatasta puuttuvat sarakkeet: "
-                f"{missing_text}."
-            )
+        self._validate_weather_columns(dataframe)
 
         dataframe["temperature_mean"] = (
             dataframe["temperature_mean"]
@@ -213,17 +161,30 @@ class PredictionTrainer:
             .fillna(0.0)
         )
 
-        self._validate_weather_data(
-            dataframe
-        )
+        self._validate_weather_data(dataframe)
 
         return dataframe
 
+    # Tarkistaa, että kaikki tarvittavat sääsarakkeet löytyvät.
+    def _validate_weather_columns(self, dataframe):
+        missing_columns = [
+            column
+            for column in WEATHER_FEATURE_COLUMNS
+            if column not in dataframe.columns
+        ]
+
+        if missing_columns:
+            missing_text = ", ".join(
+                missing_columns
+            )
+
+            raise ValueError(
+                "Säädatasta puuttuvat sarakkeet: "
+                f"{missing_text}."
+            )
+
     # Tarkistaa, ettei koulutusdataan jää puuttuvia säätietoja.
-    def _validate_weather_data(
-        self,
-        dataframe,
-    ):
+    def _validate_weather_data(self, dataframe):
         missing_values = dataframe[
             WEATHER_FEATURE_COLUMNS
         ].isna().sum()
@@ -249,43 +210,21 @@ class PredictionTrainer:
         self,
         feature_df,
     ):
-        feature_columns = (
-            get_model_feature_columns()
-        )
+        feature_columns = get_model_feature_columns()
 
-        x = feature_df[
-            feature_columns
-        ]
-
-        y = feature_df[
-            TARGET_COLUMN
-        ]
+        x = feature_df[feature_columns]
+        y = feature_df[TARGET_COLUMN]
 
         return x, y
 
     # Jakaa datan koulutus- ja testiosiin.
-    def _split_training_data(
-        self,
-        x,
-        y,
-    ):
-        split_point = int(
-            len(x) * 0.8
-        )
+    def _split_training_data(self, x, y):
+        split_point = int(len(x) * 0.8)
 
-        x_train = x.iloc[
-            :split_point
-        ]
-        x_test = x.iloc[
-            split_point:
-        ]
-
-        y_train = y.iloc[
-            :split_point
-        ]
-        y_test = y.iloc[
-            split_point:
-        ]
+        x_train = x.iloc[:split_point]
+        x_test = x.iloc[split_point:]
+        y_train = y.iloc[:split_point]
+        y_test = y.iloc[split_point:]
 
         if x_train.empty or x_test.empty:
             raise ValueError(
@@ -293,12 +232,7 @@ class PredictionTrainer:
                 "jakaa riittävän suuriin osiin."
             )
 
-        return (
-            x_train,
-            x_test,
-            y_train,
-            y_test,
-        )
+        return x_train, x_test, y_train, y_test
 
     # Luo koulutettavan Random Forest -mallin.
     def _create_model(self):
@@ -322,21 +256,11 @@ class PredictionTrainer:
         )
 
     # Muodostaa ennusteet testidatalle.
-    def _predict_test_data(
-        self,
-        model,
-        x_test,
-    ):
-        return model.predict(
-            x_test
-        )
+    def _predict_test_data(self, model, x_test):
+        return model.predict(x_test)
 
     # Tallentaa koulutetun mallin tiedostoon.
-    def _save_model(
-        self,
-        model,
-        location,
-    ):
+    def _save_model(self, model, location):
         return self.registry.save(
             model=model,
             location=location,
@@ -368,19 +292,18 @@ class PredictionTrainer:
                 )
             ),
         }
+
     # Laskee mallin feature importance -arvot.
     def _calculate_feature_importance(
         self,
         model,
         feature_columns,
     ):
-        importance_values = model.feature_importances_
-
         return {
             feature: float(importance)
             for feature, importance in zip(
                 feature_columns,
-                importance_values,
+                model.feature_importances_,
             )
         }
 
@@ -463,73 +386,43 @@ class PredictionTrainer:
         return {
             "location": location,
             "model_path": str(path),
-            "model_type": (
-                "RandomForestRegressor"
-            ),
+            "model_type": "RandomForestRegressor",
             "feature_version": 2,
             "weather_features": (
                 WEATHER_FEATURE_COLUMNS.copy()
             ),
             "training_start": (
-                daily_df.index
-                .min()
-                .date()
+                daily_df.index.min().date()
             ),
             "training_end": (
-                daily_df.index
-                .max()
-                .date()
+                daily_df.index.max().date()
             ),
             **metrics,
-            "training_rows": len(
-                x_train
-            ),
-            "testing_rows": len(
-                x_test
-            ),
+            "training_rows": len(x_train),
+            "testing_rows": len(x_test),
             "feature_importance": feature_importance,
             "feature_importance_groups": grouped_importance,
         }
 
     # Muodostaa historiadatasta jatkuvan päiväkohtaisen DataFramen.
-    def _prepare_dataframe(
-        self,
-        rows,
-    ):
-        self._validate_rows(
-            rows
-        )
+    def _prepare_dataframe(self, rows):
+        self._validate_rows(rows)
 
-        dataframe = self._create_dataframe(
-            rows
-        )
+        dataframe = self._create_dataframe(rows)
+        daily = self._group_data_by_date(dataframe)
 
-        daily = self._group_data_by_date(
-            dataframe
-        )
-
-        return self._fill_missing_dates(
-            daily
-        )
+        return self._fill_missing_dates(daily)
 
     # Tarkistaa, että historiadataa löytyi.
-    def _validate_rows(
-        self,
-        rows,
-    ):
+    def _validate_rows(self, rows):
         if not rows:
             raise ValueError(
                 "Koulutusdataa ei löytynyt."
             )
 
     # Muuntaa tietokantarivit DataFrameksi.
-    def _create_dataframe(
-        self,
-        rows,
-    ):
-        dataframe = pd.DataFrame(
-            rows
-        )
+    def _create_dataframe(self, rows):
+        dataframe = pd.DataFrame(rows)
 
         dataframe["date"] = pd.to_datetime(
             dataframe["date"]
@@ -538,32 +431,18 @@ class PredictionTrainer:
         return dataframe
 
     # Ryhmittelee näytemäärät päivätasolle.
-    def _group_data_by_date(
-        self,
-        dataframe,
-    ):
+    def _group_data_by_date(self, dataframe):
         return (
             dataframe
-            .groupby("date")[
-                "samples_taken"
-            ]
+            .groupby("date")["samples_taken"]
             .sum()
-            .to_frame(
-                TARGET_COLUMN
-            )
+            .to_frame(TARGET_COLUMN)
             .sort_index()
         )
 
     # Lisää puuttuvat päivät aikasarjaan nolla-arvoilla.
-    def _fill_missing_dates(
-        self,
-        daily,
-    ):
-        full_index = (
-            self._create_date_index(
-                daily
-            )
-        )
+    def _fill_missing_dates(self, daily):
+        full_index = self._create_date_index(daily)
 
         return daily.reindex(
             full_index,
@@ -571,10 +450,7 @@ class PredictionTrainer:
         )
 
     # Luo jatkuvan päivämääräindeksin.
-    def _create_date_index(
-        self,
-        daily,
-    ):
+    def _create_date_index(self, daily):
         return pd.date_range(
             daily.index.min(),
             daily.index.max(),

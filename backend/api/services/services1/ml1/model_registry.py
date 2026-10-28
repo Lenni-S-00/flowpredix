@@ -1,4 +1,5 @@
-# api/services/model_registry.py
+# Hallinnoi koulutettujen ennustemallien tallennusta, lataamista
+# ja muistissa pidettävää mallivälimuistia.
 
 from pathlib import Path
 from threading import Lock
@@ -12,7 +13,6 @@ class ModelRegistry:
     _model_cache = {}
     _cache_lock = Lock()
 
-    # Alustaa mallien tallennushakemiston.
     def __init__(self):
         self.model_dir = self._create_model_directory()
 
@@ -64,7 +64,7 @@ class ModelRegistry:
 
         joblib.dump(model, path)
 
-        self._remove_from_cache(path)
+        self._remove_cached_versions(path)
 
         return path
 
@@ -84,15 +84,14 @@ class ModelRegistry:
             if cached_model is not None:
                 return cached_model
 
-            self._remove_old_cache_versions(
-                path
+            self._remove_cached_versions(
+                path,
+                use_lock=False,
             )
 
             model = joblib.load(path)
 
-            self._model_cache[
-                cache_key
-            ] = model
+            self._model_cache[cache_key] = model
 
             return model
 
@@ -103,42 +102,28 @@ class ModelRegistry:
             path.stat().st_mtime_ns,
         )
 
-    # Poistaa tietyn mallitiedoston välimuistista.
-    def _remove_from_cache(self, path):
-        resolved_path = str(
-            path.resolve()
-        )
-
-        with self._cache_lock:
-            cache_keys = [
-                cache_key
-                for cache_key
-                in self._model_cache
-                if cache_key[0] ==
-                resolved_path
-            ]
-
-            for cache_key in cache_keys:
-                self._model_cache.pop(
-                    cache_key,
-                    None,
-                )
-
-    # Poistaa saman tiedoston vanhat välimuistiversiot.
-    def _remove_old_cache_versions(
+    # Poistaa mallitiedoston kaikki versiot välimuistista.
+    def _remove_cached_versions(
         self,
         path,
+        use_lock=True,
     ):
+        if use_lock:
+            with self._cache_lock:
+                self._remove_cached_versions(
+                    path,
+                    use_lock=False,
+                )
+            return
+
         resolved_path = str(
             path.resolve()
         )
 
         cache_keys = [
             cache_key
-            for cache_key
-            in self._model_cache
-            if cache_key[0] ==
-            resolved_path
+            for cache_key in self._model_cache
+            if cache_key[0] == resolved_path
         ]
 
         for cache_key in cache_keys:
@@ -156,6 +141,4 @@ class ModelRegistry:
 
     # Tarkistaa, löytyykö mallitiedosto.
     def exists(self, location=None):
-        path = self.get_path(location)
-
-        return path.exists()
+        return self.get_path(location).exists()
