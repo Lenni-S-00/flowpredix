@@ -1,6 +1,6 @@
 from .preprocessing import prepare_dataframe, build_timestamp
 from ..prediction1.finalization import finalize_dataframe
-from ...config import DEFAULT_CONFIG, FINAL_COLUMN_MAPPING
+from ..config import DEFAULT_CONFIG, FINAL_COLUMN_MAPPING
 
 
 def process_file(df):

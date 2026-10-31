@@ -18,8 +18,6 @@ from .serializers import (
 from .services.services1.prediction1.finalization import create_records
 from .services.services1.data1.ingestion import process_file
 from api.services.resolver import get_service
-from .services.services1.prediction1.hourly_prediction import HourlyPredictionService
-from .services.services1.prediction1.employee_estimation import (EmployeeEstimator)
 
 from django.core.management import call_command
 from rest_framework.views import APIView
@@ -493,11 +491,10 @@ def predict_patient_flow(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    PredictionService = get_service(
+    service = get_service(
         request.user,
-        "prediction"
+        "prediction",
     )
-    service = PredictionService()
 
     try:
         # Ennustelogiikka pidetään erillisessä palveluluokassa.
@@ -610,6 +607,14 @@ def prediction_models(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def hourly_prediction(request):
+    if not request.user.organization:
+        return Response(
+            {
+                "error": "Käyttäjällä ei ole organisaatiota.",
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     try:
         days = int(
             request.query_params.get(
@@ -625,7 +630,7 @@ def hourly_prediction(request):
                     "olla kokonaisluku."
                 )
             },
-            status=400,
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     if days < 1:
@@ -636,7 +641,7 @@ def hourly_prediction(request):
                     "olla vähintään 1."
                 )
             },
-            status=400,
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     location = request.query_params.get(
@@ -651,10 +656,9 @@ def hourly_prediction(request):
         location = None
 
     try:
-        service = HourlyPredictionService(
-            organization=(
-                request.user.organization
-            )
+        service = get_service(
+            request.user,
+            "hourly_prediction",
         )
 
         predictions = service.predict(
@@ -671,7 +675,7 @@ def hourly_prediction(request):
             {
                 "detail": str(error),
             },
-            status=400,
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     except FileNotFoundError as error:
@@ -679,13 +683,14 @@ def hourly_prediction(request):
             {
                 "detail": str(error),
             },
-            status=404,
+            status=status.HTTP_404_NOT_FOUND,
         )
-    
+        
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def predict_employees(request):
     """Palauttaa tuntiennusteen ja historiallisen henkilöstöarvion."""
+
     if not request.user.organization:
         return Response(
             {
@@ -731,12 +736,9 @@ def predict_employees(request):
         )
 
     try:
-        prediction_service = (
-            HourlyPredictionService(
-                organization=(
-                    request.user.organization
-                )
-            )
+        prediction_service = get_service(
+            request.user,
+            "hourly_prediction",
         )
 
         forecast_rows = (
@@ -746,11 +748,14 @@ def predict_employees(request):
             )
         )
 
-        estimator = EmployeeEstimator(
-            organization=(
-                request.user.organization
-            ),
+        estimator = get_service(
+            request.user,
+            "employees",
             location=location,
+        )
+
+        results = estimator.estimate_forecast_rows(
+            forecast_rows
         )
 
         results = (
@@ -768,7 +773,7 @@ def predict_employees(request):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
-
+    
 class TrainPredictionModelsView(APIView):
     permission_classes = [IsAuthenticated]
 

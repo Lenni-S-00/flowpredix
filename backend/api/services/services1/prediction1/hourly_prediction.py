@@ -1,5 +1,5 @@
-# Muuntaa päiväkohtaiset ennusteet tuntiennusteiksi edellisen vuoden
-# toteutuneen tuntijakauman perusteella.
+# Muuntaa organisaatio 1:n päiväkohtaiset ennusteet tuntiennusteiksi
+# edellisen vuoden toteutuneen tuntijakauman perusteella.
 
 from collections import defaultdict
 from datetime import datetime, time
@@ -16,15 +16,23 @@ from api.services.services1.prediction1.prediction import PredictionService
 class HourlyPredictionService:
     BUSINESS_HOURS = list(range(7, 15))
 
-    def __init__(self, organization=None):
+    def __init__(self, organization):
         self.organization = organization
-        self.daily_prediction_service = PredictionService()
+        self.daily_prediction_service = PredictionService(
+            organization=organization
+        )
 
     # Muodostaa päiväennusteista tuntikohtaiset ennusteet.
-    def predict(self, days=7, location=None):
-        daily_predictions = self.daily_prediction_service.predict(
-            days=days,
-            location=location,
+    def predict(
+        self,
+        days=7,
+        location=None,
+    ):
+        daily_predictions = (
+            self.daily_prediction_service.predict(
+                days=days,
+                location=location,
+            )
         )
 
         if not daily_predictions:
@@ -39,6 +47,7 @@ class HourlyPredictionService:
                 location=location,
                 distributions_by_year=distributions_by_year,
             )
+
             results.extend(hourly_rows)
 
         return results
@@ -54,13 +63,20 @@ class HourlyPredictionService:
             daily_row["date"]
         ).date()
 
-        daily_total = self._get_daily_prediction(daily_row)
-        reference_year = prediction_date.year - 1
+        daily_total = self._get_daily_prediction(
+            daily_row
+        )
 
-        year_distributions = self._get_year_distributions(
-            reference_year=reference_year,
-            location=location,
-            distributions_by_year=distributions_by_year,
+        reference_year = (
+            prediction_date.year - 1
+        )
+
+        year_distributions = (
+            self._get_year_distributions(
+                reference_year=reference_year,
+                location=location,
+                distributions_by_year=distributions_by_year,
+            )
         )
 
         distribution = self._get_distribution(
@@ -96,17 +112,30 @@ class HourlyPredictionService:
                 location=location,
             )
 
-        return distributions_by_year[reference_year]
+        return distributions_by_year[
+            reference_year
+        ]
 
     # Valitsee viikonpäivän jakauman ja tarvittaessa fallback-jakauman.
-    def _get_distribution(self, year_distributions, weekday):
-        distribution = year_distributions["weekday"].get(weekday)
+    def _get_distribution(
+        self,
+        year_distributions,
+        weekday,
+    ):
+        distribution = (
+            year_distributions["weekday"]
+            .get(weekday)
+        )
 
         if not distribution:
-            distribution = year_distributions["overall"]
+            distribution = (
+                year_distributions["overall"]
+            )
 
         if not distribution:
-            distribution = self._get_equal_distribution()
+            distribution = (
+                self._get_equal_distribution()
+            )
 
         return distribution
 
@@ -127,7 +156,10 @@ class HourlyPredictionService:
                 hour,
             )
 
-            value = hourly_values.get(hour, 0)
+            value = hourly_values.get(
+                hour,
+                0,
+            )
 
             results.append({
                 "date": timestamp.isoformat(),
@@ -144,7 +176,11 @@ class HourlyPredictionService:
         return results
 
     # Muodostaa tuntirivin aikaleiman.
-    def _create_hour_timestamp(self, prediction_date, hour):
+    def _create_hour_timestamp(
+        self,
+        prediction_date,
+        hour,
+    ):
         return timezone.make_aware(
             datetime.combine(
                 prediction_date,
@@ -153,16 +189,25 @@ class HourlyPredictionService:
         )
 
     # Muodostaa vuoden toteutuneesta datasta tuntijakaumat.
-    def _build_year_distributions(self, year, location=None):
+    def _build_year_distributions(
+        self,
+        year,
+        location=None,
+    ):
         queryset = self._get_year_queryset(
             year=year,
             location=location,
         )
 
-        rows = self._aggregate_hourly_data(queryset)
+        rows = self._aggregate_hourly_data(
+            queryset
+        )
 
-        weekday_hour_totals, overall_hour_totals = (
-            self._calculate_hour_totals(rows)
+        (
+            weekday_hour_totals,
+            overall_hour_totals,
+        ) = self._calculate_hour_totals(
+            rows
         )
 
         weekday_distributions = (
@@ -171,8 +216,10 @@ class HourlyPredictionService:
             )
         )
 
-        overall_distribution = self._normalize_distribution(
-            overall_hour_totals
+        overall_distribution = (
+            self._normalize_distribution(
+                overall_hour_totals
+            )
         )
 
         return {
@@ -180,24 +227,33 @@ class HourlyPredictionService:
             "overall": overall_distribution,
         }
 
-    # Hakee valitun vuoden historiadatan.
-    def _get_year_queryset(self, year, location):
+    # Hakee vain organisaation valitun vuoden historiadatan.
+    def _get_year_queryset(
+        self,
+        year,
+        location,
+    ):
         start_date = timezone.make_aware(
-            datetime(year, 1, 1)
+            datetime(
+                year,
+                1,
+                1,
+            )
         )
+
         end_date = timezone.make_aware(
-            datetime(year + 1, 1, 1)
+            datetime(
+                year + 1,
+                1,
+                1,
+            )
         )
 
         queryset = SampleData.objects.filter(
+            organization=self.organization,
             timestamp__gte=start_date,
             timestamp__lt=end_date,
         )
-
-        if self.organization is not None:
-            queryset = queryset.filter(
-                organization=self.organization
-            )
 
         if location:
             queryset = queryset.filter(
@@ -207,28 +263,47 @@ class HourlyPredictionService:
         return queryset
 
     # Ryhmittelee historiadatan tunneittain.
-    def _aggregate_hourly_data(self, queryset):
+    def _aggregate_hourly_data(
+        self,
+        queryset,
+    ):
         return (
             queryset
             .annotate(
-                hour_timestamp=TruncHour("timestamp")
+                hour_timestamp=TruncHour(
+                    "timestamp"
+                )
             )
-            .values("hour_timestamp")
+            .values(
+                "hour_timestamp"
+            )
             .annotate(
-                total_samples=Sum("samples_taken")
+                total_samples=Sum(
+                    "samples_taken"
+                )
             )
-            .order_by("hour_timestamp")
+            .order_by(
+                "hour_timestamp"
+            )
         )
 
     # Laskee näytemäärät viikonpäivittäin ja tunneittain.
-    def _calculate_hour_totals(self, rows):
+    def _calculate_hour_totals(
+        self,
+        rows,
+    ):
         weekday_hour_totals = defaultdict(
             lambda: defaultdict(float)
         )
-        overall_hour_totals = defaultdict(float)
+
+        overall_hour_totals = defaultdict(
+            float
+        )
 
         for row in rows:
-            hour_timestamp = row["hour_timestamp"]
+            hour_timestamp = row[
+                "hour_timestamp"
+            ]
 
             if not hour_timestamp:
                 continue
@@ -238,9 +313,13 @@ class HourlyPredictionService:
             if hour not in self.BUSINESS_HOURS:
                 continue
 
-            weekday = hour_timestamp.weekday()
+            weekday = (
+                hour_timestamp.weekday()
+            )
+
             total_samples = float(
-                row["total_samples"] or 0
+                row["total_samples"]
+                or 0
             )
 
             weekday_hour_totals[
@@ -251,7 +330,10 @@ class HourlyPredictionService:
                 hour
             ] += total_samples
 
-        return weekday_hour_totals, overall_hour_totals
+        return (
+            weekday_hour_totals,
+            overall_hour_totals,
+        )
 
     # Muodostaa normalisoidut jakaumat viikonpäiville.
     def _create_weekday_distributions(
@@ -260,21 +342,37 @@ class HourlyPredictionService:
     ):
         distributions = {}
 
-        for weekday, hour_totals in weekday_hour_totals.items():
-            distribution = self._normalize_distribution(
-                hour_totals
+        for (
+            weekday,
+            hour_totals,
+        ) in weekday_hour_totals.items():
+
+            distribution = (
+                self._normalize_distribution(
+                    hour_totals
+                )
             )
 
             if distribution:
-                distributions[weekday] = distribution
+                distributions[
+                    weekday
+                ] = distribution
 
         return distributions
 
     # Normalisoi tuntimäärät suhteelliseksi jakaumaksi.
-    def _normalize_distribution(self, hour_totals):
+    def _normalize_distribution(
+        self,
+        hour_totals,
+    ):
         total = sum(
             max(
-                float(hour_totals.get(hour, 0)),
+                float(
+                    hour_totals.get(
+                        hour,
+                        0,
+                    )
+                ),
                 0,
             )
             for hour in self.BUSINESS_HOURS
@@ -286,7 +384,12 @@ class HourlyPredictionService:
         return {
             hour: (
                 max(
-                    float(hour_totals.get(hour, 0)),
+                    float(
+                        hour_totals.get(
+                            hour,
+                            0,
+                        )
+                    ),
                     0,
                 )
                 / total
@@ -296,7 +399,10 @@ class HourlyPredictionService:
 
     # Muodostaa tasaisen tuntijakauman.
     def _get_equal_distribution(self):
-        weight = 1 / len(self.BUSINESS_HOURS)
+        weight = (
+            1
+            / len(self.BUSINESS_HOURS)
+        )
 
         return {
             hour: weight
@@ -320,12 +426,18 @@ class HourlyPredictionService:
                 for hour in self.BUSINESS_HOURS
             }
 
-        raw_values = self._calculate_raw_hourly_values(
-            daily_total,
-            distribution,
+        raw_values = (
+            self._calculate_raw_hourly_values(
+                daily_total,
+                distribution,
+            )
         )
 
-        allocated = self._floor_hourly_values(raw_values)
+        allocated = (
+            self._floor_hourly_values(
+                raw_values
+            )
+        )
 
         self._allocate_remainder(
             daily_total=daily_total,
@@ -344,15 +456,23 @@ class HourlyPredictionService:
         return {
             hour: (
                 daily_total
-                * distribution.get(hour, 0)
+                * distribution.get(
+                    hour,
+                    0,
+                )
             )
             for hour in self.BUSINESS_HOURS
         }
 
     # Muuntaa tuntiarvot kokonaisluvuiksi alaspäin.
-    def _floor_hourly_values(self, raw_values):
+    def _floor_hourly_values(
+        self,
+        raw_values,
+    ):
         return {
-            hour: int(raw_values[hour])
+            hour: int(
+                raw_values[hour]
+            )
             for hour in self.BUSINESS_HOURS
         }
 
@@ -363,8 +483,14 @@ class HourlyPredictionService:
         raw_values,
         allocated,
     ):
-        allocated_total = sum(allocated.values())
-        remaining = daily_total - allocated_total
+        allocated_total = sum(
+            allocated.values()
+        )
+
+        remaining = (
+            daily_total
+            - allocated_total
+        )
 
         remainder_order = sorted(
             self.BUSINESS_HOURS,
@@ -375,20 +501,33 @@ class HourlyPredictionService:
             reverse=True,
         )
 
-        for hour in remainder_order[:remaining]:
+        for hour in remainder_order[
+            :remaining
+        ]:
             allocated[hour] += 1
 
     # Palauttaa päiväennusteen tunnetuista ennustekentistä.
-    def _get_daily_prediction(self, daily_row):
+    def _get_daily_prediction(
+        self,
+        daily_row,
+    ):
         value = (
             daily_row.get("prediction")
             or daily_row.get("forecast")
-            or daily_row.get("predicted_patient_count")
-            or daily_row.get("predicted_samples")
+            or daily_row.get(
+                "predicted_patient_count"
+            )
+            or daily_row.get(
+                "predicted_samples"
+            )
             or 0
         )
 
         return max(
-            int(round(float(value))),
+            int(
+                round(
+                    float(value)
+                )
+            ),
             0,
         )

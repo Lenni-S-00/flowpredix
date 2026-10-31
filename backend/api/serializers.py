@@ -44,6 +44,9 @@ class SampleDataSerializer(serializers.ModelSerializer):
             "samples_taken",
             "employees_used",
         ]
+        read_only_fields = [
+            "id",
+        ]
         validators = []
         list_serializer_class = (
             SampleDataListSerializer

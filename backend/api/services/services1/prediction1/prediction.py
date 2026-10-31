@@ -24,9 +24,10 @@ PREDICTION_CACHE_SECONDS = 30 * 60
 
 class PredictionService:
 
-    def __init__(self):
-        self.repository = SampleDataRepository()
-        self.registry = ModelRegistry()
+    def __init__(self, organization):
+        self.organization = organization
+        self.repository = SampleDataRepository(organization=organization)
+        self.registry = ModelRegistry(organization=organization)
         self.weather_service = WeatherService()
 
     # Muodostaa ennusteet annetulle määrälle tulevia päiviä.
@@ -102,7 +103,8 @@ class PredictionService:
         start_date = future_dates.min().date().isoformat()
 
         return (
-            f"prediction:{location_key}:"
+            f"prediction:{self.organization.id}:"
+            f"{location_key}:"
             f"{start_date}:{days}:"
             f"{model_path.stat().st_mtime_ns}:"
             f"{history_key}"

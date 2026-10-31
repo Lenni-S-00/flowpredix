@@ -1,5 +1,5 @@
 import pandas as pd
-from ...config import month_to_num
+from ..config import month_to_num
 
 NUMERIC_COLUMNS = [
     "näytteenottajia",

@@ -1,5 +1,5 @@
-# Hallinnoi koulutettujen ennustemallien tallennusta, lataamista
-# ja muistissa pidettävää mallivälimuistia.
+# Hallinnoi organisaatio 1:n koulutettujen ennustemallien tallennusta,
+# lataamista ja organisaatiokohtaista mallivälimuistia.
 
 from pathlib import Path
 from threading import Lock
@@ -13,15 +13,17 @@ class ModelRegistry:
     _model_cache = {}
     _cache_lock = Lock()
 
-    def __init__(self):
+    def __init__(self, organization):
+        self.organization = organization
         self.model_dir = self._create_model_directory()
 
-    # Luo mallien tallennushakemiston tarvittaessa.
+    # Luo organisaatiokohtaisen mallihakemiston tarvittaessa.
     def _create_model_directory(self):
         model_dir = (
             Path(settings.BASE_DIR)
             / "models"
             / "predictions"
+            / f"organization_{self.organization.id}"
         )
 
         model_dir.mkdir(
@@ -44,37 +46,64 @@ class ModelRegistry:
 
     # Muuntaa toimipisteen nimen tiedostonimeen sopivaksi.
     def _sanitize_location_name(self, location):
+        safe_name = "".join(
+            character
+            if character.isalnum()
+            or character in ("-", "_")
+            else "_"
+            for character in str(location)
+        )
+
         return (
-            location
-            .replace("/", "_")
-            .replace("\\", "_")
-            .replace(":", "_")
-            .replace(" ", "_")
+            safe_name.strip("_")
+            or "location"
         )
 
     # Palauttaa mallitiedoston täydellisen polun.
     def get_path(self, location=None):
-        model_name = self.get_model_name(location)
+        model_name = self.get_model_name(
+            location
+        )
 
-        return self.model_dir / model_name
+        return (
+            self.model_dir
+            / model_name
+        )
 
-    # Tallentaa koulutetun mallin tiedostoon.
-    def save(self, model, location=None):
-        path = self.get_path(location)
+    # Tallentaa koulutetun mallin organisaatiokohtaiseen tiedostoon.
+    def save(
+        self,
+        model,
+        location=None,
+    ):
+        path = self.get_path(
+            location
+        )
 
-        joblib.dump(model, path)
+        joblib.dump(
+            model,
+            path,
+        )
 
-        self._remove_cached_versions(path)
+        self._remove_cached_versions(
+            path
+        )
 
         return path
 
-    # Lataa aiemmin tallennetun mallin.
+    # Lataa aiemmin tallennetun organisaatiokohtaisen mallin.
     def load(self, location=None):
-        path = self.get_path(location)
+        path = self.get_path(
+            location
+        )
 
-        self._validate_model_path(path)
+        self._validate_model_path(
+            path
+        )
 
-        cache_key = self._create_cache_key(path)
+        cache_key = self._create_cache_key(
+            path
+        )
 
         with self._cache_lock:
             cached_model = self._model_cache.get(
@@ -89,15 +118,20 @@ class ModelRegistry:
                 use_lock=False,
             )
 
-            model = joblib.load(path)
+            model = joblib.load(
+                path
+            )
 
-            self._model_cache[cache_key] = model
+            self._model_cache[
+                cache_key
+            ] = model
 
             return model
 
-    # Muodostaa välimuistiavaimen tiedostopolusta ja muokkausajasta.
+    # Muodostaa organisaation, tiedostopolun ja muokkausajan sisältävän cache-avaimen.
     def _create_cache_key(self, path):
         return (
+            self.organization.id,
             str(path.resolve()),
             path.stat().st_mtime_ns,
         )
@@ -123,7 +157,12 @@ class ModelRegistry:
         cache_keys = [
             cache_key
             for cache_key in self._model_cache
-            if cache_key[0] == resolved_path
+            if (
+                cache_key[0]
+                == self.organization.id
+                and cache_key[1]
+                == resolved_path
+            )
         ]
 
         for cache_key in cache_keys:
@@ -131,6 +170,26 @@ class ModelRegistry:
                 cache_key,
                 None,
             )
+
+    # Tyhjentää organisaation kaikki mallit välimuistista.
+    def clear_organization_cache(self):
+        organization_id = (
+            self.organization.id
+        )
+
+        with self._cache_lock:
+            cache_keys = [
+                cache_key
+                for cache_key in self._model_cache
+                if cache_key[0]
+                == organization_id
+            ]
+
+            for cache_key in cache_keys:
+                self._model_cache.pop(
+                    cache_key,
+                    None,
+                )
 
     # Tarkistaa, että mallitiedosto löytyy.
     def _validate_model_path(self, path):
@@ -141,4 +200,6 @@ class ModelRegistry:
 
     # Tarkistaa, löytyykö mallitiedosto.
     def exists(self, location=None):
-        return self.get_path(location).exists()
+        return self.get_path(
+            location
+        ).exists()

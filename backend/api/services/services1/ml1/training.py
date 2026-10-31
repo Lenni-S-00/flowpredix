@@ -10,22 +10,23 @@ from sklearn.metrics import (
     r2_score,
 )
 
-from backend.api.services.services1.ml1.features import (
+from api.services.services1.ml1.features import (
     TARGET_COLUMN,
     WEATHER_FEATURE_COLUMNS,
     create_daily_features,
     get_model_feature_columns,
 )
-from backend.api.services.services1.ml1.model_registry import ModelRegistry
-from backend.api.services.services1.data1.repositories import SampleDataRepository
+from api.services.services1.ml1.model_registry import ModelRegistry
+from api.services.services1.data1.repositories import SampleDataRepository
 from api.services.weather import WeatherService
 
 
 class PredictionTrainer:
 
-    def __init__(self):
-        self.repository = SampleDataRepository()
-        self.registry = ModelRegistry()
+    def __init__(self, organization):
+        self.organization = organization
+        self.repository = SampleDataRepository(organization=organization)
+        self.registry = ModelRegistry(organization=organization)
         self.weather_service = WeatherService()
 
     # Kouluttaa ja tallentaa yhden ennustemallin.

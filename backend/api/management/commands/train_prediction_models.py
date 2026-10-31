@@ -6,9 +6,9 @@ from django.core.management.base import (
 )
 from django.db import transaction
 
-from api.models import PredictionModel
-from backend.api.services.services1.data1.repositories import SampleDataRepository
-from backend.api.services.services1.ml1.training import PredictionTrainer
+from api.models import Organization, PredictionModel
+from api.services.services1.data1.repositories import SampleDataRepository
+from api.services.services1.ml1.training import PredictionTrainer
 
 
 class Command(BaseCommand):
@@ -18,7 +18,6 @@ class Command(BaseCommand):
         "SampleData-taulun datasta."
     )
 
-    # Lisää komennon komentoriviargumentit.
     # Lisää komennon komentoriviargumentit.
     def add_arguments(self, parser):
         group = (
@@ -77,9 +76,6 @@ class Command(BaseCommand):
 
     # Valitsee komentoriviargumenttien mukaisen koulutustavan.
     def handle(self, *args, **options):
-        trainer = PredictionTrainer()
-        repository = SampleDataRepository()
-
         # Luetaan komennolle annetut argumentit.
         location = options.get("location")
         all_locations = options.get(
@@ -93,10 +89,21 @@ class Command(BaseCommand):
             "organization_id"
         )
 
-        # Tallennetaan organisaation ID command-olioon,
-        # jotta sitä voidaan käyttää myöhemmin
-        # PredictionModel-rivin tallennuksessa.
-        self.organization_id = organization_id
+        # Haetaan organisaatio ja sidotaan kaikki
+        # koulutusoperaatiot siihen.
+        organization = self._get_organization(
+            organization_id
+        )
+
+        self.organization = organization
+
+        trainer = PredictionTrainer(
+            organization=organization
+        )
+
+        repository = SampleDataRepository(
+            organization=organization
+        )
 
         if location:
             self._train_location(
@@ -119,6 +126,27 @@ class Command(BaseCommand):
             ]
         ):
             self._train_combined(trainer)
+
+    # Hakee koulutettavan organisaation tietokannasta.
+    def _get_organization(
+        self,
+        organization_id,
+    ):
+        if organization_id is None:
+            raise CommandError(
+                "Organisaation ID on pakollinen. "
+                "Anna --organization-id."
+            )
+
+        try:
+            return Organization.objects.get(
+                id=organization_id
+            )
+        except Organization.DoesNotExist as exc:
+            raise CommandError(
+                "Organisaatiota ei löytynyt ID:llä "
+                f"{organization_id}."
+            ) from exc
 
     # Kouluttaa yhden valitun toimipisteen mallin.
     def _train_location(
@@ -190,6 +218,7 @@ class Command(BaseCommand):
                 location=location,
             )
             return True
+
         except Exception as exc:
             self._write_training_warning(
                 location,
@@ -249,6 +278,7 @@ class Command(BaseCommand):
             trainer,
             location,
         )
+
         metadata = self._normalize_result(
             result=result,
             location=location,
@@ -313,6 +343,7 @@ class Command(BaseCommand):
             return
 
         self.stdout.write("")
+
         self.stdout.write(
             self.style.SUCCESS(
                 "Feature importance:"
@@ -335,6 +366,7 @@ class Command(BaseCommand):
 
         if grouped_importance:
             self.stdout.write("")
+
             self.stdout.write(
                 self.style.SUCCESS(
                     "Feature-ryhmien tärkeys:"
@@ -450,6 +482,7 @@ class Command(BaseCommand):
         self._deactivate_previous_model(
             metadata["location"]
         )
+
         self._create_prediction_model(metadata)
 
     # Poistaa saman organisaation vanhan mallin
@@ -459,16 +492,8 @@ class Command(BaseCommand):
         location,
     ):
         PredictionModel.objects.filter(
-
-            # Rajataan vain tähän organisaatioon.
-            organization_id=(
-                self.organization_id
-            ),
-
-            # Rajataan samaan toimipisteeseen.
+            organization=self.organization,
             location=location,
-
-            # Vain aktiivinen malli poistetaan käytöstä.
             is_active=True,
         ).update(
             is_active=False
@@ -480,15 +505,7 @@ class Command(BaseCommand):
         metadata,
     ):
         PredictionModel.objects.create(
-
-            # Liitetään malli organisaatioon.
-            #
-            # organization_id voidaan antaa suoraan
-            # ilman että Organization-oliota tarvitsee
-            # hakea erikseen tietokannasta.
-            organization_id=(
-                self.organization_id
-            ),
+            organization=self.organization,
 
             # Toimipiste.
             # Yhdistetyllä mallilla arvo voi olla None.
@@ -534,12 +551,13 @@ class Command(BaseCommand):
             # Uusi malli otetaan aktiiviseksi.
             is_active=True,
         )
-        
+
     # Muodostaa koulutustuloksen komentoriviyhteenvedon.
     def _format_result(self, metadata):
         location = self._get_display_name(
             metadata["location"]
         )
+
         metrics = self._format_metrics(metadata)
 
         return (
